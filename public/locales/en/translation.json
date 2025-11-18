@@ -1,4 +1,14 @@
 {
+  "common": {
+    "actions": "Actions",
+    "undo": "Undo",
+    "viewSolutions": "View Solutions",
+    "editDate": "Edit Date",
+    "save": "Save",
+    "cancel": "Cancel",
+    "days": "Days",
+    "close": "Close"
+  },
   "header": {
     "title": "Algorithm Tracker",
     "subtitle": "Plan daily practice, track review pace, and conquer the Hot 100.",
@@ -10,7 +20,19 @@
     "title": "Settings",
     "darkMode": "Dark Mode",
     "language": "Language",
-    "close": "Close"
+    "dataManagement": {
+      "title": "Data Management",
+      "export": "Export Backup",
+      "import": "Import Backup",
+      "clear": "Clear All Data",
+      "clearConfirm": {
+        "title": "Clear All Data",
+        "body": "This will permanently delete all your learning and review records. This action cannot be undone. Are you sure?",
+        "cancel": "Cancel",
+        "confirm": "Confirm Clear"
+      },
+      "close": "Close"
+    }
   },
   "dashboard": {
     "problems": "problems",
@@ -37,7 +59,7 @@
     },
     "review": {
       "title": "Today's Review",
-      "tomorrow": "{{count}} more tomorrow.",
+      "tomorrow": "Reviewing is the key to mastery.",
       "countBadge": "{{count}} problems",
       "empty": "All reviews for today are done ✨",
       "next": "Next: {{date}}",
@@ -47,6 +69,7 @@
     "suggestions": {
       "title": "New Suggestions",
       "badge": "Focus Practice",
+      "subtitle": "Pick a new problem and challenge yourself!",
       "empty": "No unstarted problems. Keep it up!",
       "openExternal": "Open on LeetCode",
       "record": "Record as New Solve"
@@ -57,6 +80,9 @@
       "tooltip": "{{date}} - {{count}} reviews",
       "tooltipEmpty": "{{date}} - No reviews",
       "problems": "{{count}} problems"
+    },
+    "modal": {
+      "empty": "Nothing to see here~"
     }
   },
   "problems": {
@@ -105,13 +131,92 @@
   },
   "tabs": {
     "dashboard": "Dashboard",
-    "problems": "Problems"
+    "problems": "Problems",
+    "history": "History",
+    "dataManagement": "Data Management"
+  },
+  "dataManagement": {
+    "title": "Archive Editor",
+    "subtitle": "Visualize and edit your learning progress in detail here",
+    "stats": {
+      "totalProblems": "Total Problems",
+      "coverage": "Coverage",
+      "totalRecords": "Total Records",
+      "learns": "Learns",
+      "reviews": "Reviews",
+      "totalSolutions": "Solutions",
+      "solutionsHelp": "Saved solutions",
+      "dataSize": "Data Size",
+      "storageUsed": "Local storage used"
+    },
+    "progress": {
+      "title": "Learning Progress",
+      "mastered": "Mastered",
+      "learning": "Learning",
+      "unstarted": "Unstarted"
+    },
+    "operations": {
+      "title": "Data Operations",
+      "export": "Export Backup",
+      "import": "Import Backup",
+      "clear": "Clear All Data",
+      "clearConfirm": {
+        "title": "Clear All Data",
+        "body": "This will permanently delete all your learning and review records. This action cannot be undone. Are you sure?",
+        "cancel": "Cancel",
+        "confirm": "Confirm Clear"
+      }
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "problem": "Problem",
+      "status": "Status",
+      "lastActivity": "Last Activity",
+      "records": "Records",
+      "empty": "No recent activity"
+    }
   },
   "toast": {
     "newSuccessTitle": "New Solve Recorded",
     "newSuccessDesc": "The first review has been scheduled.",
     "reviewSuccessTitle": "Review Completed",
-    "reviewSuccessDesc": "The next review has been scheduled."
+    "reviewSuccessDesc": "The next review has been scheduled.",
+    "exportSuccess": "Backup exported successfully.",
+    "importSuccess": "Backup imported successfully. Reloading...",
+    "importError": "Failed to import backup. Please check the file format.",
+    "clearSuccess": "All data cleared. Reloading..."
+  },
+  "history": {
+    "stats": {
+      "totalLearns": "Total Learns",
+      "totalReviews": "Total Reviews",
+      "activeDays": "Total Active Days"
+    },
+    "calendar": {
+      "title": "Learning Calendar"
+    },
+    "table": {
+      "title": "Recent Activities",
+      "date": "Date",
+      "problem": "Problem",
+      "type": "Type",
+      "viewChart": "View History Chart",
+      "chartTitle": "History Chart"
+    },
+    "selectedDay": {
+      "title": "Select a day to see details",
+      "empty": "No activities on this day.",
+      "prompt": "Click a day on the calendar to see details."
+    },
+    "actionType": {
+      "learn": "New Learn",
+      "review": "Review"
+    },
+    "noRecords": {
+      "title": "No History Yet",
+      "description": "Start learning or reviewing problems to see your progress here.",
+      "cta": "Go to Dashboard"
+    }
   },
   "problem_names": {
     "p_1": "Two Sum",

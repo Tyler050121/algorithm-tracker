@@ -1,6 +1,7 @@
 import {
   Badge,
   Box,
+  Button,
   Flex,
   HStack,
   Icon,
@@ -57,6 +58,25 @@ const DifficultyBadge = ({ difficulty }) => {
   );
 };
 
+const TooltipContent = ({ problems }) => {
+  if (!problems || problems.length === 0) {
+    return null;
+  }
+  return (
+    <VStack align="stretch" spacing={2} p={1}>
+      {problems.slice(0, 5).map((p) => (
+        <HStack key={p.id} justify="space-between">
+          <Text fontSize="xs">
+            #{p.id} {p.name}
+          </Text>
+          <DifficultyBadge difficulty={p.difficulty} />
+        </HStack>
+      ))}
+      {problems.length > 5 && <Text fontSize="xs">...and {problems.length - 5} more.</Text>}
+    </VStack>
+  );
+};
+
 function Dashboard({
   todayStr,
   stats,
@@ -68,6 +88,7 @@ function Dashboard({
   activitySeries,
   onRecordReview,
   onRecordNew,
+  masteredProblems,
 }) {
   const { t } = useTranslation();
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -121,24 +142,60 @@ function Dashboard({
     <Stack spacing={6}>
       {/* Stats Cards */}
       <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-        <StatCard
-          icon={TimeIcon}
-          label={t('dashboard.stats.reviewToday')}
-          value={toReviewToday.length}
-          help={t('dashboard.stats.reviewTodayHelp')}
-        />
-        <StatCard
-          icon={CalendarIcon}
-          label={t('dashboard.stats.planTomorrow')}
-          value={toReviewTomorrow.length}
-          help={t('dashboard.stats.planTomorrowHelp')}
-        />
-        <StatCard
-          icon={StarIcon}
-          label={t('dashboard.stats.mastered')}
-          value={stats.masteredCount}
-          help={t('dashboard.stats.masteredHelp')}
-        />
+        <ChakraTooltip
+          label={<TooltipContent problems={toReviewToday} />}
+          hasArrow
+          placement="bottom"
+          bg={useColorModeValue('white', 'gray.700')}
+          color={useColorModeValue('gray.800', 'white')}
+          borderRadius="md"
+          isDisabled={toReviewToday.length === 0}
+        >
+          <Box>
+            <StatCard
+              icon={TimeIcon}
+              label={t('dashboard.stats.reviewToday')}
+              value={toReviewToday.length}
+              help={t('dashboard.stats.reviewTodayHelp')}
+            />
+          </Box>
+        </ChakraTooltip>
+        <ChakraTooltip
+          label={<TooltipContent problems={toReviewTomorrow} />}
+          hasArrow
+          placement="bottom"
+          bg={useColorModeValue('white', 'gray.700')}
+          color={useColorModeValue('gray.800', 'white')}
+          borderRadius="md"
+          isDisabled={toReviewTomorrow.length === 0}
+        >
+          <Box>
+            <StatCard
+              icon={CalendarIcon}
+              label={t('dashboard.stats.planTomorrow')}
+              value={toReviewTomorrow.length}
+              help={t('dashboard.stats.planTomorrowHelp')}
+            />
+          </Box>
+        </ChakraTooltip>
+        <ChakraTooltip
+          label={<TooltipContent problems={masteredProblems} />}
+          hasArrow
+          placement="bottom"
+          bg={useColorModeValue('white', 'gray.700')}
+          color={useColorModeValue('gray.800', 'white')}
+          borderRadius="md"
+          isDisabled={masteredProblems.length === 0}
+        >
+          <Box>
+            <StatCard
+              icon={StarIcon}
+              label={t('dashboard.stats.mastered')}
+              value={stats.masteredCount}
+              help={t('dashboard.stats.masteredHelp')}
+            />
+          </Box>
+        </ChakraTooltip>
       </SimpleGrid>
 
       {/* Charts */}
@@ -199,7 +256,7 @@ function Dashboard({
             <Box>
               <Text fontWeight="semibold">{t('dashboard.review.title')} ({todayStr})</Text>
               <Text fontSize="sm" color="gray.500">
-                {t('dashboard.review.tomorrow', { count: toReviewTomorrow.length })}
+                {t('dashboard.review.tomorrow')}
               </Text>
             </Box>
             <Badge colorScheme="orange">{t('dashboard.review.countBadge', { count: toReviewToday.length || '0' })}</Badge>
@@ -208,8 +265,19 @@ function Dashboard({
             {toReviewToday.length === 0 && (
               <Text color="gray.500" p={4}>{t('dashboard.review.empty')}</Text>
             )}
-            {toReviewToday.map((problem) => (
-              <Flex key={problem.id} justify="space-between" align="center" p={3} borderRadius="lg" bg={subtleBg}>
+            {toReviewToday.slice(0, 5).map((problem) => (
+              <Flex
+                key={problem.id}
+                justify="space-between"
+                align="center"
+                p={3}
+                borderRadius="lg"
+                bg={subtleBg}
+                minH="70px"
+                border="2px solid"
+                borderColor={new Date(problem.nextReviewDate) < new Date(todayStr) ? 'red.300' : 'transparent'}
+                animation={new Date(problem.nextReviewDate) < new Date(todayStr) ? 'glowing-border 2s ease-in-out infinite' : 'none'}
+              >
                 <Box>
                   <Text fontWeight="semibold">{problem.name}</Text>
                   <Text fontSize="sm" color="gray.500">
@@ -232,15 +300,20 @@ function Dashboard({
 
         <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
           <Flex justify="space-between" align="center" mb={4}>
-            <Text fontWeight="semibold">{t('dashboard.suggestions.title')}</Text>
+            <Box>
+              <Text fontWeight="semibold">{t('dashboard.suggestions.title')}</Text>
+              <Text fontSize="sm" color="gray.500">
+                {t('dashboard.suggestions.subtitle')}
+              </Text>
+            </Box>
             <Badge colorScheme="teal">{t('dashboard.suggestions.badge')}</Badge>
           </Flex>
           {suggestions.length === 0 ? (
             <Text color="gray.500" p={4}>{t('dashboard.suggestions.empty')}</Text>
           ) : (
             <Stack spacing={3}>
-              {suggestions.map((problem) => (
-                <Flex key={problem.id} justify="space-between" align="center" p={3} borderRadius="lg" bg={subtleBg}>
+              {suggestions.slice(0, 5).map((problem) => (
+                <Flex key={problem.id} justify="space-between" align="center" p={3} borderRadius="lg" bg={subtleBg} minH="70px">
                   <VStack align="flex-start" spacing={1}>
                     <Text fontWeight="medium">{problem.name}</Text>
                     <HStack>

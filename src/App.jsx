@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   Box,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
   useDisclosure,
   useToast,
   Flex,
@@ -18,6 +14,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AddIcon, SettingsIcon } from '@chakra-ui/icons';
 import { format, addDays, isBefore, startOfToday, sub } from 'date-fns';
 import { HOT_100_PROBLEMS, REVIEW_INTERVALS } from './constants';
@@ -26,10 +23,22 @@ import ProblemsBoard from './components/ProblemsBoard';
 import SolutionDrawer from './components/SolutionDrawer';
 import NewSolveModal from './components/NewSolveModal';
 import SettingsModal from './components/SettingsModal';
+import HistoryBoard from './components/HistoryBoard';
 
 const STORAGE_KEY = 'algorithmTrackerProblemsV3';
-
 const createId = () => Math.random().toString(36).slice(2, 9);
+
+const MotionBox = motion(Box);
+const pageVariants = {
+  initial: { opacity: 0, y: 12, filter: 'blur(12px)' },
+  enter: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  exit: { opacity: 0, y: -12, filter: 'blur(12px)' },
+};
+const pageTransition = {
+  type: 'tween',
+  duration: 0.2,
+  ease: [0.4, 0, 0.2, 1],
+};
 
 const titleAnimation = keyframes`
   0% { transform: scale(1) rotate(-1deg); }
@@ -71,8 +80,8 @@ function normalizeProblem(problem) {
 
 function App() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [problems, setProblems] = useState([]);
-  const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
   const [focusedProblemId, setFocusedProblemId] = useState(null);
   const toast = useToast();
@@ -126,16 +135,20 @@ function App() {
     return { unstartedCount, learningCount, masteredCount };
   }, [problems]);
 
-  const toReviewToday = useMemo(
-    () =>
-      problems.filter(
-        (p) =>
-          p.nextReviewDate &&
-          isBefore(new Date(p.nextReviewDate), addDays(today, 1)) &&
-          p.status !== 'mastered'
-      ),
-    [problems, today]
+  const masteredProblems = useMemo(
+    () => problems.filter((p) => p.status === 'mastered'),
+    [problems]
   );
+
+  const toReviewToday = useMemo(() => {
+    const todayProblems = problems.filter(
+      (p) =>
+        p.nextReviewDate &&
+        isBefore(new Date(p.nextReviewDate), addDays(today, 1)) &&
+        p.status !== 'mastered'
+    );
+    return todayProblems.sort((a, b) => new Date(a.nextReviewDate) - new Date(b.nextReviewDate));
+  }, [problems, today]);
 
   const toReviewTomorrow = useMemo(
     () =>
@@ -261,7 +274,7 @@ function App() {
         };
       }
 
-      const nextReviewDate = format(addDays(now, REVIEW_INTERVALS[nextIndex]), 'yyyy-MM-dd');
+      const nextReviewDate = format(addDays(new Date(), REVIEW_INTERVALS[nextIndex]), 'yyyy-MM-dd');
       return {
         ...problem,
         status: 'learning',
@@ -311,133 +324,318 @@ function App() {
     setFocusedProblemId(null);
   };
 
+  const handleExportData = () => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `algorithm-tracker-backup-${format(new Date(), 'yyyyMMdd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast({ title: t('toast.exportSuccess'), status: 'success', duration: 2000 });
+  };
+
+  const handleImportData = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        const importedProblems = JSON.parse(data);
+
+        // 更新状态
+        const mergedProblems = HOT_100_PROBLEMS.map((baseProblem) => {
+          const userData = importedProblems[baseProblem.id] || {};
+          const name = t(`problem_names.p_${baseProblem.id}`);
+          return normalizeProblem({ ...baseProblem, ...userData, name });
+        });
+        setProblems(mergedProblems);
+
+        localStorage.setItem(STORAGE_KEY, data);
+        toast({ title: t('toast.importSuccess'), status: 'success', duration: 2000 });
+      } catch (error) {
+        console.error("Failed to import data:", error);
+        toast({ title: t('toast.importError'), status: 'error', duration: 3000 });
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleClearData = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    toast({ title: t('toast.clearSuccess'), status: 'warning', duration: 2000 });
+    setTimeout(() => window.location.reload(), 1000);
+  };
+
+  const handleUndo = (historyItem) => {
+    const { problem, type, date } = historyItem;
+
+    updateProblem(problem.id, (p) => {
+      if (type === 'learn') {
+        const newLearnHistory = p.learnHistory.filter(d => d !== date);
+        // 核心修正：如果这是最后一次学习记录，则级联删除所有复习记录
+        if (newLearnHistory.length === 0) {
+          return {
+            ...p,
+            status: 'unstarted',
+            learnHistory: [],
+            reviewHistory: [], // 级联删除
+            reviewCycleIndex: 0,
+            nextReviewDate: null,
+            startDate: null
+          };
+        }
+        return { ...p, learnHistory: newLearnHistory };
+      }
+
+      if (type === 'review') {
+        const newReviewHistory = p.reviewHistory.filter(d => d !== date);
+        const newReviewCycleIndex = Math.max(0, p.reviewCycleIndex - 1);
+        const nextReviewDate = date;
+        
+        return { ...p, status: 'learning', reviewHistory: newReviewHistory, reviewCycleIndex: newReviewCycleIndex, nextReviewDate };
+      }
+      
+      return p;
+    });
+
+    toast({
+      title: `"${problem.name}" 的一次${type === 'learn' ? '学习' : '复习'}记录已撤销`,
+      status: 'info',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleUpdateDate = (historyItem, newDate) => {
+    const { problem, type, date: oldDate } = historyItem;
+
+    updateProblem(problem.id, (p) => {
+      const historyField = type === 'learn' ? 'learnHistory' : 'reviewHistory';
+      
+      // 替换日期并重新排序
+      const newHistory = p[historyField].map(d => (d === oldDate ? newDate : d)).sort();
+      
+      // 重新计算下一次复习日期
+      const lastActionDate = newHistory[newHistory.length - 1];
+      const nextReviewDate = format(
+        addDays(new Date(lastActionDate), REVIEW_INTERVALS[p.reviewCycleIndex]),
+        'yyyy-MM-dd'
+      );
+
+      return { ...p, [historyField]: newHistory, nextReviewDate };
+    });
+
+    toast({
+      title: `"${problem.name}" 的记录已更新`,
+      description: "后续的复习计划也已自动调整。",
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
   return (
-      <Tabs index={activeTab} onChange={(index) => setActiveTab(index)} colorScheme="teal" variant="soft-rounded">
-        <Box bg={useColorModeValue('gray.50', 'gray.900')} minH="100vh">
+    <Box bg={useColorModeValue('gray.50', 'gray.900')} minH="100vh">
+      <Box
+        bg={headerBg}
+        shadow="sm"
+        borderBottom="1px solid"
+        borderColor={border}
+        px={{ base: 4, md: 8 }}
+      >
+        <Flex direction="row" justify="space-between" align="center" h="72px">
+          {/* Left Side */}
           <Box
-            bg={headerBg}
-            shadow="sm"
-            borderBottom="1px solid"
-            borderColor={border}
-            px={{ base: 4, md: 8 }}
+            as={Link}
+            to="/"
+            animation={`${titleAnimation} 6s ease-in-out infinite`}
+            _hover={{
+              animationPlayState: 'paused',
+              transform: 'scale(1.05) rotate(0deg)',
+              textDecoration: 'none',
+            }}
           >
-            <Flex direction="row" justify="space-between" align="center" h="72px">
-              {/* Left Side */}
-              <Box
-                as="div"
-                animation={`${titleAnimation} 6s ease-in-out infinite`}
+            <Heading
+              size="md"
+              bgGradient="linear(to-r, teal.500, cyan.500)"
+              bgClip="text"
+              fontWeight="extrabold"
+            >
+              {t('header.title')}
+            </Heading>
+          </Box>
+
+          {/* Right Side */}
+          <HStack spacing={6}>
+            <HStack spacing={3}>
+              <NavLink to="/">{t('tabs.dashboard')}</NavLink>
+              <NavLink to="/problems">{t('tabs.problems')}</NavLink>
+              <NavLink to="/history">{t('tabs.history')}</NavLink>
+            </HStack>
+            <HStack spacing={3}>
+              <Tag size="sm" colorScheme="teal" variant="subtle">
+                {t('header.newToday', { count: todayLearned })}
+              </Tag>
+              <Tag size="sm" colorScheme="cyan" variant="subtle">
+                {t('header.reviewToday', { count: todayReviewed })}
+              </Tag>
+              <Button
+                leftIcon={<AddIcon boxSize={3} />}
+                colorScheme="teal"
+                variant="solid"
+                bg={buttonBg}
+                color={buttonColor}
                 _hover={{
-                  animationPlayState: 'paused',
-                  transform: 'scale(1.05) rotate(0deg)',
+                  bg: useColorModeValue('teal.100', 'whiteAlpha.300'),
+                  transform: 'scale(1.05)',
                 }}
+                _active={{
+                  transform: 'scale(0.95)',
+                }}
+                size="sm"
+                onClick={newSolveModal.onOpen}
+                transition="transform 0.1s ease-out"
               >
-                <Heading
-                  size="md"
-                  bgGradient="linear(to-r, teal.500, cyan.500)"
-                  bgClip="text"
-                  fontWeight="extrabold"
-                >
-                  {t('header.title')}
-                </Heading>
-              </Box>
+                {t('header.addNewSolve')}
+              </Button>
+              <IconButton
+                aria-label="Settings"
+                icon={<SettingsIcon />}
+                onClick={settingsModal.onOpen}
+                variant="ghost"
+                size="sm"
+                transition="transform 0.2s ease-in-out"
+                _hover={{
+                  transform: 'scale(1.1)',
+                }}
+                _active={{
+                  transform: 'scale(0.9) rotate(90deg)',
+                }}
+              />
+            </HStack>
+          </HStack>
+        </Flex>
+      </Box>
 
-              {/* Right Side */}
-              <HStack spacing={6}>
-                <TabList>
-                  <Tab>{t('tabs.dashboard')}</Tab>
-                  <Tab>{t('tabs.problems')}</Tab>
-                </TabList>
-                <HStack spacing={3}>
-                  <Tag size="sm" colorScheme="teal" variant="subtle">
-                    {t('header.newToday', { count: todayLearned })}
-                  </Tag>
-                  <Tag size="sm" colorScheme="cyan" variant="subtle">
-                    {t('header.reviewToday', { count: todayReviewed })}
-                  </Tag>
-                  <Button
-                    leftIcon={<AddIcon boxSize={3} />}
-                    colorScheme="teal"
-                    variant="solid"
-                    bg={buttonBg}
-                    color={buttonColor}
-                    _hover={{
-                      bg: useColorModeValue('teal.100', 'whiteAlpha.300'),
-                      transform: 'scale(1.05)',
-                    }}
-                    _active={{
-                      transform: 'scale(0.95)',
-                    }}
-                    size="sm"
-                    onClick={newSolveModal.onOpen}
-                    transition="transform 0.1s ease-out"
-                  >
-                    {t('header.addNewSolve')}
-                  </Button>
-                  <IconButton
-                    aria-label="Settings"
-                    icon={<SettingsIcon />}
-                    onClick={settingsModal.onOpen}
-                    variant="ghost"
-                    size="sm"
-                    transition="transform 0.2s ease-in-out"
-                    _hover={{
-                      transform: 'scale(1.1)',
-                    }}
-                    _active={{
-                      transform: 'scale(0.9) rotate(90deg)',
-                    }}
+      <Box w="100%" overflow="hidden" position="relative">
+        <AnimatePresence mode="wait" initial={false}>
+          <MotionBox
+          key={location.pathname}
+          variants={pageVariants}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+          transition={pageTransition}
+          w="100%"
+            style={{ willChange: 'transform, opacity, filter' }}
+          >
+            <Box w="100%" px={{ base: 4, md: 8 }} py={6}>
+              <Routes location={location}>
+              <Route
+                path="/"
+                element={
+                  <Dashboard
+                    todayStr={todayStr}
+                    stats={stats}
+                    progressPie={progressPie}
+                    toReviewToday={toReviewToday}
+                    toReviewTomorrow={toReviewTomorrow}
+                    suggestions={newSuggestions}
+                    upcomingSchedule={upcomingSchedule}
+                    activitySeries={activitySeries}
+                    onRecordReview={(id) => completeProblem(id, 'review')}
+                    onRecordNew={(id) => completeProblem(id, 'new')}
+                    masteredProblems={masteredProblems}
+                    onAddSolution={handleAddSolution}
+                    onDeleteSolution={handleDeleteSolution}
                   />
-                </HStack>
-              </HStack>
-            </Flex>
-          </Box>
+                }
+              />
+              <Route
+                path="/problems"
+                element={
+                  <ProblemsBoard
+                    problems={filteredProblems}
+                    search={search}
+                    setSearch={setSearch}
+                    onOpenSolutions={handleOpenSolutions}
+                  />
+                }
+              />
+              <Route path="/history" element={<HistoryBoard problems={problems} onUndo={handleUndo} onOpenSolutions={handleOpenSolutions} onUpdateDate={handleUpdateDate} />} />
+              </Routes>
+            </Box>
+          </MotionBox>
+        </AnimatePresence>
+      </Box>
 
-          <Box w="100%" px={{ base: 4, md: 8 }} py={6}>
-            <TabPanels>
-              <TabPanel p={0}>
-                <Dashboard
-                  todayStr={todayStr}
-                  stats={stats}
-                  progressPie={progressPie}
-                  toReviewToday={toReviewToday}
-                  toReviewTomorrow={toReviewTomorrow}
-                  suggestions={newSuggestions}
-                  upcomingSchedule={upcomingSchedule}
-                  activitySeries={activitySeries}
-                  onRecordReview={(id) => completeProblem(id, 'review')}
-                  onRecordNew={(id) => completeProblem(id, 'new')}
-                />
-              </TabPanel>
-              <TabPanel p={0}>
-                <ProblemsBoard
-                  problems={filteredProblems}
-                  search={search}
-                  setSearch={setSearch}
-                  onOpenSolutions={handleOpenSolutions}
-                />
-              </TabPanel>
-            </TabPanels>
-          </Box>
+      <SolutionDrawer
+        problem={focusedProblem}
+        isOpen={Boolean(focusedProblem)}
+        onClose={handleCloseSolutions}
+        onAddSolution={handleAddSolution}
+        onDeleteSolution={handleDeleteSolution}
+      />
 
-          <SolutionDrawer
-            problem={focusedProblem}
-            isOpen={Boolean(focusedProblem)}
-            onClose={handleCloseSolutions}
-            onAddSolution={handleAddSolution}
-            onDeleteSolution={handleDeleteSolution}
-          />
+      <NewSolveModal
+        isOpen={newSolveModal.isOpen}
+        onClose={newSolveModal.onClose}
+        problems={problems}
+        onConfirm={(id) => completeProblem(id, 'new')}
+      />
 
-          <NewSolveModal
-            isOpen={newSolveModal.isOpen}
-            onClose={newSolveModal.onClose}
-            problems={problems}
-            onConfirm={(id) => completeProblem(id, 'new')}
-          />
-
-          <SettingsModal isOpen={settingsModal.isOpen} onClose={settingsModal.onClose} />
-        </Box>
-      </Tabs>
+      <SettingsModal
+        isOpen={settingsModal.isOpen}
+        onClose={settingsModal.onClose}
+        onExport={handleExportData}
+        onImport={handleImportData}
+        onClear={handleClearData}
+      />
+    </Box>
   );
 }
+
+const NavLink = ({ to, children }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  const inactiveColor = useColorModeValue('gray.600', 'gray.400');
+
+  return (
+    <Flex
+      as={Link}
+      to={to}
+      position="relative"
+      px={3}
+      h="32px"
+      justify="center"
+      align="center"
+      color={isActive ? 'inherit' : inactiveColor}
+      fontWeight={isActive ? 'bold' : 'medium'}
+      _hover={{ textDecoration: 'none', color: useColorModeValue('black', 'white') }}
+    >
+      {children}
+      {isActive && (
+        <motion.div
+          layoutId="underline"
+          style={{
+            position: 'absolute',
+            bottom: '-2px',
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: 'linear-gradient(to right, #4FD1C5, #38B2AC)',
+            borderRadius: '2px',
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
+      )}
+    </Flex>
+  );
+};
 
 export default App;

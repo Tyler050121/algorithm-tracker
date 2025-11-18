@@ -1,4 +1,14 @@
 {
+  "common": {
+    "actions": "操作",
+    "undo": "撤销",
+    "viewSolutions": "查看题解",
+    "editDate": "修改日期",
+    "save": "保存",
+    "cancel": "取消",
+    "days": "天",
+    "close": "关闭"
+  },
   "header": {
     "title": "算法打卡监督助手",
     "subtitle": "规划每日练习、跟踪复习节奏，留存题解灵感，帮助你稳步冲击 Hot 100。",
@@ -10,7 +20,19 @@
     "title": "设置",
     "darkMode": "夜间模式",
     "language": "语言",
-    "close": "关闭"
+    "dataManagement": {
+      "title": "数据管理",
+      "export": "导出学习存档",
+      "import": "导入学习存档",
+      "clear": "清空所有记录",
+      "clearConfirm": {
+        "title": "清空所有记录",
+        "body": "此操作将永久删除所有学习和复习记录，且无法恢复，确定要清空吗？",
+        "cancel": "取消",
+        "confirm": "确认清空"
+      },
+      "close": "关闭"
+    }
   },
   "dashboard": {
     "problems": "道题",
@@ -37,7 +59,7 @@
     },
     "review": {
       "title": "今日复习",
-      "tomorrow": "明日还有 {{count}} 道待复习。",
+      "tomorrow": "温故而知新，坚持就是胜利。",
       "countBadge": "{{count}} 道题",
       "empty": "今天的复习全部安排完成 ✨",
       "next": "下次: {{date}}",
@@ -47,6 +69,7 @@
     "suggestions": {
       "title": "新题推荐",
       "badge": "聚焦练习",
+      "subtitle": "挑选一道新题，迎接新的挑战！",
       "empty": "暂无未开始题目，保持掌握状态！",
       "openExternal": "在 LeetCode 上打开",
       "record": "记录为新掌握"
@@ -57,6 +80,9 @@
       "tooltip": "{{date}} - 需复习 {{count}} 道",
       "tooltipEmpty": "{{date}} - 暂无复习任务",
       "problems": "{{count}} 道"
+    },
+    "modal": {
+      "empty": "这里空空如也～"
     }
   },
   "problems": {
@@ -105,13 +131,92 @@
   },
   "tabs": {
     "dashboard": "仪表盘",
-    "problems": "题目总览"
+    "problems": "题目总览",
+    "history": "历史记录",
+    "dataManagement": "数据管理"
+  },
+  "dataManagement": {
+    "title": "存档编辑器",
+    "subtitle": "在这里可视化并精细编辑你的学习进度",
+    "stats": {
+      "totalProblems": "题目总数",
+      "coverage": "覆盖率",
+      "totalRecords": "总记录数",
+      "learns": "新学",
+      "reviews": "复习",
+      "totalSolutions": "题解数量",
+      "solutionsHelp": "已保存的题解",
+      "dataSize": "数据大小",
+      "storageUsed": "本地存储占用"
+    },
+    "progress": {
+      "title": "学习进度",
+      "mastered": "已掌握",
+      "learning": "学习中",
+      "unstarted": "未开始"
+    },
+    "operations": {
+      "title": "数据操作",
+      "export": "导出学习存档",
+      "import": "导入学习存档",
+      "clear": "清空所有数据",
+      "clearConfirm": {
+        "title": "清空所有数据",
+        "body": "此操作将永久删除所有学习和复习记录，且无法恢复，确定要清空吗?",
+        "cancel": "取消",
+        "confirm": "确认清空"
+      }
+    },
+    "recentActivity": {
+      "title": "最近活动",
+      "problem": "题目",
+      "status": "状态",
+      "lastActivity": "最后活动",
+      "records": "记录数",
+      "empty": "暂无活动记录"
+    }
   },
   "toast": {
     "newSuccessTitle": "已记录新题",
     "newSuccessDesc": "安排好了第一轮复习。",
     "reviewSuccessTitle": "复习完成",
-    "reviewSuccessDesc": "下一次复习已排期。"
+    "reviewSuccessDesc": "下一次复习已排期。",
+    "exportSuccess": "存档导出成功。",
+    "importSuccess": "存档导入成功，正在刷新...",
+    "importError": "存档导入失败，请检查文件格式。",
+    "clearSuccess": "全部数据已清空，正在刷新..."
+  },
+  "history": {
+    "stats": {
+      "totalLearns": "总学习次数",
+      "totalReviews": "总复习次数",
+      "activeDays": "累计活跃天数"
+    },
+    "calendar": {
+      "title": "学习日历"
+    },
+    "table": {
+      "title": "最近活动",
+      "date": "日期",
+      "problem": "题目",
+      "type": "类型",
+      "viewChart": "查看历史图表",
+      "chartTitle": "历史记录图表"
+    },
+    "selectedDay": {
+      "title": "选择一天查看详情",
+      "empty": "当天没有活动记录。",
+      "prompt": "点击左侧日历，查看任意一天的学习详情。"
+    },
+    "actionType": {
+      "learn": "新题学习",
+      "review": "复习"
+    },
+    "noRecords": {
+      "title": "暂无历史记录",
+      "description": "开始学习或复习题目，在这里查看你的进度。",
+      "cta": "返回仪表盘"
+    }
   },
   "problem_names": {
     "p_1": "两数之和",

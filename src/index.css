@@ -1,3 +1,14 @@
+@keyframes glowing-border {
+  0% {
+    border-color: #f56565; /* red.500 */
+  }
+  50% {
+    border-color: #ed8936; /* orange.500 */
+  }
+  100% {
+    border-color: #f56565; /* red.500 */
+  }
+}
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -47,10 +58,10 @@ button {
 /* button:hover {
   border-color: #646cff;
 } */
-button:focus,
+/* button:focus,
 button:focus-visible {
   outline: none;
-}
+} */
 
 @media (prefers-color-scheme: light) {
   :root {
