@@ -58,6 +58,108 @@ const DifficultyBadge = ({ difficulty }) => {
   );
 };
 
+const DayCard = ({ day, isToday }) => {
+  const { t } = useTranslation();
+  const hasTasks = day.count > 0;
+
+  // Colors
+  const defaultBg = useColorModeValue('white', 'gray.700');
+  const defaultBorder = useColorModeValue('gray.100', 'gray.600');
+  
+  const redBg = useColorModeValue('red.50', 'rgba(254, 178, 178, 0.16)');
+  const redBorder = useColorModeValue('red.200', 'red.800');
+  
+  const orangeBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.16)');
+  const orangeBorder = useColorModeValue('orange.200', 'orange.800');
+  
+  const tealBg = useColorModeValue('teal.50', 'rgba(129, 230, 217, 0.16)');
+  const tealBorder = useColorModeValue('teal.200', 'teal.800');
+
+  let bg = defaultBg;
+  let border = defaultBorder;
+  let color = useColorModeValue('gray.500', 'gray.400');
+  let badgeScheme = 'gray';
+
+  if (hasTasks) {
+    if (day.count > 4) {
+      bg = redBg;
+      border = redBorder;
+      color = 'red.500';
+      badgeScheme = 'red';
+    } else if (day.count > 2) {
+      bg = orangeBg;
+      border = orangeBorder;
+      color = 'orange.500';
+      badgeScheme = 'orange';
+    } else {
+      bg = tealBg;
+      border = tealBorder;
+      color = 'teal.500';
+      badgeScheme = 'teal';
+    }
+  }
+
+  return (
+    <VStack
+      bg={bg}
+      border="1px solid"
+      borderColor={isToday ? 'teal.400' : border}
+      borderRadius="xl"
+      py={3}
+      px={2}
+      spacing={2}
+      align="center"
+      position="relative"
+      transition="all 0.2s"
+      _hover={{ transform: 'translateY(-2px)', shadow: 'sm', borderColor: isToday ? 'teal.500' : color }}
+      role="group"
+      cursor="default"
+      h="100%"
+      justify="space-between"
+    >
+      {isToday && (
+        <Badge
+          position="absolute"
+          top="-2"
+          colorScheme="teal"
+          variant="solid"
+          fontSize="0.6rem"
+          borderRadius="full"
+          px={1.5}
+          boxShadow="sm"
+          zIndex={1}
+        >
+          TODAY
+        </Badge>
+      )}
+      
+      <VStack spacing={0} align="center">
+        <Text fontSize="10px" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wider">
+          {day.weekday}
+        </Text>
+        
+        <Text fontSize="xl" fontWeight="extrabold" lineHeight="1">
+          {day.label}
+        </Text>
+      </VStack>
+
+      <Flex h="20px" align="center" justify="center" w="full">
+        <Badge 
+          colorScheme={badgeScheme} 
+          variant="subtle" 
+          borderRadius="full" 
+          px={2} 
+          fontSize="xs" 
+          textTransform={hasTasks ? "none" : "uppercase"}
+          opacity={hasTasks ? 1 : 0.7}
+        >
+           {hasTasks ? `${day.count} ${t('dashboard.problems', 'Tasks')}` : 'Free'}
+        </Badge>
+      </Flex>
+    </VStack>
+  );
+};
+
 const TooltipContent = ({ problems }) => {
   if (!problems || problems.length === 0) {
     return null;
@@ -137,6 +239,8 @@ function Dashboard({
   );
   const learnedColor = useColorModeValue('#319795', '#81E6D9');
   const reviewedColor = useColorModeValue('#9F7AEA', '#B794F4');
+  
+
 
   return (
     <Stack spacing={6}>
@@ -347,47 +451,23 @@ function Dashboard({
       </SimpleGrid>
 
       {/* Upcoming Schedule */}
-      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={4}>
         <Flex justify="space-between" align="center" mb={4}>
-          <Text fontWeight="semibold">{t('dashboard.schedule.title')}</Text>
-          <Text fontSize="sm" color="gray.500">
-            {t('dashboard.schedule.subtitle')}
-          </Text>
+          <HStack spacing={3}>
+            <Flex p={2} bg={useColorModeValue('teal.50', 'teal.900')} borderRadius="lg" color="teal.500">
+                <Icon as={CalendarIcon} boxSize={4} />
+            </Flex>
+            <VStack align="start" spacing={0}>
+              <Text fontWeight="semibold" fontSize="md">{t('dashboard.schedule.title')}</Text>
+            </VStack>
+          </HStack>
         </Flex>
-        <HStack spacing={3} overflowX="auto" py={1}>
-          {upcomingSchedule.map((day) => {
-            const colorScheme = day.count > 4 ? 'red' : day.count > 2 ? 'orange' : day.count > 0 ? 'teal' : 'gray';
-            const tooltipLabel = day.count
-              ? t('dashboard.schedule.tooltip', { date: `${day.label} (${day.weekday})`, count: day.count })
-              : t('dashboard.schedule.tooltipEmpty', { date: `${day.label} (${day.weekday})` });
-            return (
-              <ChakraTooltip key={day.iso} label={tooltipLabel} hasArrow placement="top" borderRadius="md">
-                <Tag
-                  size="lg"
-                  colorScheme={colorScheme}
-                  variant={day.count ? 'subtle' : 'outline'}
-                  px={4}
-                  py={3}
-                  borderRadius="full"
-                  minW="120px"
-                  justifyContent="center"
-                  textAlign="center"
-                  boxShadow="sm"
-                >
-                  <Box>
-                    <Text fontSize="xs" textTransform="uppercase" letterSpacing="widest">
-                      {day.weekday}
-                    </Text>
-                    <Text fontWeight="bold" fontSize="lg">
-                      {day.label}
-                    </Text>
-                    <Text fontSize="sm">{t('dashboard.schedule.problems', { count: day.count })}</Text>
-                  </Box>
-                </Tag>
-              </ChakraTooltip>
-            );
-          })}
-        </HStack>
+        
+        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 7 }} spacing={3}>
+          {upcomingSchedule.map((day, index) => (
+            <DayCard key={day.iso} day={day} isToday={index === 0} />
+          ))}
+        </SimpleGrid>
       </Box>
     </Stack>
   );
