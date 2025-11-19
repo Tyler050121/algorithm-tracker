@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Badge,
   Box,
@@ -63,7 +63,8 @@ const RenderDateTag = ({ value, type = 'next' }) => {
 
 const COLUMN_TEMPLATE = '80px minmax(220px, 3fr) 120px 140px 140px 160px 160px 80px';
 const PROBLEM_ROW_HEIGHT = 64;
-const PROBLEM_LIST_MAX_HEIGHT = 635;
+const DEFAULT_LIST_HEIGHT = PROBLEM_ROW_HEIGHT * 6;
+const VIEWPORT_BOTTOM_OFFSET = 48;
 
 const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHoverBg, ariaAttributes }) => {
   const { t } = useTranslation();
@@ -156,6 +157,8 @@ ProblemRow.displayName = 'ProblemRow';
 function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
   const { t } = useTranslation();
   const [isReadyToRender, setIsReadyToRender] = useState(false);
+  const [availableHeight, setAvailableHeight] = useState(DEFAULT_LIST_HEIGHT);
+  const listContainerRef = useRef(null);
   const cardBg = useColorModeValue('white', 'gray.800');
   const border = useColorModeValue('gray.100', 'gray.700');
   const inputBg = useColorModeValue('gray.50', 'gray.900');
@@ -170,6 +173,33 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    let frameId;
+    const updateHeight = () => {
+      if (!listContainerRef.current) return;
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(() => {
+        const rect = listContainerRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const spacing = Math.max(0, VIEWPORT_BOTTOM_OFFSET);
+        const dynamicHeight = Math.max(PROBLEM_ROW_HEIGHT, viewportHeight - rect.top - spacing);
+        setAvailableHeight(dynamicHeight);
+      });
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('scroll', updateHeight, { passive: true });
+    window.addEventListener('orientationchange', updateHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('scroll', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+      if (frameId) cancelAnimationFrame(frameId);
+    };
+  }, []);
+
   const problemRowProps = useMemo(
     () => ({ problems, onOpenSolutions, rowHoverBg }),
     [problems, onOpenSolutions, rowHoverBg]
@@ -177,8 +207,9 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
 
   const listHeight = useMemo(() => {
     if (!problems.length) return PROBLEM_ROW_HEIGHT;
-    return Math.min(PROBLEM_LIST_MAX_HEIGHT, Math.max(PROBLEM_ROW_HEIGHT, PROBLEM_ROW_HEIGHT * problems.length));
-  }, [problems.length]);
+    const totalRowsHeight = PROBLEM_ROW_HEIGHT * problems.length;
+    return Math.min(availableHeight, Math.max(PROBLEM_ROW_HEIGHT, totalRowsHeight));
+  }, [problems.length, availableHeight]);
 
   return (
     <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6}>
@@ -235,7 +266,7 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
           </Grid>
           {isReadyToRender ? (
             problems.length > 0 ? (
-              <Box bg={listBg} position="relative">
+              <Box bg={listBg} position="relative" ref={listContainerRef}>
                 <List
                   rowComponent={ProblemRow}
                   rowCount={problems.length}
