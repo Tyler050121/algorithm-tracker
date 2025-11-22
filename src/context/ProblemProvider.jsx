@@ -1,20 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { format, addDays } from 'date-fns';
 import { REVIEW_INTERVALS, STORAGE_KEY } from '../constants';
 import { normalizeProblem, createId } from '../utils/helpers';
-
-const ProblemContext = createContext();
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useProblems = () => {
-  const context = useContext(ProblemContext);
-  if (!context) {
-    throw new Error('useProblems must be used within a ProblemProvider');
-  }
-  return context;
-};
+import { ProblemContext } from './ProblemContext';
 
 export const ProblemProvider = ({ children }) => {
   const { t } = useTranslation();

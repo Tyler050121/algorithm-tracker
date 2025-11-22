@@ -16,6 +16,7 @@ import {
   RadioGroup,
   Stack,
   Text,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
@@ -78,7 +79,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </InputGroup>
-            <Box maxH="320px" overflowY="auto" borderWidth="1px" borderRadius="lg" p={3}>
+            <Box maxH="320px" overflowY="auto" bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="lg" p={3}>
               {filtered.length === 0 ? (
                 <Text textAlign="center" color="gray.500">
                   {t('newSolve.empty')}
@@ -87,7 +88,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
                 <RadioGroup value={selectedId} onChange={setSelectedId}>
                   <Stack spacing={3}>
                     {filtered.map((problem) => (
-                      <Radio key={problem.id} value={String(problem.id)}>
+                      <Radio key={problem.id} value={String(problem.id)} colorScheme="brand">
                         <Text fontWeight="semibold">{problem.name}</Text>
                         <Text fontSize="sm" color="gray.500">
                           #{problem.id}
@@ -104,7 +105,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
           <Button variant="ghost" mr={3} onClick={onClose}>
             {t('newSolve.cancel')}
           </Button>
-          <Button colorScheme="teal" isDisabled={!selectedId} onClick={handleConfirm}>
+          <Button colorScheme="brand" isDisabled={!selectedId} onClick={handleConfirm}>
             {t('newSolve.confirm')}
           </Button>
         </ModalFooter>

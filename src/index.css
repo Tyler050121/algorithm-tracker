@@ -35,9 +35,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #ffffff;
-  color: #213547;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Background and color are handled by Chakra UI theme */
 }
 
 *, *::before, *::after {
@@ -56,43 +54,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  /* Button styles are handled by Chakra UI theme */
   cursor: pointer;
   transition: border-color 0.25s;
 }
-/* button:hover {
-  border-color: #646cff;
-} */
-/* button:focus,
-button:focus-visible {
-  outline: none;
-} */
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #ffffff;
-    background-color: #1a202c;
-  }
-
-  body {
-    background-color: #1a202c;
-    color: #ffffff;
-  }
-
-  button {
-    background-color: #2d3748;
-  }
-}

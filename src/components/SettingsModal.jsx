@@ -6,7 +6,6 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  Switch,
   useColorMode,
   useDisclosure,
   AlertDialog,
@@ -14,7 +13,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogContent,
-  AlertDialogOverlay,
   VStack,
   HStack,
   Text,
@@ -24,11 +22,16 @@ import {
   Icon,
   Flex,
   Collapse,
+  Tooltip,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
-import { FiMoon, FiSun, FiGlobe, FiBook, FiDownload, FiUpload, FiTrash2, FiAlertTriangle, FiChevronDown, FiCheck, FiChevronUp } from 'react-icons/fi';
+import { 
+  FiMoon, FiSun, FiGlobe, FiBook, FiDownload, FiUpload, 
+  FiTrash2, FiAlertTriangle, FiChevronDown, FiCheck, FiChevronUp, FiDroplet 
+} from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAppTheme } from '../context/ThemeContext';
 
 const MotionFlex = motion(Flex);
 const MotionBox = motion(Box);
@@ -75,7 +78,7 @@ const DarkModeSwitch = ({ isDark, toggle }) => {
           >
              <Icon 
                as={isDark ? FiMoon : FiSun} 
-               color={isDark ? 'yellow.400' : 'orange.400'} 
+               color={isDark ? 'yellow.400' : 'accent.400'} 
                boxSize={3} 
              />
           </motion.div>
@@ -87,7 +90,6 @@ const DarkModeSwitch = ({ isDark, toggle }) => {
 
 const SettingItem = ({ icon, title, description, action, index = 0 }) => {
   const cardBg = useColorModeValue('rgba(255, 255, 255, 0.4)', 'rgba(45, 55, 72, 0.4)');
-  const borderColor = useColorModeValue('whiteAlpha.400', 'whiteAlpha.100');
   
   return (
     <MotionFlex 
@@ -95,10 +97,9 @@ const SettingItem = ({ icon, title, description, action, index = 0 }) => {
       justify="space-between" 
       p={4} 
       bg={cardBg}
-      borderWidth="1px"
-      borderColor={borderColor}
+      boxShadow="sm"
       borderRadius="lg"
-      _hover={{ borderColor: 'teal.400', shadow: 'sm', bg: useColorModeValue('rgba(255, 255, 255, 0.6)', 'rgba(45, 55, 72, 0.6)') }}
+      _hover={{ boxShadow: 'md', bg: useColorModeValue('rgba(255, 255, 255, 0.6)', 'rgba(45, 55, 72, 0.6)') }}
       sx={{ transition: 'all 0.3s ease' }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -111,8 +112,8 @@ const SettingItem = ({ icon, title, description, action, index = 0 }) => {
           w={10}
           h={10}
           borderRadius="full"
-          bg={useColorModeValue('teal.50', 'whiteAlpha.100')}
-          color="teal.500"
+          bg={useColorModeValue('brand.50', 'whiteAlpha.100')}
+          color="brand.500"
         >
           <Icon as={icon} boxSize={5} />
         </Flex>
@@ -138,6 +139,8 @@ function SettingsModal({
 }) {
   const { t, i18n } = useTranslation();
   const { colorMode, toggleColorMode } = useColorMode();
+  // 恢复了 Theme Context 的使用
+  const { colorScheme, changeColorScheme, schemes } = useAppTheme();
   const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
   const cancelRef = useRef();
   const fileInputRef = useRef();
@@ -147,9 +150,9 @@ function SettingsModal({
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const planCardBg = useColorModeValue('gray.50', 'gray.700');
-  const planCardSelectedBg = useColorModeValue('teal.50', 'teal.900');
+  const planCardSelectedBg = useColorModeValue('brand.50', 'brand.900');
   const planCardBorder = useColorModeValue('gray.200', 'gray.600');
-  const planCardSelectedBorder = useColorModeValue('teal.500', 'teal.400');
+  const planCardSelectedBorder = useColorModeValue('brand.500', 'brand.400');
 
   const handleLanguageChange = (nextLanguage) => {
     i18n.changeLanguage(nextLanguage);
@@ -163,6 +166,8 @@ function SettingsModal({
     const file = event.target.files[0];
     if (file) {
       onImport(file);
+      // 重置 input 以便允许重复上传同名文件
+      event.target.value = ''; 
     }
   };
 
@@ -174,11 +179,10 @@ function SettingsModal({
           borderRadius="2xl" 
           overflow="hidden" 
           maxH="85vh"
-          bg={useColorModeValue('rgba(255, 255, 255, 0.4)', 'rgba(26, 32, 44, 0.6)')}
+          bg={useColorModeValue('rgba(255, 255, 255, 0.8)', 'rgba(26, 32, 44, 0.8)')}
           backdropFilter="blur(20px) saturate(180%)"
           boxShadow="2xl"
-          borderWidth="1px"
-          borderColor={useColorModeValue('whiteAlpha.500', 'whiteAlpha.100')}
+          borderWidth="0px"
           transition="all 0.3s ease"
         >
           <ModalHeader borderBottomWidth="1px" borderColor={borderColor} py={4} bg="transparent">
@@ -194,6 +198,8 @@ function SettingsModal({
                   {t('settings.general')}
                 </Text>
                 <VStack spacing={3} align="stretch">
+                  
+                  {/* 1. Dark Mode */}
                   <SettingItem
                     index={0}
                     icon={colorMode === 'dark' ? FiMoon : FiSun}
@@ -204,6 +210,7 @@ function SettingsModal({
                     }
                   />
 
+                  {/* 2. Language */}
                   <SettingItem
                     index={1}
                     icon={FiGlobe}
@@ -216,7 +223,7 @@ function SettingsModal({
                             key={lang}
                             size="sm"
                             variant={i18n.language === lang ? 'solid' : 'outline'}
-                            colorScheme="teal"
+                            colorScheme="brand"
                             onClick={() => handleLanguageChange(lang)}
                           >
                             {lang === 'en' ? 'EN' : '中'}
@@ -226,9 +233,37 @@ function SettingsModal({
                     }
                   />
 
+                  {/* 3. Theme Color */}
+                  <SettingItem
+                    index={2}
+                    icon={FiDroplet}
+                    title={t('settings.theme', 'Theme Color')}
+                    description={t('settings.themeDesc', 'Choose your favorite color scheme')}
+                    action={
+                      <HStack spacing={2}>
+                        {Object.entries(schemes).map(([key, scheme]) => (
+                          <Tooltip key={key} label={scheme.name} hasArrow>
+                            <Box
+                              as="button"
+                              w="24px"
+                              h="24px"
+                              borderRadius="full"
+                              bg={scheme.colors.brand[500]}
+                              onClick={() => changeColorScheme(key)}
+                              boxShadow={colorScheme === key ? '0 0 0 2px white, 0 0 0 4px ' + scheme.colors.brand[500] : 'none'}
+                              transition="all 0.2s"
+                              _hover={{ transform: 'scale(1.1)' }}
+                            />
+                          </Tooltip>
+                        ))}
+                      </HStack>
+                    }
+                  />
+
+                  {/* 4. Study Plan */}
                   <Box>
                     <SettingItem
-                      index={2}
+                      index={3}
                       icon={FiBook}
                       title={t('settings.studyPlan.title')}
                       description={t('settings.studyPlanDesc') || "Select the problem set you are working on"}
@@ -238,7 +273,7 @@ function SettingsModal({
                           rightIcon={isPlanExpanded ? <FiChevronUp /> : <FiChevronDown />}
                           onClick={() => setIsPlanExpanded(!isPlanExpanded)}
                           variant="outline"
-                          colorScheme={isPlanExpanded ? 'teal' : 'gray'}
+                          colorScheme={isPlanExpanded ? 'brand' : 'gray'}
                         >
                           {t(`study_plans.${currentPlanSlug}.name`, { lng: i18n.language })}
                         </Button>
@@ -250,9 +285,7 @@ function SettingsModal({
                         p={4} 
                         bg={cardBg} 
                         borderRadius="lg" 
-                        borderWidth="1px" 
-                        borderColor={borderColor}
-                        shadow="inner"
+                        boxShadow="inner"
                       >
                         <SimpleGrid columns={1} spacing={3}>
                           {studyPlans.map((plan, idx) => {
@@ -273,19 +306,19 @@ function SettingsModal({
                                 bg={isSelected ? planCardSelectedBg : planCardBg}
                                 borderWidth="1px"
                                 borderColor={isSelected ? planCardSelectedBorder : planCardBorder}
-                                _hover={{ borderColor: 'teal.400', transform: 'scale(1.02)' }}
+                                _hover={{ borderColor: 'brand.400', transform: 'scale(1.02)' }}
                                 position="relative"
                               >
                                 <HStack justify="space-between">
                                   <VStack align="start" spacing={0}>
-                                    <Text fontWeight="bold" fontSize="sm" color={isSelected ? 'teal.500' : 'inherit'}>
+                                    <Text fontWeight="bold" fontSize="sm" color={isSelected ? 'brand.500' : 'inherit'}>
                                       {t(`study_plans.${plan.slug}.name`, { lng: i18n.language })}
                                     </Text>
                                     <Text fontSize="xs" color="gray.500" noOfLines={1}>
                                       {t(`study_plans.${plan.slug}.desc`, { lng: i18n.language })}
                                     </Text>
                                   </VStack>
-                                  {isSelected && <Icon as={FiCheck} color="teal.500" />}
+                                  {isSelected && <Icon as={FiCheck} color="brand.500" />}
                                 </HStack>
                               </MotionBox>
                             );
@@ -311,11 +344,11 @@ function SettingsModal({
                       variant="outline"
                       bg={cardBg}
                       borderColor={borderColor}
-                      _hover={{ borderColor: 'teal.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
+                      _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
                       transition="all 0.2s"
                       onClick={onExport}
                     >
-                      <Icon as={FiDownload} boxSize={5} color="teal.500" />
+                      <Icon as={FiDownload} boxSize={5} color="brand.500" />
                       <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.export')}</Text>
                     </Button>
                     
@@ -326,11 +359,11 @@ function SettingsModal({
                       variant="outline"
                       bg={cardBg}
                       borderColor={borderColor}
-                      _hover={{ borderColor: 'teal.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
+                      _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
                       transition="all 0.2s"
                       onClick={handleImportClick}
                     >
-                      <Icon as={FiUpload} boxSize={5} color="blue.500" />
+                      <Icon as={FiUpload} boxSize={5} color="accent.500" />
                       <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.import')}</Text>
                     </Button>
                   </SimpleGrid>

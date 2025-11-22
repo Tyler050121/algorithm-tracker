@@ -67,7 +67,7 @@ const NavLink = ({ to, children }) => {
             left: 0,
             right: 0,
             height: '4px',
-            background: 'linear-gradient(to right, #4FD1C5, #38B2AC)',
+            background: 'linear-gradient(to right, var(--chakra-colors-brand-400), var(--chakra-colors-brand-600))',
             borderRadius: '2px',
           }}
           initial={{ opacity: 0 }}
@@ -89,10 +89,9 @@ const MainLayout = () => {
   const newSolveModal = useDisclosure();
   const settingsModal = useDisclosure();
 
-  const headerBg = useColorModeValue('white', 'gray.800');
-  const border = useColorModeValue('gray.100', 'gray.700');
-  const buttonColor = useColorModeValue('teal.600', 'teal.200');
-  const buttonBg = useColorModeValue('teal.50', 'whiteAlpha.200');
+  const headerBg = useColorModeValue('white', 'gray.900');
+  const buttonColor = useColorModeValue('brand.600', 'brand.200');
+  const buttonBg = useColorModeValue('brand.50', 'whiteAlpha.200');
 
   // Calculate today's stats
   // Note: activitySeries is calculated in useDashboardStats, we can use the last item if it's today
@@ -102,12 +101,13 @@ const MainLayout = () => {
   const todayStats = activitySeries[activitySeries.length - 1] || { learned: 0, reviewed: 0 };
 
   return (
-    <Box bg={useColorModeValue('gray.50', 'gray.900')} minH="100vh" transition="background-color 0.3s ease">
+    <Box bg={useColorModeValue('brand.50', 'gray.900')} minH="100vh" transition="background-color 0.3s ease">
       <Box
         bg={headerBg}
         shadow="sm"
-        borderBottom="1px solid"
-        borderColor={border}
+        // Removed borderBottom to make it cleaner as per plan
+        // borderBottom="1px solid"
+        // borderColor={border}
         px={{ base: 4, md: 8 }}
         transition="background-color 0.3s ease, border-color 0.3s ease"
       >
@@ -125,7 +125,7 @@ const MainLayout = () => {
           >
             <Heading
               size="md"
-              bgGradient="linear(to-r, teal.500, cyan.500)"
+              bgGradient="linear(to-r, brand.500, brand.300)"
               bgClip="text"
               fontWeight="extrabold"
             >
@@ -141,20 +141,20 @@ const MainLayout = () => {
               <NavLink to="/history">{t('tabs.history')}</NavLink>
             </HStack>
             <HStack spacing={3}>
-              <Tag size="sm" colorScheme="teal" variant="subtle">
+              <Tag size="sm" colorScheme="brand" variant="subtle">
                 {t('header.newToday', { count: todayStats.learned })}
               </Tag>
-              <Tag size="sm" colorScheme="cyan" variant="subtle">
+              <Tag size="sm" colorScheme="accent" variant="subtle">
                 {t('header.reviewToday', { count: todayStats.reviewed })}
               </Tag>
               <Button
                 leftIcon={<AddIcon boxSize={3} />}
-                colorScheme="teal"
+                colorScheme="brand"
                 variant="solid"
                 bg={buttonBg}
                 color={buttonColor}
                 _hover={{
-                  bg: useColorModeValue('teal.100', 'whiteAlpha.300'),
+                  bg: useColorModeValue('brand.100', 'whiteAlpha.300'),
                   transform: 'scale(1.05)',
                 }}
                 _active={{

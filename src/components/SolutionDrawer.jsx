@@ -84,7 +84,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onDeleteSolut
               ) : (
                 <Stack spacing={4}>
                   {activeProblem.solutions.map((solution) => (
-                    <Box key={solution.id} p={4} borderWidth="1px" borderRadius="lg">
+                    <Box key={solution.id} p={4} boxShadow="sm" borderRadius="lg" bg="gray.50">
                       <Flex justify="space-between" align="flex-start" mb={2}>
                         <Box>
                           <Text fontWeight="semibold">{solution.title}</Text>
@@ -114,7 +114,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onDeleteSolut
                           alignItems="center"
                           gap={1}
                           mt={2}
-                          color="teal.500"
+                          color="brand.500"
                           fontSize="sm"
                         >
                           {t('solutions.viewExternal')}
@@ -148,7 +148,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onDeleteSolut
                   value={form.link}
                   onChange={(event) => setForm((prev) => ({ ...prev, link: event.target.value }))}
                 />
-                <Button colorScheme="teal" onClick={handleAdd}>
+                <Button colorScheme="brand" onClick={handleAdd}>
                   {t('solutions.addButton')}
                 </Button>
               </Stack>

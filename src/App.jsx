@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
-import { ProblemProvider, useProblems } from './context/ProblemContext';
+import { useProblems } from './context/ProblemContext';
+import { ProblemProvider } from './context/ProblemProvider';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Problems from './pages/Problems';

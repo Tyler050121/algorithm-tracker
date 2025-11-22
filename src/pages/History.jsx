@@ -52,7 +52,7 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-calendar-heatmap/dist/styles.css';
 import { subYears, format, parseISO } from 'date-fns';
-import { FiActivity, FiRepeat, FiCalendar, FiRewind, FiEdit, FiBarChart2, FiBookOpen } from 'react-icons/fi';
+import { FiActivity, FiRepeat, FiCalendar, FiRewind, FiEdit, FiBarChart2, FiBookOpen, FiClock } from 'react-icons/fi';
 import ReviewHistoryChart from '../components/ReviewHistoryChart';
 import { useProblems } from '../context/ProblemContext';
 import { useHistoryStats } from '../hooks/useHistoryStats';
@@ -66,11 +66,11 @@ const DIFFICULTY_MAP = {
 // 统计卡片
 function StatCard({ icon, label, value }) {
   const cardBg = useColorModeValue('white', 'gray.700');
-  const cardBorder = useColorModeValue('gray.200', 'gray.600');
+  // Removed border
   return (
-    <Stat bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={5}>
+    <Stat bg={cardBg} boxShadow="sm" borderRadius="xl" p={5} transition="all 0.3s ease" _hover={{ boxShadow: 'md', transform: 'translateY(-2px)' }}>
       <Flex align="center">
-        <Icon as={icon} boxSize={8} color="teal.500" mr={4} />
+        <Icon as={icon} boxSize={8} color="brand.500" mr={4} />
         <Box>
           <StatLabel color="gray.500">{label}</StatLabel>
           <StatNumber>{value}</StatNumber>
@@ -97,14 +97,15 @@ function HistoryBoard() {
   }, [onOpen]);
 
   const cardBg = useColorModeValue('white', 'gray.700');
-  const cardBorder = useColorModeValue('gray.200', 'gray.600');
+  // Removed cardBorder
   const dailyItemBg = useColorModeValue('gray.50', 'gray.800');
+  const scrollbarThumbBg = useColorModeValue('gray.200', 'gray.600');
 
   const emptyCellBgToken = useColorModeValue('gray.100', 'gray.600');
-  const heatMapScale1Token = useColorModeValue('green.100', 'green.900');
-  const heatMapScale2Token = useColorModeValue('green.300', 'green.700');
-  const heatMapScale3Token = useColorModeValue('green.500', 'green.500');
-  const heatMapScale4Token = useColorModeValue('green.700', 'green.300');
+  const heatMapScale1Token = useColorModeValue('brand.100', 'brand.900');
+  const heatMapScale2Token = useColorModeValue('brand.300', 'brand.700');
+  const heatMapScale3Token = useColorModeValue('brand.500', 'brand.500');
+  const heatMapScale4Token = useColorModeValue('brand.700', 'brand.300');
 
   const [
     emptyCellBg,
@@ -144,7 +145,7 @@ function HistoryBoard() {
       <VStack spacing={4} align="center" justify="center" h="50vh">
         <Heading size="lg">{t('history.noRecords.title')}</Heading>
         <Text>{t('history.noRecords.description')}</Text>
-        <Link as={RouterLink} to="/" color="teal.500" fontWeight="bold">
+        <Link as={RouterLink} to="/" color="brand.500" fontWeight="bold">
           {t('history.noRecords.cta')}
         </Link>
       </VStack>
@@ -163,8 +164,7 @@ function HistoryBoard() {
           </SimpleGrid>
           <Box
             bg={cardBg}
-            border="1px solid"
-            borderColor={cardBorder}
+            boxShadow="sm"
             borderRadius="xl"
             p={6}
             className="calendar-container"
@@ -176,12 +176,14 @@ function HistoryBoard() {
               .calendar-container .react-calendar-heatmap .color-scale-3 { fill: ${heatMapScale3}; }
               .calendar-container .react-calendar-heatmap .color-scale-4 { fill: ${heatMapScale4}; }
               .calendar-container .react-calendar-heatmap rect:focus { outline: none; }
+              .calendar-container .react-calendar-heatmap rect { rx: 2px; ry: 2px; }
             `}</style>
             <Heading size="md" mb={4}>{t('history.calendar.title')}</Heading>
             <CalendarHeatmap
               startDate={subYears(new Date(), 1)}
               endDate={new Date()}
               values={heatmapData}
+              gutterSize={3}
               classForValue={(value) => {
                 if (!value || value.count === 0) return 'color-empty';
                 return `color-scale-${Math.min(value.count, 4)}`;
@@ -197,63 +199,108 @@ function HistoryBoard() {
         </GridItem>
 
         {/* Right Side */}
-        <GridItem as={Box} bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
-          <VStack align="stretch" h="100%">
-            <Heading size="md" mb={4}>
-              {selectedDate ? format(parseISO(selectedDate.date), 'yyyy-MM-dd') : t('history.selectedDay.title')}
-            </Heading>
-            <Divider mb={4} />
-            <VStack spacing={4} align="stretch" flex={1} overflowY="auto">
-              {selectedDayActivities.length > 0 ? (
-                selectedDayActivities.map((item) => (
-                  <Flex
-                    key={item.id}
-                    p={3}
-                    bg={dailyItemBg}
-                    borderRadius="md"
-                    alignItems="center"
-                    justify="space-between"
-                    borderLeft="4px solid"
-                    borderColor={`${DIFFICULTY_MAP[item.problem.difficulty?.toLowerCase()] || 'gray'}.300`}
-                  >
-                    <VStack align="start" spacing={1} flex={1} minWidth={0}>
-                      <Text fontWeight="medium" noOfLines={1} title={item.problem.name}>
-                        {item.problem.name}
-                      </Text>
-                      <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'} size="sm">
-                        {t(`history.actionType.${item.type}`)}
-                      </Tag>
-                    </VStack>
-                    <HStack spacing={1} ml={2}>
-                      <Tooltip label={t('history.table.viewChart')}>
-                        <IconButton icon={<FiBarChart2 />} size="xs" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
-                      </Tooltip>
-                      <Tooltip label={t('common.undo')}>
-                        <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => undoHistory(item)} />
-                      </Tooltip>
-                    </HStack>
+        <GridItem position="relative" display="flex" flexDirection="column">
+          <Box
+            bg={cardBg}
+            boxShadow="sm"
+            borderRadius="xl"
+            p={6}
+            display="flex"
+            flexDirection="column"
+            position={{ base: 'static', lg: 'absolute' }}
+            top={0}
+            bottom={0}
+            left={0}
+            right={0}
+          >
+            <VStack align="stretch" h="100%">
+              <Heading size="md" mb={4} flexShrink={0}>
+                {selectedDate ? format(parseISO(selectedDate.date), 'yyyy-MM-dd') : t('history.selectedDay.title')}
+              </Heading>
+              <Divider mb={4} />
+              <VStack spacing={4} align="stretch" flex={1} overflowY="auto" pr={2} css={{
+                '&::-webkit-scrollbar': {
+                  width: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: scrollbarThumbBg,
+                  borderRadius: '24px',
+                },
+              }}>
+                {selectedDayActivities.length > 0 ? (
+                  selectedDayActivities.map((item) => (
+                    <Flex
+                      key={item.id}
+                      p={4}
+                      bg={dailyItemBg}
+                      borderRadius="lg"
+                      alignItems="center"
+                      justify="space-between"
+                      borderLeft="4px solid"
+                      borderColor={`${DIFFICULTY_MAP[item.problem.difficulty?.toLowerCase()] || 'gray'}.400`}
+                      boxShadow="sm"
+                      _hover={{ transform: 'translateY(-2px)', shadow: 'md' }}
+                      transition="all 0.2s"
+                    >
+                      <VStack align="start" spacing={2} flex={1} minWidth={0}>
+                        <Text fontWeight="bold" fontSize="sm" noOfLines={1} title={item.problem.name}>
+                          {item.problem.name}
+                        </Text>
+                        <HStack spacing={3}>
+                          <Tag colorScheme={item.type === 'learn' ? 'brand' : 'accent'} size="sm" variant="subtle">
+                            {t(`history.actionType.${item.type}`)}
+                          </Tag>
+                          <HStack spacing={1} color="gray.500" fontSize="xs">
+                            <Icon as={FiClock} />
+                            <Text>{format(parseISO(item.date), 'HH:mm')}</Text>
+                          </HStack>
+                          {item.plan && (
+                            <Tooltip label={t(`study_plans.${item.plan}.name`, item.plan)}>
+                              <HStack spacing={1} color="gray.500" fontSize="xs" display={{ base: 'none', sm: 'flex' }}>
+                                <Icon as={FiBookOpen} />
+                                <Text maxW="60px" noOfLines={1}>{t(`study_plans.${item.plan}.name`, item.plan)}</Text>
+                              </HStack>
+                            </Tooltip>
+                          )}
+                        </HStack>
+                      </VStack>
+                      <HStack spacing={1} ml={2}>
+                        <Tooltip label={t('history.table.viewChart')}>
+                          <IconButton icon={<FiBarChart2 />} size="xs" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
+                        </Tooltip>
+                        <Tooltip label={t('common.undo')}>
+                          <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => undoHistory(item)} />
+                        </Tooltip>
+                      </HStack>
+                    </Flex>
+                  ))
+                ) : (
+                  <Flex flex={1} align="center" justify="center" direction="column" color="gray.500">
+                    <Icon as={FiCalendar} boxSize={8} mb={2} opacity={0.5} />
+                    <Text>
+                      {selectedDate ? t('history.selectedDay.empty') : t('history.selectedDay.prompt')}
+                    </Text>
                   </Flex>
-                ))
-              ) : (
-                <Text color="gray.500">
-                  {selectedDate ? t('history.selectedDay.empty') : t('history.selectedDay.prompt')}
-                </Text>
-              )}
+                )}
+              </VStack>
             </VStack>
-          </VStack>
+          </Box>
         </GridItem>
       </Grid>
 
       {/* Full History Table */}
-      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+      <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6}>
         <Heading size="md" mb={4}>{t('history.table.title')}</Heading>
         <Table variant="simple" size="sm" tableLayout="fixed">
           <Thead>
             <Tr>
               <Th width="110px" textAlign="center" px={2}>{t('history.table.date')}</Th>
               <Th width="80px" px={2}>ID</Th>
-              <Th width="50%">{t('history.table.problem')}</Th>
-              <Th width="90px" textAlign="center" px={2}>{t('history.table.plan')}</Th>
+              <Th width="45%">{t('history.table.problem')}</Th>
+              <Th width="120px" textAlign="center" px={2}>{t('history.table.plan')}</Th>
               <Th width="110px" textAlign="center" px={2}>{t('problems.table.difficulty')}</Th>
               <Th width="110px" textAlign="center" px={2}>{t('history.table.type')}</Th>
               <Th width="120px" textAlign="center">{t('common.actions')}</Th>
@@ -310,11 +357,9 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
       </Td>
       <Td textAlign="center" px={2}>
         {item.plan ? (
-          <Tooltip label={t(`study_plans.${item.plan}.name`, item.plan)} hasArrow placement="top">
-            <Box as="span" display="inline-block">
-              <Icon as={FiBookOpen} color="gray.500" />
-            </Box>
-          </Tooltip>
+          <Text fontSize="xs" noOfLines={1} color="gray.600" title={t(`study_plans.${item.plan}.name`, item.plan)}>
+            {t(`study_plans.${item.plan}.name`, item.plan)}
+          </Text>
         ) : (
           <Text color="gray.400">-</Text>
         )}
@@ -329,7 +374,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
         </Badge>
       </Td>
       <Td textAlign="center" px={2}>
-        <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'} size="sm">
+        <Tag colorScheme={item.type === 'learn' ? 'brand' : 'accent'} size="sm">
           {t(`history.actionType.${item.type}`)}
         </Tag>
       </Td>
@@ -362,7 +407,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
                       <ButtonGroup size="sm" alignSelf="flex-end">
                         <Button variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
                         <Button
-                          colorScheme="teal"
+                          colorScheme="brand"
                           onClick={() => {
                             onUpdateDate(item, newDate);
                             onClose();

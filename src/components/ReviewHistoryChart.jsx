@@ -9,7 +9,7 @@ function TimelineEvent({ type, date, isLast }) {
   const { t } = useTranslation();
   const isLearn = type === 'learn';
   const icon = isLearn ? FiStar : FiRepeat;
-  const colorScheme = isLearn ? 'teal' : 'cyan';
+  const colorScheme = isLearn ? 'brand' : 'accent';
 
   return (
     <Flex minH={20}>

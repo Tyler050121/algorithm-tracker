@@ -67,46 +67,54 @@ const DayCard = ({ day, isToday }) => {
 
   // Colors
   const defaultBg = useColorModeValue('white', 'gray.700');
-  const defaultBorder = useColorModeValue('gray.100', 'gray.600');
   
   const redBg = useColorModeValue('red.50', 'rgba(254, 178, 178, 0.16)');
-  const redBorder = useColorModeValue('red.200', 'red.800');
-  
   const orangeBg = useColorModeValue('orange.50', 'rgba(251, 211, 141, 0.16)');
-  const orangeBorder = useColorModeValue('orange.200', 'orange.800');
-  
-  const tealBg = useColorModeValue('teal.50', 'rgba(129, 230, 217, 0.16)');
-  const tealBorder = useColorModeValue('teal.200', 'teal.800');
+  const brandBg = useColorModeValue('brand.50', 'rgba(90, 103, 216, 0.16)'); 
+
+  // Border Colors
+  const defaultBorderColor = useColorModeValue('gray.200', 'gray.600');
+
+  // Today's special styling
+  const todayBg = useColorModeValue('white', 'gray.700');
+  const todayBorderColor = useColorModeValue('brand.500', 'brand.400');
+  const todayShadow = useColorModeValue('0 4px 12px rgba(90, 103, 216, 0.25)', '0 4px 12px rgba(90, 103, 216, 0.4)');
 
   let bg = defaultBg;
-  let border = defaultBorder;
-  let color = useColorModeValue('gray.500', 'gray.400');
   let badgeScheme = 'gray';
+  let color = 'inherit';
+  let borderColor = defaultBorderColor;
 
   if (hasTasks) {
     if (day.count > 4) {
       bg = redBg;
-      border = redBorder;
-      color = 'red.500';
       badgeScheme = 'red';
+      color = 'red.600';
+      borderColor = 'red.200';
     } else if (day.count > 2) {
       bg = orangeBg;
-      border = orangeBorder;
-      color = 'orange.500';
       badgeScheme = 'orange';
+      color = 'orange.600';
+      borderColor = 'orange.200';
     } else {
-      bg = tealBg;
-      border = tealBorder;
-      color = 'teal.500';
-      badgeScheme = 'teal';
+      bg = brandBg;
+      badgeScheme = 'brand';
+      color = 'brand.600';
+      borderColor = 'brand.200';
     }
+  }
+
+  if (isToday) {
+    bg = todayBg;
+    borderColor = todayBorderColor;
   }
 
   return (
     <VStack
       bg={bg}
-      border="1px solid"
-      borderColor={isToday ? 'teal.400' : border}
+      boxShadow={isToday ? todayShadow : 'none'}
+      borderWidth={isToday ? '2px' : '1px'}
+      borderColor={borderColor}
       borderRadius="xl"
       py={3}
       px={2}
@@ -114,21 +122,23 @@ const DayCard = ({ day, isToday }) => {
       align="center"
       position="relative"
       transition="all 0.3s ease"
-      _hover={{ transform: 'translateY(-2px)', shadow: 'sm', borderColor: isToday ? 'teal.500' : color }}
+      _hover={{ transform: 'translateY(-2px)', shadow: 'md', borderColor: isToday ? todayBorderColor : 'brand.400' }}
       role="group"
       cursor="default"
       h="100%"
       justify="space-between"
+      opacity={!isToday && !hasTasks ? 0.7 : 1}
     >
       {isToday && (
         <Badge
           position="absolute"
-          top="-2"
-          colorScheme="teal"
+          top="-3"
+          colorScheme="brand"
           variant="solid"
           fontSize="0.6rem"
           borderRadius="full"
-          px={1.5}
+          px={2}
+          py={0.5}
           boxShadow="sm"
           zIndex={1}
         >
@@ -136,12 +146,12 @@ const DayCard = ({ day, isToday }) => {
         </Badge>
       )}
       
-      <VStack spacing={0} align="center">
+      <VStack spacing={1} align="center" mt={1}>
         <Text fontSize="10px" fontWeight="bold" textTransform="uppercase" color="gray.500" letterSpacing="wider">
           {day.weekday}
         </Text>
         
-        <Text fontSize="xl" fontWeight="extrabold" lineHeight="1">
+        <Text fontSize="xl" fontWeight="extrabold" lineHeight="1" color={isToday ? 'brand.500' : color}>
           {day.label}
         </Text>
       </VStack>
@@ -149,12 +159,12 @@ const DayCard = ({ day, isToday }) => {
       <Flex h="20px" align="center" justify="center" w="full">
         <Badge 
           colorScheme={badgeScheme} 
-          variant="subtle" 
+          variant={hasTasks ? "subtle" : "outline"} 
           borderRadius="full" 
           px={2} 
           fontSize="xs" 
           textTransform={hasTasks ? "none" : "uppercase"}
-          opacity={hasTasks ? 1 : 0.7}
+          opacity={hasTasks ? 1 : 0.5}
         >
            {hasTasks ? `${day.count} ${t('dashboard.problems', 'Tasks')}` : 'Free'}
         </Badge>
@@ -184,9 +194,12 @@ const TooltipContent = ({ problems }) => {
 
 // ...existing code...
 
+import { useAppTheme } from '../context/ThemeContext';
+
 function Dashboard() {
   const { t } = useTranslation();
   const { completeProblem } = useProblems();
+  const { colorScheme, schemes } = useAppTheme();
   const {
     todayStr,
     stats,
@@ -203,17 +216,17 @@ function Dashboard() {
   const onRecordNew = (id) => completeProblem(id, 'new');
 
   const cardBg = useColorModeValue('white', 'gray.800');
-  const cardBorder = useColorModeValue('gray.100', 'gray.700');
+  // Removed cardBorder
   const subtleBg = useColorModeValue('gray.50', 'gray.700');
   const gridColor = useColorModeValue('gray.200', 'gray.600');
 
   const CustomPieTooltip = ({ active, payload }) => {
     const bg = useColorModeValue('white', 'gray.700');
-    const border = useColorModeValue('gray.200', 'gray.600');
+    // Removed border
     if (active && payload && payload.length) {
       const data = payload[0];
       return (
-        <Box bg={bg} p={3} borderRadius="lg" boxShadow="lg" border="1px solid" borderColor={border} fontSize="sm">
+        <Box bg={bg} p={3} borderRadius="lg" boxShadow="xl" fontSize="sm">
           <Text>{`${data.name}: ${data.value} ${t('dashboard.problems')}`}</Text>
         </Box>
       );
@@ -223,10 +236,10 @@ function Dashboard() {
 
   const CustomLineTooltip = ({ active, payload, label }) => {
     const bg = useColorModeValue('white', 'gray.700');
-    const border = useColorModeValue('gray.200', 'gray.600');
+    // Removed border
     if (active && payload && payload.length) {
       return (
-        <Box bg={bg} p={3} borderRadius="lg" boxShadow="lg" border="1px solid" borderColor={border} fontSize="sm">
+        <Box bg={bg} p={3} borderRadius="lg" boxShadow="xl" fontSize="sm">
           <Text fontWeight="bold" mb={1}>{label}</Text>
           {payload.map((p, i) => (
             <Text key={i} style={{ color: p.stroke }}>{`${p.name}: ${p.value}`}</Text>
@@ -242,12 +255,14 @@ function Dashboard() {
     name: t(`dashboard.charts.pieLabels.${item.name.toLowerCase()}`, item.name),
   }));
 
+  const currentThemeColors = schemes[colorScheme].colors;
+  
   const pieColors = useColorModeValue(
-    ['#CBD5F5', '#4FD1C5', '#2F855A'],
-    ['#4A5568', '#4FD1C5', '#68D391']
+    [currentThemeColors.brand[200], currentThemeColors.brand[500], currentThemeColors.brand[800]], 
+    [currentThemeColors.brand[700], currentThemeColors.brand[400], currentThemeColors.brand[200]]
   );
-  const learnedColor = useColorModeValue('#319795', '#81E6D9');
-  const reviewedColor = useColorModeValue('#9F7AEA', '#B794F4');
+  const learnedColor = useColorModeValue(currentThemeColors.brand[500], currentThemeColors.brand[300]);
+  const reviewedColor = useColorModeValue(currentThemeColors.accent[500], currentThemeColors.accent[300]);
   
 
 
@@ -313,10 +328,10 @@ function Dashboard() {
 
       {/* Charts */}
       <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
           <Flex justify="space-between" align="center" mb={4}>
             <Text fontWeight="semibold">{t('dashboard.charts.coverage')}</Text>
-            <Badge colorScheme="teal">{t('dashboard.charts.coverageBadge')}</Badge>
+            <Badge colorScheme="brand">{t('dashboard.charts.coverageBadge')}</Badge>
           </Flex>
           <Box width="100%" height={{ base: 220, md: 260 }}>
             <ResponsiveContainer>
@@ -341,10 +356,10 @@ function Dashboard() {
           </Box>
         </Box>
 
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
           <Flex justify="space-between" align="center" mb={4}>
             <Text fontWeight="semibold">{t('dashboard.charts.activity')}</Text>
-            <Badge colorScheme="purple">{t('dashboard.charts.activityBadge')}</Badge>
+            <Badge colorScheme="accent">{t('dashboard.charts.activityBadge')}</Badge>
           </Flex>
           <Box width="100%" height={{ base: 230, md: 260 }}>
             <ResponsiveContainer>
@@ -364,7 +379,7 @@ function Dashboard() {
 
       {/* Today's Review & New Suggestions */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
           <Flex justify="space-between" align="center" mb={4}>
             <Box>
               <Text fontWeight="semibold">{t('dashboard.review.title')} ({todayStr})</Text>
@@ -372,7 +387,7 @@ function Dashboard() {
                 {t('dashboard.review.tomorrow')}
               </Text>
             </Box>
-            <Badge colorScheme="orange">{t('dashboard.review.countBadge', { count: toReviewToday.length || '0' })}</Badge>
+            <Badge colorScheme="accent">{t('dashboard.review.countBadge', { count: toReviewToday.length || '0' })}</Badge>
           </Flex>
           <Stack spacing={3}>
             {toReviewToday.length === 0 && (
@@ -400,7 +415,7 @@ function Dashboard() {
                 <ChakraTooltip label={t('dashboard.review.tooltip')} hasArrow>
                   <IconButton
                     icon={<CheckCircleIcon />}
-                    colorScheme="teal"
+                    colorScheme="brand"
                     variant="ghost"
                     isRound
                     onClick={() => onRecordReview(problem.id)}
@@ -411,7 +426,7 @@ function Dashboard() {
           </Stack>
         </Box>
 
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
           <Flex justify="space-between" align="center" mb={4}>
             <Box>
               <Text fontWeight="semibold">{t('dashboard.suggestions.title')}</Text>
@@ -419,7 +434,7 @@ function Dashboard() {
                 {t('dashboard.suggestions.subtitle')}
               </Text>
             </Box>
-            <Badge colorScheme="teal">{t('dashboard.suggestions.badge')}</Badge>
+            <Badge colorScheme="brand">{t('dashboard.suggestions.badge')}</Badge>
           </Flex>
           {suggestions.length === 0 ? (
             <Text color="gray.500" p={4}>{t('dashboard.suggestions.empty')}</Text>
@@ -447,7 +462,7 @@ function Dashboard() {
                         icon={<AddIcon />}
                         size="sm"
                         variant="ghost"
-                        colorScheme="teal"
+                        colorScheme="brand"
                         onClick={() => onRecordNew(problem.id)}
                       />
                     </ChakraTooltip>
@@ -460,10 +475,10 @@ function Dashboard() {
       </SimpleGrid>
 
       {/* Upcoming Schedule */}
-      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={4} transition="all 0.3s ease">
+      <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={4} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
         <Flex justify="space-between" align="center" mb={4}>
           <HStack spacing={3}>
-            <Flex p={2} bg={useColorModeValue('teal.50', 'teal.900')} borderRadius="lg" color="teal.500">
+            <Flex p={2} bg={useColorModeValue('brand.50', 'brand.900')} borderRadius="lg" color="brand.500">
                 <Icon as={CalendarIcon} boxSize={4} />
             </Flex>
             <VStack align="start" spacing={0}>
@@ -484,14 +499,13 @@ function Dashboard() {
 
 function StatCard({ icon, label, value, help }) {
   const bg = useColorModeValue('white', 'gray.800');
-  const border = useColorModeValue('gray.100', 'gray.700');
-  const iconBg = useColorModeValue('teal.50', 'teal.800');
-  const iconColor = useColorModeValue('teal.500', 'teal.200');
+  // Removed border
+  const iconBg = useColorModeValue('brand.50', 'brand.800');
+  const iconColor = useColorModeValue('brand.500', 'brand.200');
   return (
     <Box
       bg={bg}
-      border="1px solid"
-      borderColor={border}
+      boxShadow="sm"
       borderRadius="xl"
       p={5}
       display="flex"
@@ -499,6 +513,7 @@ function StatCard({ icon, label, value, help }) {
       justifyContent="space-between"
       gap={4}
       transition="all 0.3s ease"
+      _hover={{ boxShadow: 'md', transform: 'translateY(-2px)' }}
     >
       <Stat>
         <StatLabel color="gray.500">{label}</StatLabel>

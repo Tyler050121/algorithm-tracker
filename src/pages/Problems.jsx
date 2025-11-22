@@ -19,10 +19,11 @@ import { format, isValid, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { List } from 'react-window';
 
-const STATUS_MAP = {
+const STATUS_CONFIG = {
   unstarted: { label: 'Unstarted', color: 'gray' },
-  learning: { label: 'Learning', color: 'teal' },
-  mastered: { label: 'Mastered', color: 'purple' },
+  learning: { label: 'Learning', color: 'brand' },
+  reviewing: { label: 'Reviewing', color: 'accent' },
+  completed: { label: 'Completed', color: 'green' },
 };
 
 const DIFFICULTY_MAP = {
@@ -114,7 +115,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
         </Flex>
         <Box textAlign="center">
           {problem.slug ? (
-            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="teal.500" fontSize="sm" fontWeight="semibold">
+            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="brand.500" fontSize="sm" fontWeight="semibold">
               {t('problems.table.openLink')}
             </Link>
           ) : (
@@ -124,10 +125,10 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
           )}
         </Box>
         <Flex justify="center">
-          <Badge colorScheme={STATUS_MAP[problem.status]?.color ?? 'gray'} variant="subtle" px={3} py={1} borderRadius="full">
+          <Badge colorScheme={STATUS_CONFIG[problem.status]?.color ?? 'gray'} variant="subtle" px={3} py={1} borderRadius="full">
             {t(
               `problems.status.${problem.status}`,
-              STATUS_MAP[problem.status]?.label ?? 'Unknown'
+              STATUS_CONFIG[problem.status]?.label ?? 'Unknown'
             )}
           </Badge>
         </Flex>
@@ -143,7 +144,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
             icon={<ExternalLinkIcon />}
             size="sm"
             variant="ghost"
-            colorScheme="teal"
+            colorScheme="brand"
             onClick={() => onOpenSolutions(problem.id)}
           />
         </Box>
@@ -174,12 +175,10 @@ function ProblemsBoard({ onOpenSolutions }) {
   const [availableHeight, setAvailableHeight] = useState(DEFAULT_LIST_HEIGHT);
   const listContainerRef = useRef(null);
   const cardBg = useColorModeValue('white', 'gray.800');
-  const border = useColorModeValue('gray.100', 'gray.700');
   const inputBg = useColorModeValue('gray.50', 'gray.900');
   const rowHoverBg = useColorModeValue('gray.50', 'whiteAlpha.50');
   const headerBg = useColorModeValue('rgba(249, 250, 251, 0.95)', 'rgba(26, 32, 44, 0.9)');
   const headerColor = useColorModeValue('gray.600', 'gray.300');
-  const headerBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
   const listBg = useColorModeValue('white', 'gray.900');
 
   useEffect(() => {
@@ -225,7 +224,7 @@ function ProblemsBoard({ onOpenSolutions }) {
   }, [problems.length, availableHeight]);
 
   return (
-    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6} transition="all 0.3s ease">
+    <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
       <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4} gap={4}>
         <Box>
           <Text fontWeight="semibold" fontSize="lg">
@@ -244,12 +243,14 @@ function ProblemsBoard({ onOpenSolutions }) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             bg={inputBg}
+            border="none"
+            _focus={{ boxShadow: 'outline' }}
           />
         </InputGroup>
       </Flex>
 
       <Box overflowX="auto">
-        <Box minW="1000px" border="1px solid" borderColor={border} borderRadius="lg" overflow="hidden">
+        <Box minW="1000px" borderRadius="lg" overflow="hidden">
           <Grid
             templateColumns={COLUMN_TEMPLATE}
             bg={headerBg}
@@ -264,8 +265,7 @@ function ProblemsBoard({ onOpenSolutions }) {
             top={0}
             zIndex={1}
             backdropFilter="blur(8px)"
-            borderBottom="1px solid"
-            borderColor={headerBorder}
+            // Removed borderBottom
             boxShadow="sm"
             transition="all 0.3s ease"
           >
