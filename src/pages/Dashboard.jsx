@@ -41,6 +41,8 @@ import {
   YAxis,
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import { useProblems } from '../context/ProblemContext';
+import { useDashboardStats } from '../hooks/useDashboardStats';
 
 const DIFFICULTY_MAP = {
   easy: { label: 'Easy', color: 'green' },
@@ -180,20 +182,26 @@ const TooltipContent = ({ problems }) => {
   );
 };
 
-function Dashboard({
-  todayStr,
-  stats,
-  progressPie,
-  toReviewToday,
-  toReviewTomorrow,
-  suggestions,
-  upcomingSchedule,
-  activitySeries,
-  onRecordReview,
-  onRecordNew,
-  masteredProblems,
-}) {
+// ...existing code...
+
+function Dashboard() {
   const { t } = useTranslation();
+  const { completeProblem } = useProblems();
+  const {
+    todayStr,
+    stats,
+    progressPie,
+    toReviewToday,
+    toReviewTomorrow,
+    suggestions,
+    upcomingSchedule,
+    activitySeries,
+    masteredProblems,
+  } = useDashboardStats();
+
+  const onRecordReview = (id) => completeProblem(id, 'review');
+  const onRecordNew = (id) => completeProblem(id, 'new');
+
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorder = useColorModeValue('gray.100', 'gray.700');
   const subtleBg = useColorModeValue('gray.50', 'gray.700');

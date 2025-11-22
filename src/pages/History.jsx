@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Box,
   Heading,
@@ -53,7 +53,9 @@ import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-calendar-heatmap/dist/styles.css';
 import { subYears, format, parseISO } from 'date-fns';
 import { FiActivity, FiRepeat, FiCalendar, FiRewind, FiEdit, FiBarChart2, FiBookOpen } from 'react-icons/fi';
-import ReviewHistoryChart from './ReviewHistoryChart';
+import ReviewHistoryChart from '../components/ReviewHistoryChart';
+import { useProblems } from '../context/ProblemContext';
+import { useHistoryStats } from '../hooks/useHistoryStats';
 
 const DIFFICULTY_MAP = {
   easy: 'green',
@@ -78,20 +80,16 @@ function StatCard({ icon, label, value }) {
   );
 }
 
-function HistoryBoard({ historyData = { allHistory: [], totalLearns: 0, totalReviews: 0, activeDays: 0, historyByDate: new Map() }, onUndo, onUpdateDate }) {
+function HistoryBoard() {
   const { t } = useTranslation();
-  const [isReadyToRender, setIsReadyToRender] = useState(false);
+  const { undoHistory, updateHistoryDate } = useProblems();
+  const historyData = useHistoryStats();
   const [selectedDate, setSelectedDate] = useState({ date: format(new Date(), 'yyyy-MM-dd') });
   const [newDate, setNewDate] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedProblemForChart, setSelectedProblemForChart] = useState(null);
 
   const { allHistory, totalLearns, totalReviews, activeDays, historyByDate } = historyData || { allHistory: [], totalLearns: 0, totalReviews: 0, activeDays: 0, historyByDate: new Map() };
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsReadyToRender(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleChartOpen = useCallback((problem) => {
     setSelectedProblemForChart(problem);
@@ -231,7 +229,7 @@ function HistoryBoard({ historyData = { allHistory: [], totalLearns: 0, totalRev
                         <IconButton icon={<FiBarChart2 />} size="xs" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
                       </Tooltip>
                       <Tooltip label={t('common.undo')}>
-                        <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => onUndo(item)} />
+                        <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => undoHistory(item)} />
                       </Tooltip>
                     </HStack>
                   </Flex>
@@ -262,14 +260,14 @@ function HistoryBoard({ historyData = { allHistory: [], totalLearns: 0, totalRev
             </Tr>
           </Thead>
           <Tbody>
-            {isReadyToRender && allHistory.map((item) => (
+            {allHistory.map((item) => (
               <HistoryRow
                 key={item.id}
                 item={item}
                 newDate={newDate}
                 setNewDate={setNewDate}
-                onUndo={onUndo}
-                onUpdateDate={onUpdateDate}
+                onUndo={undoHistory}
+                onUpdateDate={updateHistoryDate}
                 handleChartOpen={handleChartOpen}
               />
             ))}

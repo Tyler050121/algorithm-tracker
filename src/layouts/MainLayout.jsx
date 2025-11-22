@@ -1,0 +1,231 @@
+import React from 'react';
+import { Link, useLocation, useOutlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import {
+  Box,
+  Flex,
+  Heading,
+  HStack,
+  IconButton,
+  Button,
+  Tag,
+  useColorModeValue,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { keyframes } from '@emotion/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AddIcon, SettingsIcon } from '@chakra-ui/icons';
+import { useDashboardStats } from '../hooks/useDashboardStats';
+import { useProblems } from '../context/ProblemContext';
+import NewSolveModal from '../components/NewSolveModal';
+import SettingsModal from '../components/SettingsModal';
+
+const MotionBox = motion(Box);
+const pageVariants = {
+  initial: { opacity: 0, y: 12, filter: 'blur(12px)' },
+  enter: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  exit: { opacity: 0, y: -12, filter: 'blur(12px)' },
+};
+const pageTransition = {
+  type: 'tween',
+  duration: 0.2,
+  ease: [0.4, 0, 0.2, 1],
+};
+
+const titleAnimation = keyframes`
+  0% { transform: scale(1) rotate(-1deg); }
+  50% { transform: scale(1.03) rotate(1deg); }
+  100% { transform: scale(1) rotate(-1deg); }
+`;
+
+const NavLink = ({ to, children }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  const inactiveColor = useColorModeValue('gray.600', 'gray.400');
+
+  return (
+    <Flex
+      as={Link}
+      to={to}
+      position="relative"
+      px={3}
+      h="32px"
+      justify="center"
+      align="center"
+      color={isActive ? 'inherit' : inactiveColor}
+      fontWeight={isActive ? 'bold' : 'medium'}
+      _hover={{ textDecoration: 'none', color: useColorModeValue('black', 'white') }}
+      transition="color 0.3s ease"
+    >
+      {children}
+      {isActive && (
+        <motion.div
+          layoutId="underline"
+          style={{
+            position: 'absolute',
+            bottom: '-2px',
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: 'linear-gradient(to right, #4FD1C5, #38B2AC)',
+            borderRadius: '2px',
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        />
+      )}
+    </Flex>
+  );
+};
+
+const MainLayout = () => {
+  const location = useLocation();
+  const currentOutlet = useOutlet();
+  const { t } = useTranslation();
+  const { activitySeries } = useDashboardStats();
+  const { problems, completeProblem, studyPlans, currentPlanSlug, changePlan, exportData, importData, clearData } = useProblems();
+  
+  const newSolveModal = useDisclosure();
+  const settingsModal = useDisclosure();
+
+  const headerBg = useColorModeValue('white', 'gray.800');
+  const border = useColorModeValue('gray.100', 'gray.700');
+  const buttonColor = useColorModeValue('teal.600', 'teal.200');
+  const buttonBg = useColorModeValue('teal.50', 'whiteAlpha.200');
+
+  // Calculate today's stats
+  // Note: activitySeries is calculated in useDashboardStats, we can use the last item if it's today
+  // Or recalculate here if needed. Let's recalculate for simplicity as activitySeries might not be exactly what we want for the header tags
+  // Actually, let's just use activitySeries for now, assuming the last item is today.
+  // Wait, activitySeries goes back 20 days. The last item should be today.
+  const todayStats = activitySeries[activitySeries.length - 1] || { learned: 0, reviewed: 0 };
+
+  return (
+    <Box bg={useColorModeValue('gray.50', 'gray.900')} minH="100vh" transition="background-color 0.3s ease">
+      <Box
+        bg={headerBg}
+        shadow="sm"
+        borderBottom="1px solid"
+        borderColor={border}
+        px={{ base: 4, md: 8 }}
+        transition="background-color 0.3s ease, border-color 0.3s ease"
+      >
+        <Flex direction="row" justify="space-between" align="center" h="72px">
+          {/* Left Side */}
+          <Box
+            as={Link}
+            to="/"
+            animation={`${titleAnimation} 6s ease-in-out infinite`}
+            _hover={{
+              animationPlayState: 'paused',
+              transform: 'scale(1.05) rotate(0deg)',
+              textDecoration: 'none',
+            }}
+          >
+            <Heading
+              size="md"
+              bgGradient="linear(to-r, teal.500, cyan.500)"
+              bgClip="text"
+              fontWeight="extrabold"
+            >
+              {t('header.title')}
+            </Heading>
+          </Box>
+
+          {/* Right Side */}
+          <HStack spacing={6}>
+            <HStack spacing={3}>
+              <NavLink to="/">{t('tabs.dashboard')}</NavLink>
+              <NavLink to="/problems">{t('tabs.problems')}</NavLink>
+              <NavLink to="/history">{t('tabs.history')}</NavLink>
+            </HStack>
+            <HStack spacing={3}>
+              <Tag size="sm" colorScheme="teal" variant="subtle">
+                {t('header.newToday', { count: todayStats.learned })}
+              </Tag>
+              <Tag size="sm" colorScheme="cyan" variant="subtle">
+                {t('header.reviewToday', { count: todayStats.reviewed })}
+              </Tag>
+              <Button
+                leftIcon={<AddIcon boxSize={3} />}
+                colorScheme="teal"
+                variant="solid"
+                bg={buttonBg}
+                color={buttonColor}
+                _hover={{
+                  bg: useColorModeValue('teal.100', 'whiteAlpha.300'),
+                  transform: 'scale(1.05)',
+                }}
+                _active={{
+                  transform: 'scale(0.95)',
+                }}
+                size="sm"
+                onClick={newSolveModal.onOpen}
+                transition="transform 0.1s ease-out"
+              >
+                {t('header.addNewSolve')}
+              </Button>
+              <IconButton
+                aria-label="Settings"
+                icon={<SettingsIcon />}
+                onClick={settingsModal.onOpen}
+                variant="ghost"
+                size="sm"
+                transition="transform 0.2s ease-in-out"
+                _hover={{
+                  transform: 'scale(1.1)',
+                }}
+                _active={{
+                  transform: 'scale(0.9) rotate(90deg)',
+                }}
+              />
+            </HStack>
+          </HStack>
+        </Flex>
+      </Box>
+
+      <Box w="100%" overflow="hidden" position="relative" flex="1" display="flex">
+        <AnimatePresence mode="wait" initial={false}>
+          <MotionBox
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="enter"
+            exit="exit"
+            transition={pageTransition}
+            w="100%"
+            style={{ willChange: 'transform, opacity, filter' }}
+            flex="1"
+            display="flex"
+            flexDirection="column"
+          >
+            <Box w="100%" px={{ base: 4, md: 8 }} py={6} flex="1" display="flex" flexDirection="column">
+              {currentOutlet}
+            </Box>
+          </MotionBox>
+        </AnimatePresence>
+      </Box>
+
+      <NewSolveModal
+        isOpen={newSolveModal.isOpen}
+        onClose={newSolveModal.onClose}
+        problems={problems}
+        onConfirm={(id) => completeProblem(id, 'new')}
+      />
+
+      <SettingsModal
+        isOpen={settingsModal.isOpen}
+        onClose={settingsModal.onClose}
+        onExport={exportData}
+        onImport={importData}
+        onClear={clearData}
+        studyPlans={studyPlans}
+        currentPlanSlug={currentPlanSlug}
+        onSelectPlan={changePlan}
+      />
+    </Box>
+  );
+};
+
+export default MainLayout;

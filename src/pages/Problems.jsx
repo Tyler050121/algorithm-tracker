@@ -154,9 +154,23 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
 
 ProblemRow.displayName = 'ProblemRow';
 
-function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
+import { useProblems } from '../context/ProblemContext';
+
+function ProblemsBoard({ onOpenSolutions }) {
   const { t } = useTranslation();
-  const [isReadyToRender, setIsReadyToRender] = useState(false);
+  const { problems: allProblems } = useProblems();
+  const [search, setSearch] = useState('');
+  
+  const problems = useMemo(
+    () =>
+      allProblems.filter(
+        (p) =>
+          p.name.toLowerCase().includes(search.toLowerCase()) ||
+          String(p.id).includes(search.trim())
+      ),
+    [allProblems, search]
+  );
+
   const [availableHeight, setAvailableHeight] = useState(DEFAULT_LIST_HEIGHT);
   const listContainerRef = useRef(null);
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -167,11 +181,6 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
   const headerColor = useColorModeValue('gray.600', 'gray.300');
   const headerBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
   const listBg = useColorModeValue('white', 'gray.900');
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsReadyToRender(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     let frameId;
@@ -202,7 +211,7 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
       window.removeEventListener('orientationchange', updateHeight);
       if (frameId) cancelAnimationFrame(frameId);
     };
-  }, [isReadyToRender, problems.length]);
+  }, [problems.length]);
 
   const problemRowProps = useMemo(
     () => ({ problems, onOpenSolutions, rowHoverBg }),
@@ -269,30 +278,26 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
             <Text textAlign="center">{t('problems.table.nextReview')}</Text>
             <Text textAlign="center">{t('problems.table.solutions')}</Text>
           </Grid>
-          {isReadyToRender ? (
-            problems.length > 0 ? (
-              <Box bg={listBg} position="relative" ref={listContainerRef}>
-                <List
-                  rowComponent={ProblemRow}
-                  rowCount={problems.length}
-                  rowHeight={PROBLEM_ROW_HEIGHT}
-                  rowProps={problemRowProps}
-                  defaultHeight={listHeight}
-                  style={{ height: listHeight, width: '100%' }}
-                />
-              </Box>
-            ) : (
-              <Flex direction="column" align="center" justify="center" py={10} gap={2}>
-                <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
-                  {t('problems.empty')}
-                </Text>
-                <Text fontSize="sm" color="gray.500">
-                  {t('problems.subtitle')}
-                </Text>
-              </Flex>
-            )
+          {problems.length > 0 ? (
+            <Box bg={listBg} position="relative" ref={listContainerRef}>
+              <List
+                rowComponent={ProblemRow}
+                rowCount={problems.length}
+                rowHeight={PROBLEM_ROW_HEIGHT}
+                rowProps={problemRowProps}
+                defaultHeight={listHeight}
+                style={{ height: listHeight, width: '100%' }}
+              />
+            </Box>
           ) : (
-            <Box minH={`${PROBLEM_ROW_HEIGHT * 4}px`} />
+            <Flex direction="column" align="center" justify="center" py={10} gap={2}>
+              <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
+                {t('problems.empty')}
+              </Text>
+              <Text fontSize="sm" color="gray.500">
+                {t('problems.subtitle')}
+              </Text>
+            </Flex>
           )}
         </Box>
       </Box>

@@ -27,8 +27,33 @@
 
 ## 🛠️ 技术栈
 
-- **前端框架**: React
+- **前端框架**: React 18
 - **构建工具**: Vite
 - **UI 组件库**: Chakra UI
-- **图表**: Recharts
+- **路由管理**: React Router v6
+- **状态管理**: React Context API
+- **图表**: Recharts, React Calendar Heatmap
 - **国际化**: i18next
+- **工具库**: date-fns, framer-motion
+
+## 📂 目录结构
+
+```
+api/                # 模拟后端 API 数据
+src/
+├── assets/         # 静态资源
+├── components/     # 通用 UI 组件 (Modal, Drawer 等)
+├── context/        # 全局状态管理 (ProblemContext)
+├── hooks/          # 自定义 Hooks (useDashboardStats, useHistoryStats)
+├── layouts/        # 页面布局组件
+├── pages/          # 路由页面组件 (Dashboard, Problems, History)
+├── utils/          # 工具函数
+├── App.jsx         # 应用入口与路由配置
+├── main.jsx        # 渲染入口
+└── theme.js        # Chakra UI 主题配置
+```
+
+## 🤝 贡献
+
+欢迎提交 Issue 或 Pull Request 来改进这个项目！
+

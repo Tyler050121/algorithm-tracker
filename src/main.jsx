@@ -8,13 +8,11 @@ import './i18n';
 import theme from './theme';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <BrowserRouter>
-      <ChakraProvider theme={theme}>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-        <App />
-      </ChakraProvider>
-    </BrowserRouter>
-  </StrictMode>
+  <BrowserRouter>
+    <ChakraProvider theme={theme}>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <App />
+    </ChakraProvider>
+  </BrowserRouter>
 );
    
