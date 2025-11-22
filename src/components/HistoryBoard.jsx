@@ -44,6 +44,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  useToken,
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +52,7 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import 'react-calendar-heatmap/dist/styles.css';
 import { subYears, format, parseISO } from 'date-fns';
-import { FiActivity, FiRepeat, FiCalendar, FiRewind, FiEdit, FiBarChart2 } from 'react-icons/fi';
+import { FiActivity, FiRepeat, FiCalendar, FiRewind, FiEdit, FiBarChart2, FiBookOpen } from 'react-icons/fi';
 import ReviewHistoryChart from './ReviewHistoryChart';
 
 const DIFFICULTY_MAP = {
@@ -59,7 +60,6 @@ const DIFFICULTY_MAP = {
   medium: 'orange',
   hard: 'red',
 };
-
 
 // 统计卡片
 function StatCard({ icon, label, value }) {
@@ -78,13 +78,15 @@ function StatCard({ icon, label, value }) {
   );
 }
 
-function HistoryBoard({ problems, onUndo, onUpdateDate }) {
+function HistoryBoard({ historyData = { allHistory: [], totalLearns: 0, totalReviews: 0, activeDays: 0, historyByDate: new Map() }, onUndo, onUpdateDate }) {
   const { t } = useTranslation();
   const [isReadyToRender, setIsReadyToRender] = useState(false);
   const [selectedDate, setSelectedDate] = useState({ date: format(new Date(), 'yyyy-MM-dd') });
   const [newDate, setNewDate] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedProblemForChart, setSelectedProblemForChart] = useState(null);
+
+  const { allHistory, totalLearns, totalReviews, activeDays, historyByDate } = historyData || { allHistory: [], totalLearns: 0, totalReviews: 0, activeDays: 0, historyByDate: new Map() };
 
   useEffect(() => {
     const timer = setTimeout(() => setIsReadyToRender(true), 0);
@@ -98,41 +100,27 @@ function HistoryBoard({ problems, onUndo, onUpdateDate }) {
 
   const cardBg = useColorModeValue('white', 'gray.700');
   const cardBorder = useColorModeValue('gray.200', 'gray.600');
-  const emptyCellBg = useColorModeValue('gray.200', 'gray.600');
+  const dailyItemBg = useColorModeValue('gray.50', 'gray.800');
 
-  const { allHistory, totalLearns, totalReviews, activeDays, historyByDate } = useMemo(() => {
-    const history = [];
-    const activity = new Map();
-    const byDate = new Map();
-    let recordCounter = 0;
+  const emptyCellBgToken = useColorModeValue('gray.100', 'gray.600');
+  const heatMapScale1Token = useColorModeValue('green.100', 'green.900');
+  const heatMapScale2Token = useColorModeValue('green.300', 'green.700');
+  const heatMapScale3Token = useColorModeValue('green.500', 'green.500');
+  const heatMapScale4Token = useColorModeValue('green.700', 'green.300');
 
-    const processRecord = (problem, type, date) => {
-      const record = {
-        type,
-        date,
-        problem,
-        id: `${problem.id}-${type}-${date}-${recordCounter}`,
-      };
-      recordCounter += 1;
-      history.push(record);
-      activity.set(date, (activity.get(date) || 0) + 1);
-      if (!byDate.has(date)) byDate.set(date, []);
-      byDate.get(date).push(record);
-    };
-
-    problems.forEach((p) => {
-      p.learnHistory.forEach(date => processRecord(p, 'learn', date));
-      p.reviewHistory.forEach(date => processRecord(p, 'review', date));
-    });
-
-    return {
-      allHistory: history.sort((a, b) => new Date(b.date) - new Date(a.date)),
-      totalLearns: history.filter(h => h.type === 'learn').length,
-      totalReviews: history.filter(h => h.type === 'review').length,
-      activeDays: activity.size,
-      historyByDate: byDate,
-    };
-  }, [problems]);
+  const [
+    emptyCellBg,
+    heatMapScale1,
+    heatMapScale2,
+    heatMapScale3,
+    heatMapScale4,
+  ] = useToken('colors', [
+    emptyCellBgToken,
+    heatMapScale1Token,
+    heatMapScale2Token,
+    heatMapScale3Token,
+    heatMapScale4Token,
+  ]);
 
   const heatmapData = useMemo(() => {
     const startDate = subYears(new Date(), 1);
@@ -184,11 +172,11 @@ function HistoryBoard({ problems, onUndo, onUpdateDate }) {
             className="calendar-container"
           >
             <style>{`
-              .calendar-container .react-calendar-heatmap .color-empty { fill: ${emptyCellBg}; }
-              .calendar-container .react-calendar-heatmap .color-scale-1 { fill: #a7f3d0; }
-              .calendar-container .react-calendar-heatmap .color-scale-2 { fill: #6ee7b7; }
-              .calendar-container .react-calendar-heatmap .color-scale-3 { fill: #34d399; }
-              .calendar-container .react-calendar-heatmap .color-scale-4 { fill: #10b981; }
+              .calendar-container .react-calendar-heatmap .color-empty { fill: ${emptyCellBg} !important; }
+              .calendar-container .react-calendar-heatmap .color-scale-1 { fill: ${heatMapScale1}; }
+              .calendar-container .react-calendar-heatmap .color-scale-2 { fill: ${heatMapScale2}; }
+              .calendar-container .react-calendar-heatmap .color-scale-3 { fill: ${heatMapScale3}; }
+              .calendar-container .react-calendar-heatmap .color-scale-4 { fill: ${heatMapScale4}; }
               .calendar-container .react-calendar-heatmap rect:focus { outline: none; }
             `}</style>
             <Heading size="md" mb={4}>{t('history.calendar.title')}</Heading>
@@ -220,31 +208,33 @@ function HistoryBoard({ problems, onUndo, onUpdateDate }) {
             <VStack spacing={4} align="stretch" flex={1} overflowY="auto">
               {selectedDayActivities.length > 0 ? (
                 selectedDayActivities.map((item) => (
-                  <Grid key={item.id} templateColumns="4fr 2fr 2fr 2fr" gap={4} alignItems="center">
-                    <GridItem minWidth={0}>
-                      <Link as={RouterLink} to={`/problems?q=${item.problem.id}`} fontWeight="medium" title={item.problem.name} isTruncated>
+                  <Flex
+                    key={item.id}
+                    p={3}
+                    bg={dailyItemBg}
+                    borderRadius="md"
+                    alignItems="center"
+                    justify="space-between"
+                    borderLeft="4px solid"
+                    borderColor={`${DIFFICULTY_MAP[item.problem.difficulty?.toLowerCase()] || 'gray'}.300`}
+                  >
+                    <VStack align="start" spacing={1} flex={1} minWidth={0}>
+                      <Text fontWeight="medium" noOfLines={1} title={item.problem.name}>
                         {item.problem.name}
-                      </Link>
-                    </GridItem>
-                    <GridItem textAlign="center">
-                      <Badge colorScheme={DIFFICULTY_MAP[item.problem.difficulty]}>{item.problem.difficulty}</Badge>
-                    </GridItem>
-                    <GridItem textAlign="center">
-                      <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'}>
+                      </Text>
+                      <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'} size="sm">
                         {t(`history.actionType.${item.type}`)}
                       </Tag>
-                    </GridItem>
-                    <GridItem>
-                      <HStack spacing={2} justify="center">
-                        <Tooltip label={t('history.table.viewChart')}>
-                          <IconButton icon={<FiBarChart2 />} size="xs" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
-                        </Tooltip>
-                        <Tooltip label={t('common.undo')}>
-                          <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => onUndo(item)} />
-                        </Tooltip>
-                      </HStack>
-                    </GridItem>
-                  </Grid>
+                    </VStack>
+                    <HStack spacing={1} ml={2}>
+                      <Tooltip label={t('history.table.viewChart')}>
+                        <IconButton icon={<FiBarChart2 />} size="xs" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
+                      </Tooltip>
+                      <Tooltip label={t('common.undo')}>
+                        <IconButton icon={<FiRewind />} size="xs" variant="ghost" colorScheme="red" onClick={() => onUndo(item)} />
+                      </Tooltip>
+                    </HStack>
+                  </Flex>
                 ))
               ) : (
                 <Text color="gray.500">
@@ -259,15 +249,16 @@ function HistoryBoard({ problems, onUndo, onUpdateDate }) {
       {/* Full History Table */}
       <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
         <Heading size="md" mb={4}>{t('history.table.title')}</Heading>
-        <Table variant="simple" size="sm">
+        <Table variant="simple" size="sm" tableLayout="fixed">
           <Thead>
             <Tr>
-              <Th>{t('history.table.date')}</Th>
-              <Th>ID</Th>
-              <Th>{t('history.table.problem')}</Th>
-              <Th textAlign="center">{t('problems.table.difficulty')}</Th>
-              <Th textAlign="center">{t('history.table.type')}</Th>
-              <Th textAlign="center">{t('common.actions')}</Th>
+              <Th width="110px" textAlign="center" px={2}>{t('history.table.date')}</Th>
+              <Th width="80px" px={2}>ID</Th>
+              <Th width="50%">{t('history.table.problem')}</Th>
+              <Th width="90px" textAlign="center" px={2}>{t('history.table.plan')}</Th>
+              <Th width="110px" textAlign="center" px={2}>{t('problems.table.difficulty')}</Th>
+              <Th width="110px" textAlign="center" px={2}>{t('history.table.type')}</Th>
+              <Th width="120px" textAlign="center">{t('common.actions')}</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -303,20 +294,44 @@ export default HistoryBoard;
 
 const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate, handleChartOpen }) => {
   const { t } = useTranslation();
+  const fullDate = useMemo(() => format(parseISO(item.date), 'yyyy-MM-dd HH:mm:ss'), [item.date]);
+  const shortDate = useMemo(() => format(parseISO(item.date), 'MM-dd'), [item.date]);
+
   return (
     <Tr>
-      <Td>{item.date}</Td>
-      <Td>#{item.problem.id}</Td>
+      <Td textAlign="center">
+        <Tooltip label={fullDate} hasArrow placement="top">
+          <Tag colorScheme="gray" size="sm">{shortDate}</Tag>
+        </Tooltip>
+      </Td>
+      <Td px={2}>#{item.problem.id}</Td>
       <Td>
-        <Link as={RouterLink} to={`/problems?q=${item.problem.id}`}>
+        <Text noOfLines={1} title={item.problem.name}>
           {item.problem.name}
-        </Link>
+        </Text>
       </Td>
-      <Td textAlign="center">
-        <Badge colorScheme={DIFFICULTY_MAP[item.problem.difficulty]}>{item.problem.difficulty}</Badge>
+      <Td textAlign="center" px={2}>
+        {item.plan ? (
+          <Tooltip label={t(`study_plans.${item.plan}.name`, item.plan)} hasArrow placement="top">
+            <Box as="span" display="inline-block">
+              <Icon as={FiBookOpen} color="gray.500" />
+            </Box>
+          </Tooltip>
+        ) : (
+          <Text color="gray.400">-</Text>
+        )}
       </Td>
-      <Td textAlign="center">
-        <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'}>
+      <Td textAlign="center" px={2}>
+        <Badge
+          colorScheme={DIFFICULTY_MAP[item.problem.difficulty?.toLowerCase()]}
+          variant="subtle"
+          textTransform="capitalize"
+        >
+          {item.problem.difficulty}
+        </Badge>
+      </Td>
+      <Td textAlign="center" px={2}>
+        <Tag colorScheme={item.type === 'learn' ? 'teal' : 'cyan'} size="sm">
           {t(`history.actionType.${item.type}`)}
         </Tag>
       </Td>
@@ -327,7 +342,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
           </Tooltip>
           <Popover
             placement="left"
-            onOpen={() => setNewDate(item.date)}
+            onOpen={() => setNewDate(format(parseISO(item.date), "yyyy-MM-dd'T'HH:mm"))}
           >
             {({ onClose }) => (
               <>
@@ -341,7 +356,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
                   <PopoverBody>
                     <VStack>
                       <Input
-                        type="date"
+                        type="datetime-local"
                         size="sm"
                         value={newDate}
                         onChange={(e) => setNewDate(e.target.value)}

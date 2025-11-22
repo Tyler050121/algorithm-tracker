@@ -50,10 +50,11 @@ const DIFFICULTY_MAP = {
 
 const DifficultyBadge = ({ difficulty }) => {
   const { t } = useTranslation();
-  const { label, color } = DIFFICULTY_MAP[difficulty] || { label: 'Unknown', color: 'gray' };
+  const safeDifficulty = difficulty?.toLowerCase() || 'unknown';
+  const { label, color } = DIFFICULTY_MAP[safeDifficulty] || { label: 'Unknown', color: 'gray' };
   return (
     <Badge colorScheme={color} variant="subtle" fontSize="xs">
-      {t(`dashboard.difficulty.${difficulty}`, label)}
+      {t(`dashboard.difficulty.${safeDifficulty}`, label)}
     </Badge>
   );
 };
@@ -110,7 +111,7 @@ const DayCard = ({ day, isToday }) => {
       spacing={2}
       align="center"
       position="relative"
-      transition="all 0.2s"
+      transition="all 0.3s ease"
       _hover={{ transform: 'translateY(-2px)', shadow: 'sm', borderColor: isToday ? 'teal.500' : color }}
       role="group"
       cursor="default"
@@ -304,7 +305,7 @@ function Dashboard({
 
       {/* Charts */}
       <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
           <Flex justify="space-between" align="center" mb={4}>
             <Text fontWeight="semibold">{t('dashboard.charts.coverage')}</Text>
             <Badge colorScheme="teal">{t('dashboard.charts.coverageBadge')}</Badge>
@@ -332,7 +333,7 @@ function Dashboard({
           </Box>
         </Box>
 
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
           <Flex justify="space-between" align="center" mb={4}>
             <Text fontWeight="semibold">{t('dashboard.charts.activity')}</Text>
             <Badge colorScheme="purple">{t('dashboard.charts.activityBadge')}</Badge>
@@ -355,7 +356,7 @@ function Dashboard({
 
       {/* Today's Review & New Suggestions */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
           <Flex justify="space-between" align="center" mb={4}>
             <Box>
               <Text fontWeight="semibold">{t('dashboard.review.title')} ({todayStr})</Text>
@@ -402,7 +403,7 @@ function Dashboard({
           </Stack>
         </Box>
 
-        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6}>
+        <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={6} transition="all 0.3s ease">
           <Flex justify="space-between" align="center" mb={4}>
             <Box>
               <Text fontWeight="semibold">{t('dashboard.suggestions.title')}</Text>
@@ -429,8 +430,8 @@ function Dashboard({
                   </VStack>
                   <HStack>
                     <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow>
-                      <Link href={problem.link} isExternal>
-                        <IconButton icon={<ExternalLinkIcon />} size="sm" variant="ghost" />
+                      <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal>
+                        <IconButton icon={<ExternalLinkIcon />} size="sm" variant="ghost" isDisabled={!problem.slug} />
                       </Link>
                     </ChakraTooltip>
                     <ChakraTooltip label={t('dashboard.suggestions.record')} hasArrow>
@@ -451,7 +452,7 @@ function Dashboard({
       </SimpleGrid>
 
       {/* Upcoming Schedule */}
-      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={4}>
+      <Box bg={cardBg} border="1px solid" borderColor={cardBorder} borderRadius="xl" p={4} transition="all 0.3s ease">
         <Flex justify="space-between" align="center" mb={4}>
           <HStack spacing={3}>
             <Flex p={2} bg={useColorModeValue('teal.50', 'teal.900')} borderRadius="lg" color="teal.500">
@@ -489,6 +490,7 @@ function StatCard({ icon, label, value, help }) {
       alignItems="center"
       justifyContent="space-between"
       gap={4}
+      transition="all 0.3s ease"
     >
       <Stat>
         <StatLabel color="gray.500">{label}</StatLabel>

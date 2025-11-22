@@ -69,7 +69,7 @@ const VIEWPORT_BOTTOM_OFFSET = 48;
 const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHoverBg, ariaAttributes }) => {
   const { t } = useTranslation();
   const problem = problems[index];
-  const difficultyColorScheme = DIFFICULTY_MAP[problem?.difficulty]?.color ?? 'gray';
+  const difficultyColorScheme = DIFFICULTY_MAP[problem?.difficulty?.toLowerCase()]?.color ?? 'gray';
   const accentColor = useColorModeValue(`${difficultyColorScheme}.300`, `${difficultyColorScheme}.500`);
   const stripedBg = useColorModeValue(index % 2 === 0 ? 'white' : 'gray.50', index % 2 === 0 ? 'gray.800' : 'gray.900');
   const dividerColor = useColorModeValue('gray.100', 'whiteAlpha.200');
@@ -88,7 +88,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
         borderLeft="4px solid"
         borderLeftColor={accentColor}
         borderRadius="md"
-        transition="all 0.15s ease"
+        transition="all 0.3s ease"
         _hover={{ bg: rowHoverBg, transform: 'translateY(-1px)', shadow: 'sm' }}
         role="row"
         {...ariaAttributes}
@@ -107,14 +107,14 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
         <Flex justify="center">
           <Tag size="sm" colorScheme={difficultyColorScheme} variant="subtle">
             {t(
-              `problems.difficulty.${problem.difficulty}`,
-              DIFFICULTY_MAP[problem.difficulty]?.label ?? 'Unknown'
+              `problems.difficulty.${problem.difficulty?.toLowerCase()}`,
+              DIFFICULTY_MAP[problem.difficulty?.toLowerCase()]?.label ?? 'Unknown'
             )}
           </Tag>
         </Flex>
         <Box textAlign="center">
-          {problem.link ? (
-            <Link href={problem.link} isExternal color="teal.500" fontSize="sm" fontWeight="semibold">
+          {problem.slug ? (
+            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="teal.500" fontSize="sm" fontWeight="semibold">
               {t('problems.table.openLink')}
             </Link>
           ) : (
@@ -132,7 +132,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
           </Badge>
         </Flex>
         <Flex justify="center">
-          <RenderDateTag value={problem.learnHistory?.[0] ?? problem.startDate} type="first" />
+          <RenderDateTag value={problem.learnHistory?.[0]?.date || null} type="first" />
         </Flex>
         <Flex justify="center">
           <RenderDateTag value={problem.nextReviewDate} type="next" />
@@ -216,7 +216,7 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
   }, [problems.length, availableHeight]);
 
   return (
-    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6}>
+    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6} transition="all 0.3s ease">
       <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4} gap={4}>
         <Box>
           <Text fontWeight="semibold" fontSize="lg">
@@ -258,6 +258,7 @@ function ProblemsBoard({ problems, search, setSearch, onOpenSolutions }) {
             borderBottom="1px solid"
             borderColor={headerBorder}
             boxShadow="sm"
+            transition="all 0.3s ease"
           >
             <Text>{t('problems.table.id')}</Text>
             <Text>{t('problems.table.name')}</Text>

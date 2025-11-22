@@ -18,8 +18,15 @@
   },
   "settings": {
     "title": "Settings",
+    "general": "General",
     "darkMode": "Dark Mode",
+    "darkModeDesc": "Switch between light and dark themes",
     "language": "Language",
+    "languageDesc": "Choose your preferred language",
+    "studyPlan": {
+       "title": "Current Study Plan"
+     },
+    "studyPlanDesc": "Select the plan you are following",
     "dataManagement": {
       "title": "Data Management",
       "export": "Export Backup",
@@ -200,6 +207,7 @@
       "date": "Date",
       "problem": "Problem",
       "type": "Type",
+      "plan": "Plan",
       "viewChart": "View History Chart",
       "chartTitle": "History Chart"
     },
@@ -319,5 +327,23 @@
     "p_75": "Sort Colors",
     "p_31": "Next Permutation",
     "p_287": "Find the Duplicate Number"
+  },
+  "study_plans": {
+    "top-interview-150": {
+      "name": "Top Interview 150",
+      "desc": "The gold standard for interview prep, covering all common algorithm patterns."
+    },
+    "top-100-liked": {
+      "name": "LeetCode Hot 100",
+      "desc": "The 100 most popular questions on the platform."
+    },
+    "leetcode-75": {
+      "name": "LeetCode 75",
+      "desc": "75 curated questions for a quick algorithm review."
+    },
+    "30-days-of-javascript": {
+      "name": "30 Days of JavaScript",
+      "desc": "Essential for front-end interviews, focusing on JavaScript features."
+    }
   }
 }

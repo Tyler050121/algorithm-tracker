@@ -38,8 +38,8 @@ function ReviewHistoryChart({ problem }) {
   const timelineEvents = useMemo(() => {
     if (!problem) return [];
     const events = [];
-    problem.learnHistory.forEach(date => events.push({ date, type: 'learn' }));
-    problem.reviewHistory.forEach(date => events.push({ date, type: 'review' }));
+    problem.learnHistory.forEach(item => events.push({ date: item.date, type: 'learn' }));
+    problem.reviewHistory.forEach(item => events.push({ date: item.date, type: 'review' }));
     // 按时间正序排列，构建从上到下的时间线
     return events.sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [problem]);

@@ -18,8 +18,15 @@
   },
   "settings": {
     "title": "设置",
+    "general": "常规设置",
     "darkMode": "夜间模式",
+    "darkModeDesc": "切换深色/浅色主题",
     "language": "语言",
+    "languageDesc": "选择你偏好的显示语言",
+    "studyPlan": {
+       "title": "当前题库"
+     },
+    "studyPlanDesc": "选择你当前正在进行的刷题计划",
     "dataManagement": {
       "title": "数据管理",
       "export": "导出学习存档",
@@ -200,6 +207,7 @@
       "date": "日期",
       "problem": "题目",
       "type": "类型",
+      "plan": "题库",
       "viewChart": "查看历史图表",
       "chartTitle": "历史记录图表"
     },
@@ -319,5 +327,23 @@
     "p_75": "颜色分类",
     "p_31": "下一个排列",
     "p_287": "寻找重复数"
+  },
+  "study_plans": {
+    "top-interview-150": {
+      "name": "面试经典 150 题",
+      "desc": "面试准备的黄金标准，涵盖所有常见算法模式。"
+    },
+    "top-100-liked": {
+      "name": "LeetCode Hot 100",
+      "desc": "全站最受欢迎的 100 道题目，刷题必经之路。"
+    },
+    "leetcode-75": {
+      "name": "LeetCode 75",
+      "desc": "精选 75 题，适合算法入门和快速复习。"
+    },
+    "30-days-of-javascript": {
+      "name": "30 天 JavaScript",
+      "desc": "前端面试必备，专攻 JS 语言特性。"
+    }
   }
 }
