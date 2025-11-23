@@ -174,6 +174,7 @@ const DayCard = ({ day, isToday }) => {
 };
 
 const TooltipContent = ({ problems }) => {
+  const { i18n } = useTranslation();
   if (!problems || problems.length === 0) {
     return null;
   }
@@ -182,7 +183,7 @@ const TooltipContent = ({ problems }) => {
       {problems.slice(0, 5).map((p) => (
         <HStack key={p.id} justify="space-between">
           <Text fontSize="xs">
-            #{p.id} {p.name}
+            #{p.id} {(i18n.language === 'zh' ? p.title.zh : p.title.en) || p.title.en}
           </Text>
           <DifficultyBadge difficulty={p.difficulty} />
         </HStack>
@@ -197,7 +198,7 @@ const TooltipContent = ({ problems }) => {
 import { useAppTheme } from '../context/ThemeContext';
 
 function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { completeProblem } = useProblems();
   const { colorScheme, schemes } = useAppTheme();
   const {
@@ -401,13 +402,13 @@ function Dashboard() {
                 p={3}
                 borderRadius="lg"
                 bg={subtleBg}
-                minH="70px"
+                h="70px"
                 border="2px solid"
                 borderColor={new Date(problem.nextReviewDate) < new Date(todayStr) ? 'red.300' : 'transparent'}
                 animation={new Date(problem.nextReviewDate) < new Date(todayStr) ? 'glowing-border 2s ease-in-out infinite' : 'none'}
               >
                 <Box>
-                  <Text fontWeight="semibold">{problem.name}</Text>
+                  <Text fontWeight="semibold">{(i18n.language === 'zh' ? problem.title.zh : problem.title.en) || problem.title.en}</Text>
                   <Text fontSize="sm" color="gray.500">
                     #{problem.id} · {t('dashboard.review.next', { date: problem.nextReviewDate || t('dashboard.review.done') })}
                   </Text>
@@ -441,9 +442,9 @@ function Dashboard() {
           ) : (
             <Stack spacing={3}>
               {suggestions.slice(0, 5).map((problem) => (
-                <Flex key={problem.id} justify="space-between" align="center" p={3} borderRadius="lg" bg={subtleBg} minH="70px">
+                <Flex key={problem.id} justify="space-between" align="center" p={3} borderRadius="lg" bg={subtleBg} h="70px">
                   <VStack align="flex-start" spacing={1}>
-                    <Text fontWeight="medium">{problem.name}</Text>
+                    <Text fontWeight="medium">{(i18n.language === 'zh' ? problem.title.zh : problem.title.en) || problem.title.en}</Text>
                     <HStack>
                       <DifficultyBadge difficulty={problem.difficulty} />
                       <Text fontSize="xs" color="gray.500">
@@ -499,7 +500,6 @@ function Dashboard() {
 
 function StatCard({ icon, label, value, help }) {
   const bg = useColorModeValue('white', 'gray.800');
-  // Removed border
   const iconBg = useColorModeValue('brand.50', 'brand.800');
   const iconColor = useColorModeValue('brand.500', 'brand.200');
   return (
@@ -507,7 +507,8 @@ function StatCard({ icon, label, value, help }) {
       bg={bg}
       boxShadow="sm"
       borderRadius="xl"
-      p={5}
+      py={5}
+      px={7}
       display="flex"
       alignItems="center"
       justifyContent="space-between"
@@ -533,5 +534,4 @@ function StatCard({ icon, label, value, help }) {
     </Box>
   );
 }
-
 export default Dashboard;

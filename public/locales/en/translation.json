@@ -23,6 +23,8 @@
     "darkModeDesc": "Switch between light and dark themes",
     "language": "Language",
     "languageDesc": "Choose your preferred language",
+    "theme": "Theme Color",
+    "themeDesc": "Choose your favorite color scheme",
     "studyPlan": {
        "title": "Current Study Plan"
      },
@@ -32,14 +34,16 @@
       "export": "Export Backup",
       "import": "Import Backup",
       "clear": "Clear All Data",
+      "dangerZone": "Danger Zone",
+      "clearDesc": "Clear all your progress data permanently",
       "clearConfirm": {
         "title": "Clear All Data",
         "body": "This will permanently delete all your learning and review records. This action cannot be undone. Are you sure?",
         "cancel": "Cancel",
         "confirm": "Confirm Clear"
-      },
-      "close": "Close"
-    }
+      }
+    },
+    "close": "Close"
   },
   "dashboard": {
     "problems": "problems",

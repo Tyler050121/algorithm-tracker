@@ -237,8 +237,8 @@ function SettingsModal({
                   <SettingItem
                     index={2}
                     icon={FiDroplet}
-                    title={t('settings.theme', 'Theme Color')}
-                    description={t('settings.themeDesc', 'Choose your favorite color scheme')}
+                    title={t('settings.theme')}
+                    description={t('settings.themeDesc')}
                     action={
                       <HStack spacing={2}>
                         {Object.entries(schemes).map(([key, scheme]) => (
@@ -381,8 +381,8 @@ function SettingsModal({
                       <HStack>
                         <Icon as={FiAlertTriangle} color="red.500" />
                         <Box>
-                          <Text fontWeight="bold" color="red.600" fontSize="sm">Danger Zone</Text>
-                          <Text fontSize="xs" color="red.500">Clear all your progress data permanently</Text>
+                          <Text fontWeight="bold" color="red.600" fontSize="sm">{t('settings.dataManagement.dangerZone')}</Text>
+                          <Text fontSize="xs" color="red.500">{t('settings.dataManagement.clearDesc')}</Text>
                         </Box>
                       </HStack>
                       <Button 

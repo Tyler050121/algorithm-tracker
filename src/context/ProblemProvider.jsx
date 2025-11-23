@@ -10,6 +10,7 @@ export const ProblemProvider = ({ children }) => {
   const { t } = useTranslation();
   const toast = useToast();
   const [problems, setProblems] = useState([]);
+  const [problemGroups, setProblemGroups] = useState([]);
   const [studyPlans, setStudyPlans] = useState([]);
   const [currentPlanSlug, setCurrentPlanSlug] = useState(
     localStorage.getItem('currentPlanSlug') || 'top-100-liked'
@@ -23,19 +24,27 @@ export const ProblemProvider = ({ children }) => {
       const response = await fetch(`/api/list?slug=${slug}`);
       const data = await response.json();
       if (!data.groups) throw new Error('Failed to load study plan problems.');
-      const baseProblems = data.groups.flatMap(group => group.questions);
-
-      // 2. 从全局 localStorage 获取所有用户进度
       const rawUserData = localStorage.getItem(STORAGE_KEY);
       const savedUserData = rawUserData ? JSON.parse(rawUserData) : {};
 
-      // 3. 合并数据
-      const mergedProblems = baseProblems.map((baseProblem) => {
-        const userData = savedUserData[baseProblem.id] || {};
-        const name = baseProblem.title.zh || baseProblem.title.en; // 适配 i18n
-        return normalizeProblem({ ...baseProblem, ...userData, name });
-      });
+      // 3. 合并数据并构建分组
+      const mergedGroups = data.groups.map(group => ({
+        ...group,
+        questions: group.questions.map(baseProblem => {
+          const userData = savedUserData[baseProblem.id] || {};
+          return normalizeProblem({
+            ...baseProblem,
+            ...userData,
+            title: baseProblem.title, // 保留完整的 title 对象
+            groupName: group.groupName, // 保留完整的 groupName 对象
+            topic: group.groupName.zh, // 为了兼容旧逻辑，暂时保留
+          });
+        })
+      }));
 
+      const mergedProblems = mergedGroups.flatMap(group => group.questions);
+
+      setProblemGroups(mergedGroups);
       setProblems(mergedProblems);
     } catch (error) {
       console.error('Error loading problems:', error);
@@ -73,9 +82,10 @@ export const ProblemProvider = ({ children }) => {
       // 2. 将当前题库的进度更新到全局存档中
       problems.forEach(p => {
         globalUserData[p.id] = {
-          name: p.name,
+          title: p.title,
           difficulty: p.difficulty,
           slug: p.slug,
+          groupName: p.groupName,
           status: p.status,
           nextReviewDate: p.nextReviewDate,
           reviewCycleIndex: p.reviewCycleIndex,
@@ -325,6 +335,7 @@ export const ProblemProvider = ({ children }) => {
 
   const value = {
     problems,
+    problemGroups,
     studyPlans,
     currentPlanSlug,
     changePlan,

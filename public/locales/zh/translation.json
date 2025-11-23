@@ -23,6 +23,8 @@
     "darkModeDesc": "切换深色/浅色主题",
     "language": "语言",
     "languageDesc": "选择你偏好的显示语言",
+    "theme": "主题颜色",
+    "themeDesc": "选择你最喜欢的主题配色",
     "studyPlan": {
        "title": "当前题库"
      },
@@ -32,14 +34,16 @@
       "export": "导出学习存档",
       "import": "导入学习存档",
       "clear": "清空所有记录",
+      "dangerZone": "危险区域",
+      "clearDesc": "此操作将永久删除所有进度数据",
       "clearConfirm": {
         "title": "清空所有记录",
         "body": "此操作将永久删除所有学习和复习记录，且无法恢复，确定要清空吗？",
         "cancel": "取消",
         "confirm": "确认清空"
-      },
-      "close": "关闭"
-    }
+      }
+    },
+    "close": "关闭"
   },
   "dashboard": {
     "problems": "道题",

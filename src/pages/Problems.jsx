@@ -19,11 +19,10 @@ import { format, isValid, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { List } from 'react-window';
 
-const STATUS_CONFIG = {
+const STATUS_MAP = {
   unstarted: { label: 'Unstarted', color: 'gray' },
-  learning: { label: 'Learning', color: 'brand' },
-  reviewing: { label: 'Reviewing', color: 'accent' },
-  completed: { label: 'Completed', color: 'green' },
+  learning: { label: 'Learning', color: 'teal' },
+  mastered: { label: 'Mastered', color: 'purple' },
 };
 
 const DIFFICULTY_MAP = {
@@ -68,7 +67,7 @@ const DEFAULT_LIST_HEIGHT = PROBLEM_ROW_HEIGHT * 6;
 const VIEWPORT_BOTTOM_OFFSET = 48;
 
 const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHoverBg, ariaAttributes }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const problem = problems[index];
   const difficultyColorScheme = DIFFICULTY_MAP[problem?.difficulty?.toLowerCase()]?.color ?? 'gray';
   const accentColor = useColorModeValue(`${difficultyColorScheme}.300`, `${difficultyColorScheme}.500`);
@@ -99,10 +98,10 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
         </Text>
         <Box>
           <Text fontWeight="medium" noOfLines={1}>
-            {problem.name}
+            {i18n.language === 'zh' ? problem.title.zh : problem.title.en}
           </Text>
           <Text fontSize="xs" color="gray.500">
-            {problem.topic ?? t('problems.table.generalTopic', 'General topic')}
+            {i18n.language === 'zh' ? problem.groupName.zh : problem.groupName.en}
           </Text>
         </Box>
         <Flex justify="center">
@@ -115,7 +114,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
         </Flex>
         <Box textAlign="center">
           {problem.slug ? (
-            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="brand.500" fontSize="sm" fontWeight="semibold">
+            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="teal.500" fontSize="sm" fontWeight="semibold">
               {t('problems.table.openLink')}
             </Link>
           ) : (
@@ -125,10 +124,10 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
           )}
         </Box>
         <Flex justify="center">
-          <Badge colorScheme={STATUS_CONFIG[problem.status]?.color ?? 'gray'} variant="subtle" px={3} py={1} borderRadius="full">
+          <Badge colorScheme={STATUS_MAP[problem.status]?.color ?? 'gray'} variant="subtle" px={3} py={1} borderRadius="full">
             {t(
               `problems.status.${problem.status}`,
-              STATUS_CONFIG[problem.status]?.label ?? 'Unknown'
+              STATUS_MAP[problem.status]?.label ?? 'Unknown'
             )}
           </Badge>
         </Flex>
@@ -144,7 +143,7 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
             icon={<ExternalLinkIcon />}
             size="sm"
             variant="ghost"
-            colorScheme="brand"
+            colorScheme="teal"
             onClick={() => onOpenSolutions(problem.id)}
           />
         </Box>
@@ -161,24 +160,26 @@ function ProblemsBoard({ onOpenSolutions }) {
   const { t } = useTranslation();
   const { problems: allProblems } = useProblems();
   const [search, setSearch] = useState('');
-  
+  const { i18n } = useTranslation();
+
   const problems = useMemo(
     () =>
-      allProblems.filter(
-        (p) =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          String(p.id).includes(search.trim())
-      ),
-    [allProblems, search]
+      allProblems.filter((p) => {
+        const title = (i18n.language === 'zh' ? p.title.zh : p.title.en) || '';
+        return title.toLowerCase().includes(search.toLowerCase()) || String(p.id).includes(search.trim());
+      }),
+    [allProblems, search, i18n.language]
   );
 
   const [availableHeight, setAvailableHeight] = useState(DEFAULT_LIST_HEIGHT);
   const listContainerRef = useRef(null);
   const cardBg = useColorModeValue('white', 'gray.800');
+  const border = useColorModeValue('gray.100', 'gray.700');
   const inputBg = useColorModeValue('gray.50', 'gray.900');
   const rowHoverBg = useColorModeValue('gray.50', 'whiteAlpha.50');
   const headerBg = useColorModeValue('rgba(249, 250, 251, 0.95)', 'rgba(26, 32, 44, 0.9)');
   const headerColor = useColorModeValue('gray.600', 'gray.300');
+  const headerBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
   const listBg = useColorModeValue('white', 'gray.900');
 
   useEffect(() => {
@@ -224,7 +225,7 @@ function ProblemsBoard({ onOpenSolutions }) {
   }, [problems.length, availableHeight]);
 
   return (
-    <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
+    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6} transition="all 0.3s ease">
       <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4} gap={4}>
         <Box>
           <Text fontWeight="semibold" fontSize="lg">
@@ -243,14 +244,12 @@ function ProblemsBoard({ onOpenSolutions }) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             bg={inputBg}
-            border="none"
-            _focus={{ boxShadow: 'outline' }}
           />
         </InputGroup>
       </Flex>
 
       <Box overflowX="auto">
-        <Box minW="1000px" borderRadius="lg" overflow="hidden">
+        <Box minW="1000px" border="1px solid" borderColor={border} borderRadius="lg" overflow="hidden">
           <Grid
             templateColumns={COLUMN_TEMPLATE}
             bg={headerBg}
@@ -265,7 +264,8 @@ function ProblemsBoard({ onOpenSolutions }) {
             top={0}
             zIndex={1}
             backdropFilter="blur(8px)"
-            // Removed borderBottom
+            borderBottom="1px solid"
+            borderColor={headerBorder}
             boxShadow="sm"
             transition="all 0.3s ease"
           >

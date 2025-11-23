@@ -81,7 +81,7 @@ function StatCard({ icon, label, value }) {
 }
 
 function HistoryBoard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { undoHistory, updateHistoryDate } = useProblems();
   const historyData = useHistoryStats();
   const [selectedDate, setSelectedDate] = useState({ date: format(new Date(), 'yyyy-MM-dd') });
@@ -246,8 +246,8 @@ function HistoryBoard() {
                       transition="all 0.2s"
                     >
                       <VStack align="start" spacing={2} flex={1} minWidth={0}>
-                        <Text fontWeight="bold" fontSize="sm" noOfLines={1} title={item.problem.name}>
-                          {item.problem.name}
+                        <Text fontWeight="bold" fontSize="sm" noOfLines={1} title={(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}>
+                          {(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}
                         </Text>
                         <HStack spacing={3}>
                           <Tag colorScheme={item.type === 'learn' ? 'brand' : 'accent'} size="sm" variant="subtle">
@@ -324,7 +324,7 @@ function HistoryBoard() {
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{selectedProblemForChart?.name} - {t('history.table.chartTitle')}</ModalHeader>
+          <ModalHeader>{(i18n.language === 'zh' ? selectedProblemForChart?.title.zh : selectedProblemForChart?.title.en) || selectedProblemForChart?.title.en} - {t('history.table.chartTitle')}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <ReviewHistoryChart problem={selectedProblemForChart} />
@@ -338,7 +338,7 @@ function HistoryBoard() {
 export default HistoryBoard;
 
 const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate, handleChartOpen }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fullDate = useMemo(() => format(parseISO(item.date), 'yyyy-MM-dd HH:mm:ss'), [item.date]);
   const shortDate = useMemo(() => format(parseISO(item.date), 'MM-dd'), [item.date]);
 
@@ -351,8 +351,8 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
       </Td>
       <Td px={2}>#{item.problem.id}</Td>
       <Td>
-        <Text noOfLines={1} title={item.problem.name}>
-          {item.problem.name}
+        <Text noOfLines={1} title={(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}>
+          {(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}
         </Text>
       </Td>
       <Td textAlign="center" px={2}>
