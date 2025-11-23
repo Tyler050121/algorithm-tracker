@@ -53,9 +53,52 @@
       "planTomorrow": "Tomorrow's Plan",
       "planTomorrowHelp": "Due tomorrow",
       "mastered": "Mastered",
-      "masteredHelp": "Completed all review cycles"
-    },
-    "charts": {
+      "masteredHelp": "Completed all review cycles",
+      "streak": "Current Streak",
+      "streakHelp": "Keep the momentum going",
+      "days": "Days"
+  },
+  "greeting": {
+      "morning": "Good Morning",
+      "afternoon": "Good Afternoon",
+      "evening": "Good Evening"
+  },
+  "welcome": {
+      "subtitle": "Ready to solve some problems?",
+      "streak": "Streak",
+      "streakFrozen": "Frozen",
+      "activities": "Activities",
+      "overdueTasks": "Overdue Tasks"
+  },
+  "achievements": {
+      "title": "Achievements",
+      "nextGoal": "Next Goal",
+      "streak_3": {
+          "title": "Streak Novice",
+          "desc": "Reach a 3-day streak"
+      },
+      "streak_7": {
+          "title": "Streak Master",
+          "desc": "Reach a 7-day streak"
+      },
+      "streak_21": {
+          "title": "Habit Builder",
+          "desc": "Reach a 21-day streak"
+      },
+      "daily_5": {
+          "title": "Daily Grinder",
+          "desc": "Complete 5 activities in a day"
+      },
+      "master_10": {
+          "title": "Problem Solver",
+          "desc": "Master 10 problems"
+      },
+      "master_50": {
+          "title": "Expert",
+          "desc": "Master 50 problems"
+      }
+  },
+  "charts": {
       "coverage": "Coverage",
       "coverageBadge": "Real-time",
       "activity": "21-Day Activity",

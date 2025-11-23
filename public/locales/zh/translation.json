@@ -53,9 +53,52 @@
       "planTomorrow": "明日排期",
       "planTomorrowHelp": "明日即将到期",
       "mastered": "已掌握",
-      "masteredHelp": "完成全部复习周期"
-    },
-    "charts": {
+      "masteredHelp": "完成全部复习周期",
+      "streak": "连续打卡",
+      "streakHelp": "持续学习，保持节奏",
+      "days": "天"
+  },
+  "greeting": {
+      "morning": "早上好",
+      "afternoon": "下午好",
+      "evening": "晚上好"
+  },
+  "welcome": {
+      "subtitle": "准备好解决一些问题了吗？",
+      "streak": "连胜",
+      "streakFrozen": "冻结",
+      "activities": "今日活动",
+      "overdueTasks": "个任务已逾期"
+  },
+  "achievements": {
+      "title": "成就",
+      "nextGoal": "下个目标",
+      "streak_3": {
+          "title": "连胜新手",
+          "desc": "达成 3 天连胜"
+      },
+      "streak_7": {
+          "title": "连胜大师",
+          "desc": "达成 7 天连胜"
+      },
+      "streak_21": {
+          "title": "习惯养成者",
+          "desc": "达成 21 天连胜"
+      },
+      "daily_5": {
+          "title": "每日刷题狂人",
+          "desc": "一天内完成 5 次活动"
+      },
+      "master_10": {
+          "title": "解题能手",
+          "desc": "掌握 10 道题目"
+      },
+      "master_50": {
+          "title": "专家",
+          "desc": "掌握 50 道题目"
+      }
+  },
+  "charts": {
       "coverage": "练习覆盖率",
       "coverageBadge": "实时",
       "activity": "21 日学习曲线",

@@ -1,32 +1,40 @@
 import {
+  Avatar,
   Badge,
   Box,
   Button,
   Flex,
+  Grid,
+  GridItem,
   HStack,
   Icon,
   IconButton,
   Link,
   SimpleGrid,
   Stack,
-  Stat,
-  StatHelpText,
-  StatLabel,
-  StatNumber,
   Tag,
   Text,
   Tooltip as ChakraTooltip,
   VStack,
   useColorModeValue,
+  Progress,
+  Heading,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverArrow,
 } from '@chakra-ui/react';
 import {
   CalendarIcon,
-  StarIcon,
-  TimeIcon,
   CheckCircleIcon,
   ExternalLinkIcon,
   AddIcon,
+  SunIcon,
+  WarningIcon,
 } from '@chakra-ui/icons';
+import { FaFire, FaTrophy, FaSnowflake } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import {
   CartesianGrid,
   Cell,
@@ -193,9 +201,221 @@ const TooltipContent = ({ problems }) => {
   );
 };
 
-// ...existing code...
-
 import { useAppTheme } from '../context/ThemeContext';
+
+const MotionBox = motion(Box);
+
+const WelcomeSection = ({ streak, isFrozen, achievements, todayActivityCount, overdueCount }) => {
+  const { t } = useTranslation();
+  const bg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.100', 'gray.700');
+  
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  const nextAchievement = achievements.find(a => !a.unlocked);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return t('dashboard.greeting.morning', 'Good Morning');
+    if (hour < 18) return t('dashboard.greeting.afternoon', 'Good Afternoon');
+    return t('dashboard.greeting.evening', 'Good Evening');
+  };
+
+  // Determine Streak Visuals
+  let streakIcon = FaFire;
+  let streakColor = "orange.500";
+  let streakGradient = "radial(orange.400, transparent 70%)";
+  let streakTextGradient = "linear(to-r, orange.400, red.500)";
+  let streakLabel = t('dashboard.welcome.streak', 'Streak');
+
+  if (isFrozen) {
+    streakIcon = FaSnowflake;
+    streakColor = "cyan.400";
+    streakGradient = "radial(cyan.400, transparent 70%)";
+    streakTextGradient = "linear(to-r, cyan.400, blue.500)";
+    streakLabel = t('dashboard.welcome.streakFrozen', 'Frozen');
+  } else if (overdueCount > 0) {
+    streakIcon = WarningIcon;
+    streakColor = "red.500";
+    streakGradient = "radial(red.400, transparent 70%)";
+    streakTextGradient = "linear(to-r, red.500, red.600)";
+  }
+
+  return (
+    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+      {/* Left Card: Greeting & Streak */}
+      <Box 
+        bg={bg} 
+        p={6} 
+        borderRadius="2xl" 
+        boxShadow="sm" 
+        border="1px solid" 
+        borderColor={borderColor}
+        position="relative"
+        overflow="hidden"
+      >
+        {overdueCount > 0 && (
+          <Badge 
+            position="absolute" 
+            top={4} 
+            right={4} 
+            colorScheme="red" 
+            variant="solid" 
+            borderRadius="full" 
+            px={3} 
+            py={1}
+            fontSize="xs"
+            zIndex={2}
+          >
+            ⚠️ {overdueCount} {t('dashboard.welcome.overdueTasks', 'Overdue Tasks')}
+          </Badge>
+        )}
+        <VStack align="start" spacing={4} h="full" justify="center">
+          <Box>
+            <Heading size="md" fontWeight="bold">
+              {getGreeting()}, <Text as="span" color="brand.500">User</Text>!
+            </Heading>
+            <Text color="gray.500" fontSize="sm">
+              {t('dashboard.welcome.subtitle', 'Ready to solve some problems?')}
+            </Text>
+          </Box>
+
+          <HStack spacing={6} w="full" align="center">
+            <Box position="relative" mt={1}>
+              {/* Fire/Ice Effect Glow */}
+              <Box
+                position="absolute"
+                top="50%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                w="60px"
+                h="60px"
+                borderRadius="full"
+                bgGradient={streakGradient}
+                opacity={0.6}
+                filter="blur(10px)"
+                animation="pulse-glow 2s infinite"
+                sx={{
+                  '@keyframes pulse-glow': {
+                    '0%': { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.6 },
+                    '50%': { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 0.8 },
+                    '100%': { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.6 },
+                  }
+                }}
+              />
+              <Icon 
+                as={streakIcon} 
+                w={12} h={12} 
+                color={streakColor} 
+                position="relative"
+                zIndex={1}
+              />
+            </Box>
+            
+            <VStack align="start" spacing={0}>
+               <Text fontSize="4xl" fontWeight="900" lineHeight="1" bgGradient={streakTextGradient} bgClip="text">
+                  {streak}
+               </Text>
+               <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wide">
+                  {t('dashboard.stats.days')} {streakLabel}
+               </Text>
+            </VStack>
+
+            <Box w="1px" h="40px" bg="gray.200" />
+
+            <VStack align="start" spacing={0}>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.700">
+                    {todayActivityCount}
+                </Text>
+                <Text fontSize="xs" color="gray.500" fontWeight="medium">
+                    {t('dashboard.welcome.activities', 'Activities')}
+                </Text>
+            </VStack>
+          </HStack>
+          
+          {/* Removed Badge from here */}
+        </VStack>
+      </Box>
+
+      {/* Right Card: Achievements */}
+      <Box 
+        bg={bg} 
+        p={6} 
+        borderRadius="2xl" 
+        boxShadow="sm" 
+        border="1px solid" 
+        borderColor={borderColor}
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+      >
+        <Flex justify="space-between" align="center" mb={4}>
+          <HStack>
+            <Icon as={FaTrophy} color="yellow.500" />
+            <Text fontSize="sm" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wider">
+              {t('dashboard.achievements.title', 'Achievements')}
+            </Text>
+            <Badge colorScheme="gray" fontSize="xs" borderRadius="full">{unlockedCount}/{achievements.length}</Badge>
+          </HStack>
+          {nextAchievement && (
+            <HStack spacing={1}>
+                <Text fontSize="xs" color="gray.400">{t('dashboard.achievements.nextGoal', 'Next Goal')}:</Text>
+                <Text fontSize="xs" color="brand.500" fontWeight="bold" noOfLines={1} maxW="100px">
+                  {nextAchievement.title}
+                </Text>
+            </HStack>
+          )}
+        </Flex>
+        
+        <Box position="relative" w="full">
+            <HStack 
+              spacing={4} 
+              overflowX="auto" 
+              py={2} 
+              px={1}
+              css={{ 
+                  '&::-webkit-scrollbar': { height: '4px' },
+                  '&::-webkit-scrollbar-track': { background: 'transparent' },
+                  '&::-webkit-scrollbar-thumb': { background: '#E2E8F0', borderRadius: '2px' },
+              }}
+            >
+              {achievements.map((achievement) => (
+                <ChakraTooltip 
+                  key={achievement.id} 
+                  label={
+                    <VStack align="start" spacing={0} p={1}>
+                      <Text fontWeight="bold" fontSize="sm">{achievement.title}</Text>
+                      <Text fontSize="xs">{achievement.desc}</Text>
+                      {!achievement.unlocked && <Text fontSize="xs" color="red.300">Locked</Text>}
+                    </VStack>
+                  } 
+                  hasArrow
+                  placement="top"
+                >
+                  <Flex
+                    minW={12} h={12}
+                    borderRadius="xl"
+                    bg={achievement.unlocked ? 'brand.50' : 'gray.100'}
+                    color={achievement.unlocked ? 'brand.500' : 'gray.400'}
+                    align="center" justify="center"
+                    border="1px solid"
+                    borderColor={achievement.unlocked ? 'brand.200' : 'transparent'}
+                    opacity={achievement.unlocked ? 1 : 0.6}
+                    filter={achievement.unlocked ? 'none' : 'grayscale(100%)'}
+                    transition="all 0.2s"
+                    _hover={{ transform: 'translateY(-2px)', borderColor: 'brand.300', shadow: 'sm' }}
+                    cursor="default"
+                    flexShrink={0}
+                  >
+                    <Text fontSize="xl">{achievement.icon}</Text>
+                  </Flex>
+                </ChakraTooltip>
+              ))}
+            </HStack>
+        </Box>
+      </Box>
+    </SimpleGrid>
+  );
+};
 
 function Dashboard() {
   const { t, i18n } = useTranslation();
@@ -203,14 +423,16 @@ function Dashboard() {
   const { colorScheme, schemes } = useAppTheme();
   const {
     todayStr,
-    stats,
+    streak,
+    isFrozen,
     progressPie,
     toReviewToday,
-    toReviewTomorrow,
     suggestions,
     upcomingSchedule,
     activitySeries,
-    masteredProblems,
+    achievements,
+    todayActivityCount,
+    overdueCount,
   } = useDashboardStats();
 
   const onRecordReview = (id) => completeProblem(id, 'review');
@@ -269,116 +491,10 @@ function Dashboard() {
 
   return (
     <Stack spacing={6}>
-      {/* Stats Cards */}
-      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-        <ChakraTooltip
-          label={<TooltipContent problems={toReviewToday} />}
-          hasArrow
-          placement="bottom"
-          bg={useColorModeValue('white', 'gray.700')}
-          color={useColorModeValue('gray.800', 'white')}
-          borderRadius="md"
-          isDisabled={toReviewToday.length === 0}
-        >
-          <Box>
-            <StatCard
-              icon={TimeIcon}
-              label={t('dashboard.stats.reviewToday')}
-              value={toReviewToday.length}
-              help={t('dashboard.stats.reviewTodayHelp')}
-            />
-          </Box>
-        </ChakraTooltip>
-        <ChakraTooltip
-          label={<TooltipContent problems={toReviewTomorrow} />}
-          hasArrow
-          placement="bottom"
-          bg={useColorModeValue('white', 'gray.700')}
-          color={useColorModeValue('gray.800', 'white')}
-          borderRadius="md"
-          isDisabled={toReviewTomorrow.length === 0}
-        >
-          <Box>
-            <StatCard
-              icon={CalendarIcon}
-              label={t('dashboard.stats.planTomorrow')}
-              value={toReviewTomorrow.length}
-              help={t('dashboard.stats.planTomorrowHelp')}
-            />
-          </Box>
-        </ChakraTooltip>
-        <ChakraTooltip
-          label={<TooltipContent problems={masteredProblems} />}
-          hasArrow
-          placement="bottom"
-          bg={useColorModeValue('white', 'gray.700')}
-          color={useColorModeValue('gray.800', 'white')}
-          borderRadius="md"
-          isDisabled={masteredProblems.length === 0}
-        >
-          <Box>
-            <StatCard
-              icon={StarIcon}
-              label={t('dashboard.stats.mastered')}
-              value={stats.masteredCount}
-              help={t('dashboard.stats.masteredHelp')}
-            />
-          </Box>
-        </ChakraTooltip>
-      </SimpleGrid>
+      {/* Welcome & Achievements */}
+      <WelcomeSection streak={streak} isFrozen={isFrozen} achievements={achievements} todayActivityCount={todayActivityCount} overdueCount={overdueCount} />
 
-      {/* Charts */}
-      <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
-        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Text fontWeight="semibold">{t('dashboard.charts.coverage')}</Text>
-            <Badge colorScheme="brand">{t('dashboard.charts.coverageBadge')}</Badge>
-          </Flex>
-          <Box width="100%" height={{ base: 220, md: 260 }}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie
-                  data={translatedProgressPie}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={90}
-                  dataKey="value"
-                  paddingAngle={3}
-                >
-                  {translatedProgressPie.map((entry, index) => (
-                    <Cell key={`cell-${entry.name}`} fill={pieColors[index % pieColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip cursor={{ fill: 'transparent' }} content={<CustomPieTooltip />} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Box>
-        </Box>
-
-        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
-          <Flex justify="space-between" align="center" mb={4}>
-            <Text fontWeight="semibold">{t('dashboard.charts.activity')}</Text>
-            <Badge colorScheme="accent">{t('dashboard.charts.activityBadge')}</Badge>
-          </Flex>
-          <Box width="100%" height={{ base: 230, md: 260 }}>
-            <ResponsiveContainer>
-              <LineChart data={activitySeries} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                <XAxis dataKey="date" fontSize={12} />
-                <YAxis allowDecimals={false} fontSize={12} />
-                <Tooltip cursor={{ stroke: gridColor, strokeWidth: 1 }} content={<CustomLineTooltip />} />
-                <Legend verticalAlign="top" height={32} />
-                <Line type="monotone" dataKey="learned" name={t('dashboard.charts.newLine')} stroke={learnedColor} strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="reviewed" name={t('dashboard.charts.reviewLine')} stroke={reviewedColor} strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        </Box>
-      </SimpleGrid>
-
-      {/* Today's Review & New Suggestions */}
+      {/* Today's Review & New Suggestions (Moved Up for Priority) */}
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
         <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
           <Flex justify="space-between" align="center" mb={4}>
@@ -494,44 +610,59 @@ function Dashboard() {
           ))}
         </SimpleGrid>
       </Box>
+
+      {/* Charts */}
+      <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={6}>
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Text fontWeight="semibold">{t('dashboard.charts.coverage')}</Text>
+            <Badge colorScheme="brand">{t('dashboard.charts.coverageBadge')}</Badge>
+          </Flex>
+          <Box width="100%" height={{ base: 220, md: 260 }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie
+                  data={translatedProgressPie}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  dataKey="value"
+                  paddingAngle={3}
+                >
+                  {translatedProgressPie.map((entry, index) => (
+                    <Cell key={`cell-${entry.name}`} fill={pieColors[index % pieColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip cursor={{ fill: 'transparent' }} content={<CustomPieTooltip />} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
+
+        <Box bg={cardBg} boxShadow="sm" borderRadius="xl" p={6} transition="all 0.3s ease" _hover={{ boxShadow: 'md' }}>
+          <Flex justify="space-between" align="center" mb={4}>
+            <Text fontWeight="semibold">{t('dashboard.charts.activity')}</Text>
+            <Badge colorScheme="accent">{t('dashboard.charts.activityBadge')}</Badge>
+          </Flex>
+          <Box width="100%" height={{ base: 230, md: 260 }}>
+            <ResponsiveContainer>
+              <LineChart data={activitySeries} margin={{ top: 8, right: 16, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="date" fontSize={12} />
+                <YAxis allowDecimals={false} fontSize={12} />
+                <Tooltip cursor={{ stroke: gridColor, strokeWidth: 1 }} content={<CustomLineTooltip />} />
+                <Legend verticalAlign="top" height={32} />
+                <Line type="monotone" dataKey="learned" name={t('dashboard.charts.newLine')} stroke={learnedColor} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="reviewed" name={t('dashboard.charts.reviewLine')} stroke={reviewedColor} strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
+      </SimpleGrid>
     </Stack>
   );
 }
 
-function StatCard({ icon, label, value, help }) {
-  const bg = useColorModeValue('white', 'gray.800');
-  const iconBg = useColorModeValue('brand.50', 'brand.800');
-  const iconColor = useColorModeValue('brand.500', 'brand.200');
-  return (
-    <Box
-      bg={bg}
-      boxShadow="sm"
-      borderRadius="xl"
-      py={5}
-      px={7}
-      display="flex"
-      alignItems="center"
-      justifyContent="space-between"
-      gap={4}
-      transition="all 0.3s ease"
-      _hover={{ boxShadow: 'md', transform: 'translateY(-2px)' }}
-    >
-      <Stat>
-        <StatLabel color="gray.500">{label}</StatLabel>
-        <StatNumber fontSize="2xl">{value}</StatNumber>
-        <StatHelpText>{help}</StatHelpText>
-      </Stat>
-      <Flex
-        boxSize={12}
-        borderRadius="full"
-        bg={iconBg}
-        align="center"
-        justify="center"
-        color={iconColor}
-      >
-        <Icon as={icon} />
-      </Flex>
-    </Box>
-  );
-}
 export default Dashboard;
