@@ -186,50 +186,41 @@ function ProblemsBoard({ onOpenSolutions }) {
   const listBg = useColorModeValue('white', 'gray.900');
 
   useEffect(() => {
-    let frameId;
     const updateHeight = () => {
-      if (!listContainerRef.current) return;
-      if (frameId) cancelAnimationFrame(frameId);
-      frameId = requestAnimationFrame(() => {
-        const rect = listContainerRef.current.getBoundingClientRect();
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const spacing = Math.max(0, VIEWPORT_BOTTOM_OFFSET);
-        const dynamicHeight = Math.max(PROBLEM_ROW_HEIGHT, viewportHeight - rect.top - spacing);
-        setAvailableHeight(dynamicHeight);
-      });
+      if (listContainerRef.current) {
+        setAvailableHeight(listContainerRef.current.clientHeight);
+      }
     };
 
     updateHeight();
-    // 延迟计算，确保布局稳定（解决刷新后高度计算不准的问题）
-    const timer1 = setTimeout(updateHeight, 100);
-    const timer2 = setTimeout(updateHeight, 500);
+    
+    // Use ResizeObserver for more robust height tracking
+    const observer = new ResizeObserver(updateHeight);
+    if (listContainerRef.current) {
+      observer.observe(listContainerRef.current);
+    }
 
-    window.addEventListener('resize', updateHeight);
-    window.addEventListener('orientationchange', updateHeight);
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      window.removeEventListener('resize', updateHeight);
-      window.removeEventListener('orientationchange', updateHeight);
-      if (frameId) cancelAnimationFrame(frameId);
-    };
-  }, [problems.length]);
+    return () => observer.disconnect();
+  }, []);
 
   const problemRowProps = useMemo(
     () => ({ problems, onOpenSolutions, rowHoverBg }),
     [problems, onOpenSolutions, rowHoverBg]
   );
 
-  const listHeight = useMemo(() => {
-    if (!problems.length) return PROBLEM_ROW_HEIGHT;
-    const totalRowsHeight = PROBLEM_ROW_HEIGHT * problems.length;
-    return Math.min(availableHeight, Math.max(PROBLEM_ROW_HEIGHT, totalRowsHeight));
-  }, [problems.length, availableHeight]);
-
   return (
-    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="xl" p={6} transition="all 0.3s ease">
-      <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4} gap={4}>
+    <Box 
+      h="100%" 
+      display="flex" 
+      flexDirection="column"
+      bg={cardBg} 
+      border="1px solid" 
+      borderColor={border} 
+      borderRadius="xl" 
+      p={6} 
+      transition="all 0.3s ease"
+    >
+      <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" mb={4} gap={4} flexShrink={0}>
         <Box>
           <Text fontWeight="semibold" fontSize="lg">
             {t('problems.title')}
@@ -251,57 +242,59 @@ function ProblemsBoard({ onOpenSolutions }) {
         </InputGroup>
       </Flex>
 
-      <Box overflowX="auto">
-        <Box minW="1000px" border="1px solid" borderColor={border} borderRadius="lg" overflow="hidden">
-          <Grid
-            templateColumns={COLUMN_TEMPLATE}
-            bg={headerBg}
-            color={headerColor}
-            fontWeight="semibold"
-            textTransform="uppercase"
-            letterSpacing="wide"
-            fontSize="xs"
-            px={4}
-            py={3}
-            position="sticky"
-            top={0}
-            zIndex={1}
-            backdropFilter="blur(8px)"
-            borderBottom="1px solid"
-            borderColor={headerBorder}
-            boxShadow="sm"
-            transition="all 0.3s ease"
-          >
-            <Text>{t('problems.table.id')}</Text>
-            <Text>{t('problems.table.name')}</Text>
-            <Text textAlign="center">{t('problems.table.difficulty')}</Text>
-            <Text textAlign="center">{t('problems.table.link')}</Text>
-            <Text textAlign="center">{t('problems.table.status')}</Text>
-            <Text textAlign="center">{t('problems.table.firstLearn')}</Text>
-            <Text textAlign="center">{t('problems.table.nextReview')}</Text>
-            <Text textAlign="center">{t('problems.table.solutions')}</Text>
-          </Grid>
-          {problems.length > 0 ? (
-            <Box bg={listBg} position="relative" ref={listContainerRef}>
-              <List
-                rowComponent={ProblemRow}
-                rowCount={problems.length}
-                rowHeight={PROBLEM_ROW_HEIGHT}
-                rowProps={problemRowProps}
-                defaultHeight={listHeight}
-                style={{ height: listHeight, width: '100%' }}
-              />
-            </Box>
-          ) : (
-            <Flex direction="column" align="center" justify="center" py={10} gap={2}>
-              <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
-                {t('problems.empty')}
-              </Text>
-              <Text fontSize="sm" color="gray.500">
-                {t('problems.subtitle')}
-              </Text>
-            </Flex>
-          )}
+      <Box flex="1" overflow="hidden" position="relative">
+        <Box position="absolute" top={0} left={0} right={0} bottom={0} overflowX="auto" overflowY="hidden">
+          <Box minW="1000px" h="100%" display="flex" flexDirection="column" border="1px solid" borderColor={border} borderRadius="lg" overflow="hidden">
+            <Grid
+              templateColumns={COLUMN_TEMPLATE}
+              bg={headerBg}
+              color={headerColor}
+              fontWeight="semibold"
+              textTransform="uppercase"
+              letterSpacing="wide"
+              fontSize="xs"
+              px={4}
+              py={3}
+              flexShrink={0}
+              zIndex={1}
+              backdropFilter="blur(8px)"
+              borderBottom="1px solid"
+              borderColor={headerBorder}
+              boxShadow="sm"
+              transition="all 0.3s ease"
+            >
+              <Text>{t('problems.table.id')}</Text>
+              <Text>{t('problems.table.name')}</Text>
+              <Text textAlign="center">{t('problems.table.difficulty')}</Text>
+              <Text textAlign="center">{t('problems.table.link')}</Text>
+              <Text textAlign="center">{t('problems.table.status')}</Text>
+              <Text textAlign="center">{t('problems.table.firstLearn')}</Text>
+              <Text textAlign="center">{t('problems.table.nextReview')}</Text>
+              <Text textAlign="center">{t('problems.table.solutions')}</Text>
+            </Grid>
+            {problems.length > 0 ? (
+              <Box bg={listBg} position="relative" flex="1" ref={listContainerRef} minH={0}>
+                <List
+                  rowComponent={ProblemRow}
+                  rowCount={problems.length}
+                  rowHeight={PROBLEM_ROW_HEIGHT}
+                  rowProps={problemRowProps}
+                  height={availableHeight}
+                  width="100%"
+                  style={{ width: '100%' }}
+                />
+              </Box>
+            ) : (
+              <Flex direction="column" align="center" justify="center" py={10} gap={2} flex="1">
+                <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
+                  {t('problems.empty')}
+                </Text>
+                <Text fontSize="sm" color="gray.500">
+                  {t('problems.subtitle')}
+                </Text>
+              </Flex>
+            )}
+          </Box>
         </Box>
       </Box>
     </Box>

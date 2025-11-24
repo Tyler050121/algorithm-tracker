@@ -101,9 +101,17 @@ const MainLayout = () => {
   const todayStats = activitySeries[activitySeries.length - 1] || { learned: 0, reviewed: 0 };
 
   return (
-    <Box bg={useColorModeValue('brand.50', 'gray.900')} minH="100vh" transition="background-color 0.3s ease">
+    <Box 
+      bg={useColorModeValue('brand.50', 'gray.900')} 
+      h="100vh" 
+      display="flex" 
+      flexDirection="column" 
+      overflow="hidden"
+      transition="background-color 0.3s ease"
+    >
       <Box
         bg={headerBg}
+        flexShrink={0}
         shadow="sm"
         // Removed borderBottom to make it cleaner as per plan
         // borderBottom="1px solid"
@@ -195,12 +203,13 @@ const MainLayout = () => {
             exit="exit"
             transition={pageTransition}
             w="100%"
+            h="100%"
             style={{ willChange: 'transform, opacity, filter' }}
             flex="1"
             display="flex"
             flexDirection="column"
           >
-            <Box w="100%" px={{ base: 4, md: 8 }} py={6} flex="1" display="flex" flexDirection="column">
+            <Box w="100%" h="100%" px={{ base: 4, md: 8 }} py={6} display="flex" flexDirection="column" overflow="hidden">
               {currentOutlet}
             </Box>
           </MotionBox>

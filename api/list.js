@@ -36,8 +36,8 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-        'Referer': `https://leetcode.com/studyplan/${slug}/`,
-        'Origin': 'https://leetcode.com'
+        'Referer': `https://leetcode.cn/studyplan/${slug}/`,
+        'Origin': 'https://leetcode.cn'
       },
       body: JSON.stringify({
         query: query,

@@ -1,32 +1,39 @@
-import { useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useProblems } from '../context/ProblemContext';
 import { normalizeProblem } from '../utils/helpers';
-import { STORAGE_KEY } from '../constants';
+import { db } from '../db';
 
 export const useHistoryStats = () => {
-  const { problems } = useProblems();
+  const { problems } = useProblems(); // 当前计划的题目
+  const [allProblemsFromDB, setAllProblemsFromDB] = useState([]);
+
+  // 从数据库加载所有题目
+  useEffect(() => {
+    const fetchAllProblems = async () => {
+      try {
+        const all = await db.problems.toArray();
+        setAllProblemsFromDB(all);
+      } catch (error) {
+        console.error('获取历史统计失败:', error);
+      }
+    };
+    
+    fetchAllProblems();
+  }, [problems]); // 当当前题目变化时重新获取（通常意味着有更新）
 
   const allKnownProblems = useMemo(() => {
-    const rawGlobalData = localStorage.getItem(STORAGE_KEY);
-    const globalUserData = rawGlobalData ? JSON.parse(rawGlobalData) : {};
+    // 创建当前计划题目的映射，以确保使用最新的内存状态
     const problemMap = new Map(problems.map(p => [String(p.id), p]));
 
-    return Object.entries(globalUserData)
-      .map(([id, userData]) => {
-        const problemFromCurrentPlan = problemMap.get(id);
-        if (problemFromCurrentPlan) {
-          return problemFromCurrentPlan;
-        }
-        return normalizeProblem({
-          id: parseInt(id),
-          name: userData.name || `Problem ${id}`,
-          difficulty: userData.difficulty || 'N/A',
-          slug: userData.slug || null,
-          ...userData,
-        });
-      });
-  }, [problems]);
+    return allProblemsFromDB.map((dbProblem) => {
+      const problemFromCurrentPlan = problemMap.get(String(dbProblem.id));
+      if (problemFromCurrentPlan) {
+        return problemFromCurrentPlan;
+      }
+      return normalizeProblem(dbProblem);
+    });
+  }, [problems, allProblemsFromDB]);
 
   const allProblemsWithHistory = useMemo(() =>
     allKnownProblems.filter(p => p.learnHistory.length > 0 || p.reviewHistory.length > 0),

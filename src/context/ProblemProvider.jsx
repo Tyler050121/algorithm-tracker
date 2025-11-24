@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { format, addDays } from 'date-fns';
-import { REVIEW_INTERVALS, STORAGE_KEY } from '../constants';
+import { REVIEW_INTERVALS } from '../constants';
 import { normalizeProblem, createId } from '../utils/helpers';
 import { ProblemContext } from './ProblemContext';
+import { db } from '../db';
 
 export const ProblemProvider = ({ children }) => {
   const { t } = useTranslation();
@@ -24,8 +25,13 @@ export const ProblemProvider = ({ children }) => {
       const response = await fetch(`/api/list?slug=${slug}`);
       const data = await response.json();
       if (!data.groups) throw new Error('Failed to load study plan problems.');
-      const rawUserData = localStorage.getItem(STORAGE_KEY);
-      const savedUserData = rawUserData ? JSON.parse(rawUserData) : {};
+
+      // 2. 从 IndexedDB 获取所有已保存的进度
+      const savedProblemsArray = await db.problems.toArray();
+      const savedUserData = {};
+      savedProblemsArray.forEach(p => {
+        savedUserData[p.id] = p;
+      });
 
       // 3. 合并数据并构建分组
       const mergedGroups = data.groups.map(group => ({
@@ -72,114 +78,94 @@ export const ProblemProvider = ({ children }) => {
     localStorage.setItem('currentPlanSlug', currentPlanSlug);
   }, [currentPlanSlug, loadProblems]);
 
-  // 当题目数据变化时，更新并保存全局用户进度
-  useEffect(() => {
-    if (problems.length) {
-      // 1. 读取全局存档
-      const rawGlobalData = localStorage.getItem(STORAGE_KEY);
-      const globalUserData = rawGlobalData ? JSON.parse(rawGlobalData) : {};
+  // Helper to update problem in both DB and State
+  const updateProblemAndSave = useCallback(async (id, updater) => {
+    try {
+      // Get the latest state from DB to ensure consistency, or fall back to current state
+      let currentProblem = problems.find(p => p.id === id);
+      if (!currentProblem) {
+        currentProblem = await db.problems.get(id);
+      }
+      
+      if (!currentProblem) {
+        console.error(`Problem with id ${id} not found`);
+        return;
+      }
 
-      // 2. 将当前题库的进度更新到全局存档中
-      problems.forEach(p => {
-        globalUserData[p.id] = {
-          title: p.title,
-          difficulty: p.difficulty,
-          slug: p.slug,
-          groupName: p.groupName,
-          status: p.status,
-          nextReviewDate: p.nextReviewDate,
-          reviewCycleIndex: p.reviewCycleIndex,
-          learnHistory: p.learnHistory,
-          reviewHistory: p.reviewHistory,
-          solutions: p.solutions,
-        };
-      });
+      const newProblem = updater(currentProblem);
 
-      // 3. 写回全局存档
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(globalUserData));
+      // Update DB
+      await db.problems.put(newProblem);
+
+      // Update State
+      setProblems((prev) => prev.map((problem) => (problem.id === id ? newProblem : problem)));
+    } catch (error) {
+      console.error('Failed to update problem:', error);
+      toast({ title: t('toast.saveError', '保存失败'), status: 'error', duration: 3000 });
     }
-  }, [problems]);
+  }, [problems, t, toast]);
 
-  const updateProblem = useCallback((id, updater) => {
-    setProblems((prev) => prev.map((problem) => (problem.id === id ? updater(problem) : problem)));
-  }, []);
-
-  const completeProblem = useCallback((id, action) => {
+  const completeProblem = useCallback(async (id, action) => {
     const isNew = action === 'new';
     const now = new Date();
     const nowISO = now.toISOString();
 
-    const problemInCurrentPlan = problems.some((p) => p.id === id);
+    try {
+      let problem = problems.find(p => p.id === id);
+      if (!problem) {
+        problem = await db.problems.get(id);
+        if (!problem) {
+             toast({ title: t('toast.problemNotFound', '题目不存在'), status: 'error', duration: 2000, isClosable: true });
+             return;
+        }
+        // Normalize fetched problem from DB just in case
+        problem = normalizeProblem(problem);
+      }
 
-    if (problemInCurrentPlan) {
-      updateProblem(id, (problem) => {
+      const updater = (p) => {
         if (isNew) {
           const nextReviewDate = format(addDays(now, REVIEW_INTERVALS[0]), 'yyyy-MM-dd');
           return {
-            ...problem,
+            ...p,
             status: 'learning',
             reviewCycleIndex: 0,
             nextReviewDate,
-            learnHistory: [...problem.learnHistory, { date: nowISO, plan: currentPlanSlug }],
+            learnHistory: [...p.learnHistory, { date: nowISO, plan: currentPlanSlug }],
           };
         }
-        const nextIndex = problem.reviewCycleIndex + 1;
-        const reviewHistory = [...problem.reviewHistory, { date: nowISO, plan: currentPlanSlug }];
+        const nextIndex = p.reviewCycleIndex + 1;
+        const reviewHistory = [...p.reviewHistory, { date: nowISO, plan: currentPlanSlug }];
         if (nextIndex >= REVIEW_INTERVALS.length) {
-          return { ...problem, status: 'mastered', reviewCycleIndex: REVIEW_INTERVALS.length, nextReviewDate: null, reviewHistory };
+          return { ...p, status: 'mastered', reviewCycleIndex: REVIEW_INTERVALS.length, nextReviewDate: null, reviewHistory };
         }
         const nextReviewDate = format(addDays(new Date(), REVIEW_INTERVALS[nextIndex]), 'yyyy-MM-dd');
-        return { ...problem, status: 'learning', reviewCycleIndex: nextIndex, nextReviewDate, reviewHistory };
+        return { ...p, status: 'learning', reviewCycleIndex: nextIndex, nextReviewDate, reviewHistory };
+      };
+
+      const updatedProblem = updater(problem);
+      
+      await db.problems.put(updatedProblem);
+
+      // Update state if problem is in current view
+      if (problems.some(p => p.id === id)) {
+         setProblems(prev => prev.map(p => p.id === id ? updatedProblem : p));
+      }
+
+      toast({
+        title: isNew ? t('toast.newSuccessTitle') : t('toast.reviewSuccessTitle'),
+        description: isNew ? t('toast.newSuccessDesc') : t('toast.reviewSuccessDesc'),
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
       });
-    } else {
-      // 处理不在当前计划中的题目（通过全局数据）
-      const rawGlobalData = localStorage.getItem(STORAGE_KEY);
-      const globalUserData = rawGlobalData ? JSON.parse(rawGlobalData) : {};
-      const problemToUpdate = globalUserData[id];
 
-      if (!problemToUpdate) {
-        toast({ title: t('toast.problemNotFound', '题目不存在'), status: 'error', duration: 2000, isClosable: true });
-        return;
-      }
-
-      const normalizedProblem = normalizeProblem(problemToUpdate);
-      let updatedProblem;
-      if (isNew) {
-        const nextReviewDate = format(addDays(now, REVIEW_INTERVALS[0]), 'yyyy-MM-dd');
-        updatedProblem = {
-          ...normalizedProblem,
-          status: 'learning',
-          reviewCycleIndex: 0,
-          nextReviewDate,
-          learnHistory: [...normalizedProblem.learnHistory, { date: nowISO, plan: currentPlanSlug }],
-        };
-      } else {
-        const nextIndex = normalizedProblem.reviewCycleIndex + 1;
-        const reviewHistory = [...normalizedProblem.reviewHistory, { date: nowISO, plan: currentPlanSlug }];
-        if (nextIndex >= REVIEW_INTERVALS.length) {
-          updatedProblem = { ...normalizedProblem, status: 'mastered', reviewCycleIndex: REVIEW_INTERVALS.length, nextReviewDate: null, reviewHistory };
-        } else {
-          const nextReviewDate = format(addDays(new Date(), REVIEW_INTERVALS[nextIndex]), 'yyyy-MM-dd');
-          updatedProblem = { ...normalizedProblem, status: 'learning', reviewCycleIndex: nextIndex, nextReviewDate, reviewHistory };
-        }
-      }
-      globalUserData[id] = updatedProblem;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(globalUserData));
-      // Manually trigger a re-read for history board to update immediately
-      loadProblems(currentPlanSlug);
+    } catch (error) {
+      console.error(error);
     }
-
-    toast({
-      title: isNew ? t('toast.newSuccessTitle') : t('toast.reviewSuccessTitle'),
-      description: isNew ? t('toast.newSuccessDesc') : t('toast.reviewSuccessDesc'),
-      status: 'success',
-      duration: 2000,
-      isClosable: true,
-    });
-  }, [problems, currentPlanSlug, t, toast, updateProblem, loadProblems]);
+  }, [problems, currentPlanSlug, t, toast]);
 
   const addSolution = useCallback((problemId, payload) => {
-    updateProblem(problemId, (problem) => ({
+    updateProblemAndSave(problemId, (problem) => ({
       ...problem,
       solutions: [
         {
@@ -192,10 +178,10 @@ export const ProblemProvider = ({ children }) => {
         ...problem.solutions,
       ],
     }));
-  }, [updateProblem]);
+  }, [updateProblemAndSave]);
 
   const updateSolution = useCallback((problemId, solutionId, payload) => {
-    updateProblem(problemId, (problem) => ({
+    updateProblemAndSave(problemId, (problem) => ({
       ...problem,
       solutions: problem.solutions.map((solution) =>
         solution.id === solutionId
@@ -203,19 +189,19 @@ export const ProblemProvider = ({ children }) => {
           : solution
       ),
     }));
-  }, [updateProblem]);
+  }, [updateProblemAndSave]);
 
   const deleteSolution = useCallback((problemId, solutionId) => {
-    updateProblem(problemId, (problem) => ({
+    updateProblemAndSave(problemId, (problem) => ({
       ...problem,
       solutions: problem.solutions.filter((solution) => solution.id !== solutionId),
     }));
-  }, [updateProblem]);
+  }, [updateProblemAndSave]);
 
   const undoHistory = useCallback((historyItem) => {
     const { problem, type, date } = historyItem;
 
-    updateProblem(problem.id, (p) => {
+    updateProblemAndSave(problem.id, (p) => {
       if (type === 'learn') {
         const newLearnHistory = p.learnHistory.filter(item => (typeof item === 'string' ? item : item.date) !== date);
         if (newLearnHistory.length === 0) {
@@ -255,13 +241,13 @@ export const ProblemProvider = ({ children }) => {
       duration: 3000,
       isClosable: true,
     });
-  }, [updateProblem, t, toast]);
+  }, [updateProblemAndSave, t, toast]);
 
   const updateHistoryDate = useCallback((historyItem, newDateTime) => {
     const { problem, type, date: oldDate } = historyItem;
     const newTimestamp = new Date(newDateTime).toISOString();
 
-    updateProblem(problem.id, (p) => {
+    updateProblemAndSave(problem.id, (p) => {
       const historyField = type === 'learn' ? 'learnHistory' : 'reviewHistory';
 
       const newHistory = p[historyField]
@@ -288,31 +274,50 @@ export const ProblemProvider = ({ children }) => {
       duration: 3000,
       isClosable: true,
     });
-  }, [updateProblem, t, toast]);
+  }, [updateProblemAndSave, t, toast]);
 
-  const exportData = useCallback(() => {
-    const data = localStorage.getItem(STORAGE_KEY);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `algorithm-tracker-backup-${format(new Date(), 'yyyyMMdd')}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast({ title: t('toast.exportSuccess'), status: 'success', duration: 2000 });
+  const exportData = useCallback(async () => {
+    try {
+      const allProblems = await db.problems.toArray();
+      // Convert to the format expected by backup (object with IDs as keys)
+      const exportObj = {};
+      allProblems.forEach(p => {
+        exportObj[p.id] = p;
+      });
+      
+      const jsonString = JSON.stringify(exportObj);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `algorithm-tracker-backup-${format(new Date(), 'yyyyMMdd')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({ title: t('toast.exportSuccess'), status: 'success', duration: 2000 });
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast({ title: t('toast.exportError', '导出失败'), status: 'error', duration: 3000 });
+    }
   }, [t, toast]);
 
   const importData = useCallback((file) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
-        const data = e.target.result;
-        JSON.parse(data); // 验证 JSON 格式
-        localStorage.setItem(STORAGE_KEY, data); // 直接存储字符串，因为已经是 JSON 字符串了
+        const dataStr = e.target.result;
+        const data = JSON.parse(dataStr); // Validate JSON
+        const problemsList = Object.values(data);
+        
+        if (problemsList.length > 0) {
+           // Ensure valid problems
+           const validProblems = problemsList.filter(p => p.id);
+           await db.problems.bulkPut(validProblems);
+        }
+        
         toast({ title: t('toast.importSuccess'), status: 'success', duration: 2000 });
-        loadProblems(currentPlanSlug); // 重新加载
+        loadProblems(currentPlanSlug); // Reload current view
       } catch (error) {
         console.error("Failed to import data:", error);
         toast({ title: t('toast.importError'), status: 'error', duration: 3000 });
@@ -321,10 +326,14 @@ export const ProblemProvider = ({ children }) => {
     reader.readAsText(file);
   }, [t, toast, loadProblems, currentPlanSlug]);
 
-  const clearData = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    toast({ title: t('toast.clearSuccess'), status: 'warning', duration: 2000 });
-    setTimeout(() => window.location.reload(), 1000);
+  const clearData = useCallback(async () => {
+    try {
+      await db.problems.clear();
+      toast({ title: t('toast.clearSuccess'), status: 'warning', duration: 2000 });
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      console.error('Clear data failed:', error);
+    }
   }, [t, toast]);
 
   const changePlan = useCallback((slug) => {
