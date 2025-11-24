@@ -8,13 +8,13 @@ import History from './pages/History';
 import SolutionDrawer from './components/SolutionDrawer';
 
 const AppContent = () => {
-  const { focusedProblem, closeSolutions, addSolution, deleteSolution, openSolutions } = useProblems();
+  const { focusedProblem, closeSolutions, addSolution, updateSolution, deleteSolution, openSolutions } = useProblems();
 
   return (
     <>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Dashboard onOpenSolutions={openSolutions} />} />
           <Route path="problems" element={<Problems onOpenSolutions={openSolutions} />} />
           <Route path="history" element={<History />} />
         </Route>
@@ -25,6 +25,7 @@ const AppContent = () => {
         isOpen={Boolean(focusedProblem)}
         onClose={closeSolutions}
         onAddSolution={addSolution}
+        onUpdateSolution={updateSolution}
         onDeleteSolution={deleteSolution}
       />
     </>

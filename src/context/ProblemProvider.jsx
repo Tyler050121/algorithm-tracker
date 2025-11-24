@@ -194,6 +194,17 @@ export const ProblemProvider = ({ children }) => {
     }));
   }, [updateProblem]);
 
+  const updateSolution = useCallback((problemId, solutionId, payload) => {
+    updateProblem(problemId, (problem) => ({
+      ...problem,
+      solutions: problem.solutions.map((solution) =>
+        solution.id === solutionId
+          ? { ...solution, ...payload, updatedAt: format(new Date(), 'yyyy-MM-dd') }
+          : solution
+      ),
+    }));
+  }, [updateProblem]);
+
   const deleteSolution = useCallback((problemId, solutionId) => {
     updateProblem(problemId, (problem) => ({
       ...problem,
@@ -341,6 +352,7 @@ export const ProblemProvider = ({ children }) => {
     changePlan,
     completeProblem,
     addSolution,
+    updateSolution,
     deleteSolution,
     undoHistory,
     updateHistoryDate,

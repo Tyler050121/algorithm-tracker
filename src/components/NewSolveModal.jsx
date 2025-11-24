@@ -17,12 +17,20 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  Badge,
+  HStack,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 
+const DIFFICULTY_MAP = {
+  easy: { color: 'green' },
+  medium: { color: 'orange' },
+  hard: { color: 'red' },
+};
+
 function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState('');
 
@@ -35,10 +43,12 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
     const keyword = search.trim().toLowerCase();
     if (!keyword) return unstartedProblems;
     return unstartedProblems.filter(
-      (problem) =>
-        problem.name.toLowerCase().includes(keyword) || String(problem.id).includes(keyword)
+      (problem) => {
+        const name = (i18n.language === 'zh' ? problem.title.zh : problem.title.en) || problem.title.en || '';
+        return name.toLowerCase().includes(keyword) || String(problem.id).includes(keyword);
+      }
     );
-  }, [unstartedProblems, search]);
+  }, [unstartedProblems, search, i18n.language]);
 
   useEffect(() => {
     if (isOpen) {
@@ -62,7 +72,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg" scrollBehavior="inside">
       <ModalOverlay />
       <ModalContent>
         <ModalCloseButton />
@@ -79,21 +89,50 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
                 onChange={(event) => setSearch(event.target.value)}
               />
             </InputGroup>
-            <Box maxH="320px" overflowY="auto" bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="lg" p={3}>
+            <Box 
+              maxH="400px" 
+              overflowY="auto" 
+              bg={useColorModeValue('gray.50', 'gray.700')} 
+              borderRadius="lg" 
+              p={2}
+              border="1px solid"
+              borderColor={useColorModeValue('gray.100', 'gray.600')}
+            >
               {filtered.length === 0 ? (
-                <Text textAlign="center" color="gray.500">
+                <Text textAlign="center" color="gray.500" py={8}>
                   {t('newSolve.empty')}
                 </Text>
               ) : (
                 <RadioGroup value={selectedId} onChange={setSelectedId}>
-                  <Stack spacing={3}>
+                  <Stack spacing={0}>
                     {filtered.map((problem) => (
-                      <Radio key={problem.id} value={String(problem.id)} colorScheme="brand">
-                        <Text fontWeight="semibold">{problem.name}</Text>
-                        <Text fontSize="sm" color="gray.500">
-                          #{problem.id}
-                        </Text>
-                      </Radio>
+                      <Box 
+                        key={problem.id} 
+                        p={3} 
+                        borderRadius="md" 
+                        _hover={{ bg: useColorModeValue('white', 'gray.600'), shadow: 'sm' }}
+                        transition="all 0.2s"
+                        cursor="pointer"
+                        onClick={() => setSelectedId(String(problem.id))}
+                      >
+                        <Radio value={String(problem.id)} colorScheme="brand" w="full">
+                          <HStack spacing={2} align="center">
+                            <Text fontWeight="semibold">
+                              {(i18n.language === 'zh' ? problem.title.zh : problem.title.en) || problem.title.en}
+                            </Text>
+                            <Badge 
+                              colorScheme={DIFFICULTY_MAP[problem.difficulty?.toLowerCase()]?.color || 'gray'} 
+                              fontSize="xs" 
+                              variant="subtle"
+                            >
+                              {problem.difficulty}
+                            </Badge>
+                          </HStack>
+                          <Text fontSize="xs" color="gray.500" mt={0.5}>
+                            #{problem.id} · {i18n.language === 'zh' ? problem.groupName.zh : problem.groupName.en}
+                          </Text>
+                        </Radio>
+                      </Box>
                     ))}
                   </Stack>
                 </RadioGroup>

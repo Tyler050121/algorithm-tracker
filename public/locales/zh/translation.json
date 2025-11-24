@@ -174,7 +174,11 @@
     "addButton": "添加到题解列表",
     "addSuccess": "题解已保存",
     "addWarning": "请至少填写标题或思路",
-    "unnamed": "未命名题解"
+    "unnamed": "未命名题解",
+    "editTooltip": "编辑题解",
+    "updateButton": "更新题解",
+    "updateSuccess": "题解已更新",
+    "updatedAt": "更新于 {{date}}"
   },
   "newSolve": {
     "title": "记录新题",

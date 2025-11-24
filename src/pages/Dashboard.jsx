@@ -32,8 +32,9 @@ import {
   AddIcon,
   SunIcon,
   WarningIcon,
+  EditIcon,
 } from '@chakra-ui/icons';
-import { FaFire, FaTrophy, FaSnowflake } from 'react-icons/fa';
+import { FaFire, FaTrophy, FaSnowflake, FaBookOpen } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import {
   CartesianGrid,
@@ -417,7 +418,7 @@ const WelcomeSection = ({ streak, isFrozen, achievements, todayActivityCount, ov
   );
 };
 
-function Dashboard() {
+function Dashboard({ onOpenSolutions }) {
   const { t, i18n } = useTranslation();
   const { completeProblem } = useProblems();
   const { colorScheme, schemes } = useAppTheme();
@@ -538,6 +539,15 @@ function Dashboard() {
                     onClick={() => onRecordReview(problem.id)}
                   />
                 </ChakraTooltip>
+                <ChakraTooltip label={t('dashboard.solutions.view', 'View Solutions')} hasArrow closeOnClick={true} openDelay={500}>
+                  <IconButton
+                    icon={<Icon as={FaBookOpen} />}
+                    size="sm"
+                    variant="ghost"
+                    colorScheme={problem.solutions?.length > 0 ? 'yellow' : 'gray'}
+                    onClick={() => onOpenSolutions(problem.id)}
+                  />
+                </ChakraTooltip>
               </Flex>
             ))}
           </Stack>
@@ -573,6 +583,15 @@ function Dashboard() {
                       <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal>
                         <IconButton icon={<ExternalLinkIcon />} size="sm" variant="ghost" isDisabled={!problem.slug} />
                       </Link>
+                    </ChakraTooltip>
+                    <ChakraTooltip label={t('dashboard.solutions.view', 'View Solutions')} hasArrow closeOnClick={true} openDelay={500}>
+                      <IconButton
+                        icon={<Icon as={FaBookOpen} />}
+                        size="sm"
+                        variant="ghost"
+                        colorScheme={problem.solutions?.length > 0 ? 'yellow' : 'gray'}
+                        onClick={() => onOpenSolutions(problem.id)}
+                      />
                     </ChakraTooltip>
                     <ChakraTooltip label={t('dashboard.suggestions.record')} hasArrow>
                       <IconButton

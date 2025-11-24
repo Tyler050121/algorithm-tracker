@@ -15,6 +15,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { SearchIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { FaBookOpen } from 'react-icons/fa';
 import { format, isValid, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { List } from 'react-window';
@@ -138,14 +139,16 @@ const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHov
           <RenderDateTag value={problem.nextReviewDate} type="next" />
         </Flex>
         <Box textAlign="center">
-          <IconButton
-            aria-label={t('problems.table.viewSolutions')}
-            icon={<ExternalLinkIcon />}
-            size="sm"
-            variant="ghost"
-            colorScheme="teal"
-            onClick={() => onOpenSolutions(problem.id)}
-          />
+          <Tooltip label={t('problems.table.viewSolutions')} hasArrow closeOnClick={true} openDelay={500}>
+            <IconButton
+              aria-label={t('problems.table.viewSolutions')}
+              icon={<FaBookOpen />}
+              size="sm"
+              variant="ghost"
+              colorScheme={problem.solutions?.length > 0 ? 'yellow' : 'gray'}
+              onClick={() => onOpenSolutions(problem.id)}
+            />
+          </Tooltip>
         </Box>
       </Grid>
     </Box>

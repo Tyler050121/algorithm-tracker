@@ -174,7 +174,11 @@
     "addButton": "Add to Solutions",
     "addSuccess": "Solution saved",
     "addWarning": "Please fill in title or notes",
-    "unnamed": "Unnamed Solution"
+    "unnamed": "Unnamed Solution",
+    "editTooltip": "Edit Solution",
+    "updateButton": "Update Solution",
+    "updateSuccess": "Solution updated",
+    "updatedAt": "Updated at {{date}}"
   },
   "newSolve": {
     "title": "Record New Solve",
