@@ -568,7 +568,7 @@ function Dashboard({ onOpenSolutions }) {
                           </HStack>
                         </VStack>
                         <HStack spacing={2}>
-                          <Tooltip label={t('dashboard.review.tooltip')} hasArrow>
+                          <ChakraTooltip label={t('dashboard.review.tooltip')} hasArrow>
                              <IconButton 
                                icon={<CheckCircleIcon />} 
                                colorScheme="brand" 
@@ -578,16 +578,16 @@ function Dashboard({ onOpenSolutions }) {
                                onClick={() => onRecordReview(problem.id)}
                                _hover={{ bg: 'brand.100', color: 'brand.600', transform: 'scale(1.1)' }}
                              />
-                          </Tooltip>
-                          <Tooltip label={t('dashboard.solutions.view')} hasArrow>
+                          </ChakraTooltip>
+                          <ChakraTooltip label={t('common.viewSolutions')} hasArrow>
                              <IconButton 
                                icon={<Icon as={FaBookOpen} />} 
-                               variant="ghost" 
-                               colorScheme="gray" 
+                               variant="ghost"
+                               color={problem.solutions?.length > 0 ? "yellow.500" : "gray.500"}
                                isRound
                                onClick={() => onOpenSolutions(problem.id)}
                              />
-                          </Tooltip>
+                          </ChakraTooltip>
                         </HStack>
                       </Flex>
                     </Box>
@@ -602,7 +602,7 @@ function Dashboard({ onOpenSolutions }) {
       <Flex direction="column" flex={{ base: 1, lg: 2 }} gap={6} overflow="hidden">
          
          {/* Row 1: Suggestions (Limited to 3) */}
-         <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flexShrink={0}>
+         <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex="none" minH="300px">
              <Flex justify="space-between" align="center" mb={4}>
                 <HStack spacing={3}>
                    <Flex p={1.5} bg="orange.50" color="orange.500" borderRadius="lg"><Icon as={SunIcon} boxSize={4} /></Flex>
@@ -629,10 +629,25 @@ function Dashboard({ onOpenSolutions }) {
                           <Text fontSize="xs" color="gray.500">#{problem.id}</Text>
                        </VStack>
                     </HStack>
-                    <HStack spacing={1}>
-                      <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal><IconButton icon={<ExternalLinkIcon />} size="xs" variant="ghost" color="gray.400" _hover={{ color: 'blue.500' }} /></Link>
-                      <Button size="xs" leftIcon={<Icon as={FaBookOpen} />} variant="outline" colorScheme="gray" onClick={() => onOpenSolutions(problem.id)}>Sol</Button>
-                      <IconButton icon={<AddIcon />} size="xs" variant="solid" colorScheme="orange" borderRadius="full" onClick={() => onRecordNew(problem.id)} />
+                    <HStack spacing={2}>
+                      <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow>
+                        <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal display="flex">
+                          <IconButton icon={<ExternalLinkIcon />} size="xs" variant="ghost" color="gray.400" _hover={{ color: 'blue.500', bg: 'blue.50' }} aria-label="Open Link" />
+                        </Link>
+                      </ChakraTooltip>
+                      <ChakraTooltip label={t('common.viewSolutions')} hasArrow>
+                        <IconButton 
+                          icon={<Icon as={FaBookOpen} />} 
+                          size="xs" 
+                          variant="ghost"
+                          color={problem.solutions?.length > 0 ? "yellow.500" : "gray.400"}
+                          onClick={() => onOpenSolutions(problem.id)} 
+                          aria-label="View Solutions"
+                        />
+                      </ChakraTooltip>
+                      <ChakraTooltip label={t('dashboard.suggestions.record')} hasArrow>
+                        <IconButton icon={<AddIcon />} size="xs" variant="solid" colorScheme="orange" borderRadius="md" onClick={() => onRecordNew(problem.id)} aria-label="Record New" />
+                      </ChakraTooltip>
                     </HStack>
                   </Flex>
                 ))}
