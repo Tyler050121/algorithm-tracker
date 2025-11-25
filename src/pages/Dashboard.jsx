@@ -568,6 +568,18 @@ function Dashboard({ onOpenSolutions }) {
                           </HStack>
                         </VStack>
                         <HStack spacing={2}>
+                          <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow>
+                            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal display="flex">
+                               <IconButton 
+                                 icon={<ExternalLinkIcon />} 
+                                 variant="ghost" 
+                                 colorScheme="blue"
+                                 isRound
+                                 size="lg"
+                                 aria-label="Open Link"
+                               />
+                            </Link>
+                          </ChakraTooltip>
                           <ChakraTooltip label={t('dashboard.review.tooltip')} hasArrow>
                              <IconButton 
                                icon={<CheckCircleIcon />} 
