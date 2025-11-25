@@ -103,13 +103,26 @@
       "coverageBadge": "Real-time",
       "activity": "21-Day Activity",
       "activityBadge": "Learn vs Review",
+      "difficulty": "Difficulty",
       "pieLabels": {
         "unstarted": "Unstarted",
         "learning": "Learning",
         "mastered": "Mastered"
       },
       "newLine": "New",
-      "reviewLine": "Review"
+      "reviewLine": "Review",
+      "learned": "Learned",
+      "reviewed": "Reviewed"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "status": {
+      "mastered": "Mastered",
+      "learning": "Learning",
+      "unstarted": "Unstarted"
     },
     "review": {
       "title": "Today's Review",

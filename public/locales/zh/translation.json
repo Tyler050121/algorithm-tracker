@@ -103,13 +103,26 @@
       "coverageBadge": "实时",
       "activity": "21 日学习曲线",
       "activityBadge": "新题 vs 复习",
+      "difficulty": "难度分布",
       "pieLabels": {
         "unstarted": "未开始",
         "learning": "学习中",
         "mastered": "已掌握"
       },
       "newLine": "新题",
-      "reviewLine": "复习"
+      "reviewLine": "复习",
+      "learned": "新学",
+      "reviewed": "复习"
+    },
+    "difficulty": {
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
+    },
+    "status": {
+      "mastered": "已掌握",
+      "learning": "学习中",
+      "unstarted": "未开始"
     },
     "review": {
       "title": "今日复习",

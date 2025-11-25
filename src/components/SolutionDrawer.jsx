@@ -55,6 +55,7 @@ const MarkdownRenderer = ({ content }) => {
         components={{
           code({ inline, className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || '');
+            const codeContent = String(children).replace(/^\n/, '').replace(/\n$/, '');
             return !inline && match ? (
               <SyntaxHighlighter
                 style={syntaxTheme}
@@ -62,7 +63,7 @@ const MarkdownRenderer = ({ content }) => {
                 PreTag="div"
                 {...props}
               >
-                {String(children).replace(/\n$/, '')}
+                {codeContent}
               </SyntaxHighlighter>
             ) : (
               <code className={className} {...props}>

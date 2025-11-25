@@ -213,6 +213,37 @@ export const useDashboardStats = () => {
     ).length;
   }, [problems, today]);
 
+  // 难度分布统计 - 基于总题库
+  const difficultyStats = useMemo(() => {
+    const easyAll = problems.filter(p => p.difficulty?.toLowerCase() === 'easy');
+    const mediumAll = problems.filter(p => p.difficulty?.toLowerCase() === 'medium');
+    const hardAll = problems.filter(p => p.difficulty?.toLowerCase() === 'hard');
+    
+    const calcStats = (arr, color, lightColor) => {
+      const total = arr.length;
+      const learning = arr.filter(p => p.status === 'learning').length;
+      const mastered = arr.filter(p => p.status === 'mastered').length;
+      const done = learning + mastered;
+      return {
+        total,
+        learning,
+        mastered,
+        done,
+        color,
+        lightColor,
+        percent: total > 0 ? Math.round((done / total) * 100) : 0,
+        learningPercent: total > 0 ? (learning / total) * 100 : 0,
+        masteredPercent: total > 0 ? (mastered / total) * 100 : 0,
+      };
+    };
+    
+    return [
+      { name: 'Easy', ...calcStats(easyAll, '#48BB78', '#9AE6B4') },
+      { name: 'Medium', ...calcStats(mediumAll, '#ED8936', '#FBD38D') },
+      { name: 'Hard', ...calcStats(hardAll, '#F56565', '#FEB2B2') },
+    ];
+  }, [problems]);
+
   return {
     todayStr,
     stats,
@@ -228,5 +259,6 @@ export const useDashboardStats = () => {
     achievements,
     todayActivityCount,
     overdueCount,
+    difficultyStats,
   };
 };

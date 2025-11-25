@@ -439,6 +439,7 @@ function Dashboard({ onOpenSolutions }) {
     achievements,
     todayActivityCount,
     overdueCount,
+    difficultyStats,
   } = useDashboardStats();
 
   const onRecordReview = (id) => completeProblem(id, 'review');
@@ -461,6 +462,11 @@ function Dashboard({ onOpenSolutions }) {
     [schemes[colorScheme].colors.brand[200], schemes[colorScheme].colors.brand[500], schemes[colorScheme].colors.brand[800]], 
     [schemes[colorScheme].colors.brand[700], schemes[colorScheme].colors.brand[400], schemes[colorScheme].colors.brand[200]]
   );
+
+  const diffHoverBg = useColorModeValue('gray.50', 'gray.700');
+  const diffProgressBg = useColorModeValue('gray.100', 'gray.600');
+  const diffPopoverBg = useColorModeValue('white', 'gray.700');
+  const diffPopoverBorder = useColorModeValue('gray.100', 'gray.600');
 
   const CustomPieTooltip = ({ active, payload }) => {
     const bg = useColorModeValue('white', 'gray.700');
@@ -568,19 +574,23 @@ function Dashboard({ onOpenSolutions }) {
                           </HStack>
                         </VStack>
                         <HStack spacing={2}>
-                          <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow>
-                            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal display="flex">
-                               <IconButton 
-                                 icon={<ExternalLinkIcon />} 
-                                 variant="ghost" 
-                                 colorScheme="blue"
-                                 isRound
-                                 size="lg"
-                                 aria-label="Open Link"
-                               />
-                            </Link>
+                          <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow closeOnClick={true} openOnFocus={false}>
+                             <IconButton 
+                               icon={<ExternalLinkIcon />} 
+                               variant="ghost" 
+                               colorScheme="blue"
+                               isRound
+                               size="lg"
+                               aria-label="Open Link"
+                               _hover={{ bg: 'blue.50', color: 'blue.600' }}
+                               onClick={(e) => {
+                                 e.preventDefault();
+                                 window.open(`https://leetcode.cn/problems/${problem.slug}/`, '_blank');
+                                 e.currentTarget.blur();
+                               }}
+                             />
                           </ChakraTooltip>
-                          <ChakraTooltip label={t('dashboard.review.tooltip')} hasArrow>
+                          <ChakraTooltip label={t('dashboard.review.tooltip')} hasArrow closeOnClick={true} openOnFocus={false}>
                              <IconButton 
                                icon={<CheckCircleIcon />} 
                                colorScheme="brand" 
@@ -591,7 +601,7 @@ function Dashboard({ onOpenSolutions }) {
                                _hover={{ bg: 'brand.100', color: 'brand.600', transform: 'scale(1.1)' }}
                              />
                           </ChakraTooltip>
-                          <ChakraTooltip label={t('common.viewSolutions')} hasArrow>
+                          <ChakraTooltip label={t('common.viewSolutions')} hasArrow closeOnClick={true} openOnFocus={false}>
                              <IconButton 
                                icon={<Icon as={FaBookOpen} />} 
                                variant="ghost"
@@ -642,12 +652,22 @@ function Dashboard({ onOpenSolutions }) {
                        </VStack>
                     </HStack>
                     <HStack spacing={2}>
-                      <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow>
-                        <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal display="flex">
-                          <IconButton icon={<ExternalLinkIcon />} size="xs" variant="ghost" color="gray.400" _hover={{ color: 'blue.500', bg: 'blue.50' }} aria-label="Open Link" />
-                        </Link>
+                      <ChakraTooltip label={t('dashboard.suggestions.openExternal')} hasArrow closeOnClick={true} openOnFocus={false}>
+                        <IconButton 
+                          icon={<ExternalLinkIcon />} 
+                          size="xs" 
+                          variant="ghost" 
+                          color="gray.400" 
+                          _hover={{ color: 'blue.500', bg: 'blue.50' }} 
+                          aria-label="Open Link" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            window.open(`https://leetcode.cn/problems/${problem.slug}/`, '_blank');
+                            e.currentTarget.blur();
+                          }}
+                        />
                       </ChakraTooltip>
-                      <ChakraTooltip label={t('common.viewSolutions')} hasArrow>
+                      <ChakraTooltip label={t('common.viewSolutions')} hasArrow closeOnClick={true} openOnFocus={false}>
                         <IconButton 
                           icon={<Icon as={FaBookOpen} />} 
                           size="xs" 
@@ -657,7 +677,7 @@ function Dashboard({ onOpenSolutions }) {
                           aria-label="View Solutions"
                         />
                       </ChakraTooltip>
-                      <ChakraTooltip label={t('dashboard.suggestions.record')} hasArrow>
+                      <ChakraTooltip label={t('dashboard.suggestions.record')} hasArrow closeOnClick={true} openOnFocus={false}>
                         <IconButton icon={<AddIcon />} size="xs" variant="solid" colorScheme="orange" borderRadius="md" onClick={() => onRecordNew(problem.id)} aria-label="Record New" />
                       </ChakraTooltip>
                     </HStack>
@@ -667,38 +687,142 @@ function Dashboard({ onOpenSolutions }) {
              </Stack>
          </Box>
 
-         {/* Row 2: Charts Area (Pie & Line) */}
-         <Flex direction="column" flex={1} gap={4} minH={0}>
-             {/* Activity Line Chart */}
-             <Box flex={1} bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} minH="120px">
-                 <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={2} textAlign="center">{t('dashboard.charts.activity')}</Text>
-                 <Box w="100%" h="calc(100% - 24px)">
-                    <ResponsiveContainer>
-                      <LineChart data={activitySeries} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                        <XAxis dataKey="date" fontSize={10} tick={{fontSize: 10}} />
-                        <YAxis allowDecimals={false} fontSize={10} tick={{fontSize: 10}} />
-                        <Tooltip content={<CustomLineTooltip />} />
-                        <Line type="monotone" dataKey="learned" stroke={learnedColor} strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="reviewed" stroke={reviewedColor} strokeWidth={2} dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                 </Box>
+         {/* Row 2: Charts Area (Activity Line Chart) */}
+         <Box flex={1} bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} minH="140px">
+             <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={2} textAlign="center">{t('dashboard.charts.activity')}</Text>
+             <Box w="100%" h="calc(100% - 24px)">
+                <ResponsiveContainer>
+                  <LineChart data={activitySeries} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="date" fontSize={10} tick={{fontSize: 10}} />
+                    <YAxis allowDecimals={false} fontSize={10} tick={{fontSize: 10}} />
+                    <Tooltip content={<CustomLineTooltip />} />
+                    <Line type="monotone" dataKey="learned" name={t('dashboard.charts.learned', 'Learned')} stroke={learnedColor} strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="reviewed" name={t('dashboard.charts.reviewed', 'Reviewed')} stroke={reviewedColor} strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
              </Box>
-             
-             {/* Coverage Pie Chart */}
-             <Box flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} minH="120px">
+         </Box>
+         
+         {/* Row 3: Coverage Pie & Difficulty Distribution */}
+         <Flex gap={4} flexShrink={0} h="140px">
+             {/* Coverage Pie Chart - Compact */}
+             <Box flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor}>
                  <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={1} textAlign="center">{t('dashboard.charts.coverage')}</Text>
                  <Box w="100%" h="calc(100% - 20px)">
                     <ResponsiveContainer>
                       <PieChart>
-                        <Pie data={translatedProgressPie} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" paddingAngle={2} stroke="none">
+                        <Pie data={translatedProgressPie} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="value" paddingAngle={3} stroke="none">
                           {translatedProgressPie.map((entry, index) => <Cell key={`cell-${entry.name}`} fill={pieColors[index % pieColors.length]} />)}
                         </Pie>
                         <Tooltip content={<CustomPieTooltip />} />
-                        <Legend iconSize={8} fontSize={10} layout="vertical" verticalAlign="middle" align="right" />
+                        <Legend iconSize={6} wrapperStyle={{fontSize: '10px'}} layout="vertical" verticalAlign="middle" align="right" />
                       </PieChart>
                     </ResponsiveContainer>
                  </Box>
+             </Box>
+             
+             {/* Difficulty Distribution */}
+             <Box flex={1} bg={cardBg} borderRadius="2xl" px={4} py={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor}>
+                 <Flex justify="space-between" align="center" mb={3}>
+                   <Text fontWeight="bold" fontSize="xs" color="gray.500">{t('dashboard.charts.difficulty', 'Difficulty')}</Text>
+                   <HStack spacing={2} fontSize="9px">
+                     <HStack spacing={1}>
+                       <Box w="6px" h="6px" borderRadius="sm" bg="green.500" />
+                       <Text color="gray.500">{t('dashboard.status.mastered', 'Mastered')}</Text>
+                     </HStack>
+                     <HStack spacing={1}>
+                       <Box w="6px" h="6px" borderRadius="sm" bg="green.200" />
+                       <Text color="gray.500">{t('dashboard.status.learning', 'Learning')}</Text>
+                     </HStack>
+                   </HStack>
+                 </Flex>
+                 <VStack spacing={1.5} align="stretch" h="calc(100% - 36px)" justify="center">
+                    {difficultyStats.map((item) => (
+                      <Popover key={item.name} trigger="hover" placement="top" isLazy closeOnBlur={true}>
+                        <PopoverTrigger>
+                          <HStack 
+                            spacing={1} 
+                            fontSize="xs" 
+                            cursor="pointer" 
+                            py={0.5}
+                            px={1} 
+                            mx={-1} 
+                            borderRadius="md"
+                            transition="all 0.2s"
+                            _hover={{ bg: diffHoverBg, transform: 'scale(1.01)' }}
+                            justify="center"
+                          >
+                            <Text w="15%" fontWeight="semibold" fontSize="10px" color={item.color} isTruncated flexShrink={0}>{t(`dashboard.difficulty.${item.name.toLowerCase()}`, item.name)}</Text>
+                            <Box w="58%" h="12px" bg={diffProgressBg} borderRadius="full" overflow="hidden" position="relative">
+                              {/* Mastered portion - solid color */}
+                              <Box 
+                                position="absolute"
+                                left={0}
+                                h="100%" 
+                                w={`${item.masteredPercent}%`} 
+                                bg={item.color} 
+                                borderRadius="full"
+                                transition="width 0.5s ease"
+                                zIndex={2}
+                              />
+                              {/* Learning portion - lighter color */}
+                              <Box 
+                                position="absolute"
+                                left={0}
+                                h="100%" 
+                                w={`${item.masteredPercent + item.learningPercent}%`} 
+                                bg={item.lightColor} 
+                                borderRadius="full"
+                                transition="width 0.5s ease"
+                                zIndex={1}
+                              />
+                            </Box>
+                            <Text w="16%" textAlign="right" fontWeight="bold" fontSize="9px" flexShrink={0}>
+                              <Text as="span" color={item.color}>{item.done}</Text>
+                              <Text as="span" color="gray.400">/{item.total}</Text>
+                            </Text>
+                          </HStack>
+                        </PopoverTrigger>
+                        <PopoverContent w="auto" minW="150px" bg={diffPopoverBg} borderRadius="xl" boxShadow="lg" border="1px solid" borderColor={diffPopoverBorder}>
+                          <PopoverArrow bg={diffPopoverBg} />
+                          <PopoverBody p={3}>
+                            <VStack align="start" spacing={1.5}>
+                              <HStack justify="space-between" w="full">
+                                <Text fontSize="sm" fontWeight="bold" color={item.color}>
+                                  {t(`dashboard.difficulty.${item.name.toLowerCase()}`, item.name)}
+                                </Text>
+                                <Badge colorScheme={item.name === 'Easy' ? 'green' : item.name === 'Medium' ? 'orange' : 'red'} fontSize="xs">
+                                  {item.percent}%
+                                </Badge>
+                              </HStack>
+                              <Box w="full" h="1px" bg={diffPopoverBorder} />
+                              <HStack justify="space-between" w="full" fontSize="xs">
+                                <HStack spacing={1}>
+                                  <Box w="8px" h="8px" borderRadius="full" bg={item.color} />
+                                  <Text color="gray.500">{t('dashboard.status.mastered', 'Mastered')}</Text>
+                                </HStack>
+                                <Text fontWeight="bold">{item.mastered}</Text>
+                              </HStack>
+                              <HStack justify="space-between" w="full" fontSize="xs">
+                                <HStack spacing={1}>
+                                  <Box w="8px" h="8px" borderRadius="full" bg={item.lightColor} />
+                                  <Text color="gray.500">{t('dashboard.status.learning', 'Learning')}</Text>
+                                </HStack>
+                                <Text fontWeight="bold">{item.learning}</Text>
+                              </HStack>
+                              <HStack justify="space-between" w="full" fontSize="xs">
+                                <HStack spacing={1}>
+                                  <Box w="8px" h="8px" borderRadius="full" bg="gray.300" />
+                                  <Text color="gray.500">{t('dashboard.status.unstarted', 'Unstarted')}</Text>
+                                </HStack>
+                                <Text fontWeight="bold">{item.total - item.done}</Text>
+                              </HStack>
+                            </VStack>
+                          </PopoverBody>
+                        </PopoverContent>
+                      </Popover>
+                    ))}
+                 </VStack>
              </Box>
          </Flex>
 
