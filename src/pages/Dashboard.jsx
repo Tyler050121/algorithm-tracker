@@ -126,7 +126,7 @@ const DayCard = ({ day, isToday }) => {
       borderWidth={isToday ? '2px' : '1px'}
       borderColor={borderColor}
       borderRadius="xl"
-      py={3}
+      py={2}
       px={2}
       spacing={2}
       align="center"
@@ -546,7 +546,7 @@ function Dashboard({ onOpenSolutions }) {
         </Flex>
 
         {/* Row 2: Schedule */}
-        <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex={{ base: 'none', xl: 2 }} minH={{ base: '160px', xl: 0 }} display="flex" flexDirection="column" justifyContent="center">
+        <Box bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flexShrink={0} h={{ base: 'auto', xl: '160px' }} display="flex" flexDirection="column" justifyContent="center">
            <HStack spacing={3} mb={2} flexShrink={0}>
               <Flex p={1.5} bg="purple.50" color="purple.500" borderRadius="lg"><Icon as={CalendarIcon} boxSize={4} /></Flex>
               <Text fontWeight="bold" fontSize="md">{t('dashboard.schedule.title')}</Text>
