@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Badge,
   Box,
   Flex,
-  Grid,
   IconButton,
   Input,
   InputGroup,
@@ -12,13 +11,27 @@ import {
   Tag,
   Tooltip,
   Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
   useColorModeValue,
+  HStack,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { SearchIcon, ExternalLinkIcon } from '@chakra-ui/icons';
-import { FaBookOpen } from 'react-icons/fa';
+import { SearchIcon } from '@chakra-ui/icons';
+import { FiBook, FiExternalLink, FiBarChart2 } from 'react-icons/fi';
 import { format, isValid, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import { List } from 'react-window';
+import ReviewHistoryChart from '../components/ReviewHistoryChart';
 
 const STATUS_MAP = {
   unstarted: { label: 'Unstarted', color: 'gray' },
@@ -62,96 +75,100 @@ const RenderDateTag = ({ value, type = 'next' }) => {
   );
 };
 
-const COLUMN_TEMPLATE = '80px minmax(220px, 3fr) 120px 140px 140px 160px 160px 80px';
-const PROBLEM_ROW_HEIGHT = 64;
-const DEFAULT_LIST_HEIGHT = PROBLEM_ROW_HEIGHT * 6;
-const VIEWPORT_BOTTOM_OFFSET = 48;
-
-const ProblemRow = React.memo(({ index, style, problems, onOpenSolutions, rowHoverBg, ariaAttributes }) => {
+const ProblemRow = React.memo(({ problem, onOpenSolutions, onOpenChart, rowHoverBg }) => {
   const { t, i18n } = useTranslation();
-  const problem = problems[index];
-  const difficultyColorScheme = DIFFICULTY_MAP[problem?.difficulty?.toLowerCase()]?.color ?? 'gray';
-  const accentColor = useColorModeValue(`${difficultyColorScheme}.300`, `${difficultyColorScheme}.500`);
-  const stripedBg = useColorModeValue(index % 2 === 0 ? 'white' : 'gray.50', index % 2 === 0 ? 'gray.800' : 'gray.900');
-  const dividerColor = useColorModeValue('gray.100', 'whiteAlpha.200');
+  const difficultyColor = DIFFICULTY_MAP[problem?.difficulty?.toLowerCase()]?.color ?? 'gray';
+  const titleColor = useColorModeValue('gray.700', 'gray.200');
+  
   if (!problem) return null;
 
   return (
-    <Box style={{ ...style, minWidth: '100%' }}>
-      <Grid
-        templateColumns={COLUMN_TEMPLATE}
-        alignItems="center"
-        px={4}
-        py={3}
-        bg={stripedBg}
-        borderBottom="1px solid"
-        borderColor={dividerColor}
-        borderLeft="4px solid"
-        borderLeftColor={accentColor}
-        borderRadius="md"
-        transition="all 0.3s ease"
-        _hover={{ bg: rowHoverBg, transform: 'translateY(-1px)', shadow: 'sm' }}
-        role="row"
-        {...ariaAttributes}
-      >
-        <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
+    <Tr 
+      _hover={{ bg: rowHoverBg }} 
+      transition="all 0.2s"
+      borderLeft="4px solid"
+      borderLeftColor={`${difficultyColor}.400`}
+    >
+      <Td py={3}>
+        <Text fontWeight="bold" color="gray.500" fontSize="sm" ml={2}>
           #{problem.id}
         </Text>
+      </Td>
+      <Td py={3}>
         <Box>
-          <Text fontWeight="medium" noOfLines={1}>
+          <Text fontWeight="semibold" noOfLines={1} color={titleColor}>
             {i18n.language === 'zh' ? problem.title.zh : problem.title.en}
           </Text>
-          <Text fontSize="xs" color="gray.500">
+          <Text fontSize="xs" color="gray.500" mt={1}>
             {i18n.language === 'zh' ? problem.groupName.zh : problem.groupName.en}
           </Text>
         </Box>
-        <Flex justify="center">
-          <Tag size="sm" colorScheme={difficultyColorScheme} variant="subtle">
-            {t(
-              `problems.difficulty.${problem.difficulty?.toLowerCase()}`,
-              DIFFICULTY_MAP[problem.difficulty?.toLowerCase()]?.label ?? 'Unknown'
-            )}
-          </Tag>
-        </Flex>
-        <Box textAlign="center">
-          {problem.slug ? (
-            <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal color="teal.500" fontSize="sm" fontWeight="semibold">
-              {t('problems.table.openLink')}
-            </Link>
-          ) : (
-            <Text fontSize="sm" color="gray.400">
-              {t('problems.table.noLink')}
-            </Text>
+      </Td>
+      <Td textAlign="center" py={3}>
+        <Tag size="sm" colorScheme={difficultyColor} variant="subtle" borderRadius="full">
+          {t(
+            `problems.difficulty.${problem.difficulty?.toLowerCase()}`,
+            DIFFICULTY_MAP[problem.difficulty?.toLowerCase()]?.label ?? 'Unknown'
           )}
-        </Box>
-        <Flex justify="center">
-          <Badge colorScheme={STATUS_MAP[problem.status]?.color ?? 'gray'} variant="subtle" px={3} py={1} borderRadius="full">
-            {t(
-              `problems.status.${problem.status}`,
-              STATUS_MAP[problem.status]?.label ?? 'Unknown'
-            )}
-          </Badge>
-        </Flex>
-        <Flex justify="center">
-          <RenderDateTag value={problem.learnHistory?.[0]?.date || null} type="first" />
-        </Flex>
-        <Flex justify="center">
-          <RenderDateTag value={problem.nextReviewDate} type="next" />
-        </Flex>
-        <Box textAlign="center">
-          <Tooltip label={t('problems.table.viewSolutions')} hasArrow closeOnClick={true} openDelay={500}>
+        </Tag>
+      </Td>
+      <Td textAlign="center" py={3}>
+        <Badge colorScheme={STATUS_MAP[problem.status]?.color ?? 'gray'} variant="subtle" px={2} py={0.5} borderRadius="md" fontSize="xs">
+          {t(
+            `problems.status.${problem.status}`,
+            STATUS_MAP[problem.status]?.label ?? 'Unknown'
+          )}
+        </Badge>
+      </Td>
+      <Td textAlign="center" py={3}>
+        <RenderDateTag value={problem.learnHistory?.[0]?.date || null} type="first" />
+      </Td>
+      <Td textAlign="center" py={3}>
+        <RenderDateTag value={problem.nextReviewDate} type="next" />
+      </Td>
+      <Td textAlign="center" py={3}>
+        <HStack spacing={1} justify="center">
+          {problem.slug ? (
+            <Tooltip label={t('problems.table.openLink')} hasArrow>
+              <Link href={`https://leetcode.cn/problems/${problem.slug}/`} isExternal _hover={{ textDecoration: 'none' }}>
+                <IconButton
+                  aria-label={t('problems.table.openLink')}
+                  icon={<FiExternalLink />}
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="blue"
+                />
+              </Link>
+            </Tooltip>
+          ) : (
+            <IconButton aria-label="No Link" icon={<FiExternalLink />} size="sm" variant="ghost" isDisabled />
+          )}
+          
+          <Tooltip label={t('common.viewSolutions')} hasArrow>
             <IconButton
-              aria-label={t('problems.table.viewSolutions')}
-              icon={<FaBookOpen />}
+              aria-label={t('common.viewSolutions')}
+              icon={<FiBook />}
               size="sm"
               variant="ghost"
               colorScheme={problem.solutions?.length > 0 ? 'yellow' : 'gray'}
+              opacity={problem.solutions?.length > 0 ? 1 : 0.3}
               onClick={() => onOpenSolutions(problem.id)}
             />
           </Tooltip>
-        </Box>
-      </Grid>
-    </Box>
+
+          <Tooltip label={t('history.table.viewChart')} hasArrow>
+            <IconButton
+              aria-label={t('history.table.viewChart')}
+              icon={<FiBarChart2 />}
+              size="sm"
+              variant="ghost"
+              colorScheme="purple"
+              onClick={() => onOpenChart(problem)}
+            />
+          </Tooltip>
+        </HStack>
+      </Td>
+    </Tr>
   );
 });
 
@@ -164,6 +181,19 @@ function ProblemsBoard({ onOpenSolutions }) {
   const { problems: allProblems } = useProblems();
   const [search, setSearch] = useState('');
   const { i18n } = useTranslation();
+  
+  // Chart Modal State
+  const { isOpen: isChartOpen, onOpen: onChartOpen, onClose: onChartClose } = useDisclosure();
+  const [selectedProblemForChart, setSelectedProblemForChart] = useState(null);
+
+  const handleChartOpen = useCallback((problem) => {
+    setSelectedProblemForChart(problem);
+    onChartOpen();
+  }, [onChartOpen]);
+
+  // Infinite scroll state
+  const [displayCount, setDisplayCount] = useState(15);
+  const scrollContainerRef = useRef(null);
 
   const problems = useMemo(
     () =>
@@ -174,39 +204,29 @@ function ProblemsBoard({ onOpenSolutions }) {
     [allProblems, search, i18n.language]
   );
 
-  const [availableHeight, setAvailableHeight] = useState(DEFAULT_LIST_HEIGHT);
-  const listContainerRef = useRef(null);
+  // Reset display count when search changes
+  useEffect(() => {
+    setDisplayCount(15);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [search]);
+
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 300) {
+      setDisplayCount(prev => Math.min(prev + 15, problems.length));
+    }
+  }, [problems.length]);
+
+  const displayedProblems = useMemo(() => problems.slice(0, displayCount), [problems, displayCount]);
+
   const cardBg = useColorModeValue('white', 'gray.800');
   const border = useColorModeValue('gray.100', 'gray.700');
   const inputBg = useColorModeValue('gray.50', 'gray.900');
-  const rowHoverBg = useColorModeValue('gray.50', 'whiteAlpha.50');
-  const headerBg = useColorModeValue('rgba(249, 250, 251, 0.95)', 'rgba(26, 32, 44, 0.9)');
-  const headerColor = useColorModeValue('gray.600', 'gray.300');
-  const headerBorder = useColorModeValue('gray.200', 'whiteAlpha.200');
-  const listBg = useColorModeValue('white', 'gray.900');
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (listContainerRef.current) {
-        setAvailableHeight(listContainerRef.current.clientHeight);
-      }
-    };
-
-    updateHeight();
-    
-    // Use ResizeObserver for more robust height tracking
-    const observer = new ResizeObserver(updateHeight);
-    if (listContainerRef.current) {
-      observer.observe(listContainerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  const problemRowProps = useMemo(
-    () => ({ problems, onOpenSolutions, rowHoverBg }),
-    [problems, onOpenSolutions, rowHoverBg]
-  );
+  const rowHoverBg = useColorModeValue('gray.50', 'whiteAlpha.100');
+  const headerBg = useColorModeValue('white', 'gray.800');
+  const scrollbarThumbBg = useColorModeValue('gray.200', 'gray.600');
 
   return (
     <Box 
@@ -242,61 +262,83 @@ function ProblemsBoard({ onOpenSolutions }) {
         </InputGroup>
       </Flex>
 
-      <Box flex="1" overflow="hidden" position="relative">
-        <Box position="absolute" top={0} left={0} right={0} bottom={0} overflowX="auto" overflowY="hidden">
-          <Box minW="1000px" h="100%" display="flex" flexDirection="column" border="1px solid" borderColor={border} borderRadius="lg" overflow="hidden">
-            <Grid
-              templateColumns={COLUMN_TEMPLATE}
-              bg={headerBg}
-              color={headerColor}
-              fontWeight="semibold"
-              textTransform="uppercase"
-              letterSpacing="wide"
-              fontSize="xs"
-              px={4}
-              py={3}
-              flexShrink={0}
-              zIndex={1}
-              backdropFilter="blur(8px)"
-              borderBottom="1px solid"
-              borderColor={headerBorder}
-              boxShadow="sm"
-              transition="all 0.3s ease"
-            >
-              <Text>{t('problems.table.id')}</Text>
-              <Text>{t('problems.table.name')}</Text>
-              <Text textAlign="center">{t('problems.table.difficulty')}</Text>
-              <Text textAlign="center">{t('problems.table.link')}</Text>
-              <Text textAlign="center">{t('problems.table.status')}</Text>
-              <Text textAlign="center">{t('problems.table.firstLearn')}</Text>
-              <Text textAlign="center">{t('problems.table.nextReview')}</Text>
-              <Text textAlign="center">{t('problems.table.solutions')}</Text>
-            </Grid>
-            {problems.length > 0 ? (
-              <Box bg={listBg} position="relative" flex="1" ref={listContainerRef} minH={0}>
-                <List
-                  rowComponent={ProblemRow}
-                  rowCount={problems.length}
-                  rowHeight={PROBLEM_ROW_HEIGHT}
-                  rowProps={problemRowProps}
-                  height={availableHeight}
-                  width="100%"
-                  style={{ width: '100%' }}
-                />
-              </Box>
-            ) : (
-              <Flex direction="column" align="center" justify="center" py={10} gap={2} flex="1">
-                <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
-                  {t('problems.empty')}
-                </Text>
-                <Text fontSize="sm" color="gray.500">
-                  {t('problems.subtitle')}
-                </Text>
-              </Flex>
-            )}
-          </Box>
+      <Box 
+        flex="1" 
+        overflow="hidden" 
+        position="relative" 
+        border="1px solid" 
+        borderColor={border} 
+        borderRadius="lg"
+      >
+        <Box 
+          position="absolute" 
+          top={0} 
+          left={0} 
+          right={0} 
+          bottom={0} 
+          overflowY="auto"
+          onScroll={handleScroll}
+          ref={scrollContainerRef}
+          css={{
+            '&::-webkit-scrollbar': { width: '4px', height: '4px' },
+            '&::-webkit-scrollbar-track': { width: '6px' },
+            '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg, borderRadius: '24px' },
+            overscrollBehavior: 'contain',
+          }}
+        >
+          <Table variant="unstyled" size="md">
+            <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
+              <Tr>
+                <Th width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.id')}</Th>
+                <Th minW="220px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.name')}</Th>
+                <Th textAlign="center" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+                <Th textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.status')}</Th>
+                <Th textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.firstLearn')}</Th>
+                <Th textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.nextReview')}</Th>
+                <Th textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {displayedProblems.length > 0 ? (
+                displayedProblems.map((problem) => (
+                  <ProblemRow
+                    key={problem.id}
+                    problem={problem}
+                    onOpenSolutions={onOpenSolutions}
+                    onOpenChart={handleChartOpen}
+                    rowHoverBg={rowHoverBg}
+                  />
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan={7} textAlign="center" py={10}>
+                    <Text fontWeight="semibold" color="gray.600" _dark={{ color: 'gray.300' }}>
+                      {t('problems.empty')}
+                    </Text>
+                    <Text fontSize="sm" color="gray.500">
+                      {t('problems.subtitle')}
+                    </Text>
+                  </Td>
+                </Tr>
+              )}
+            </Tbody>
+          </Table>
         </Box>
       </Box>
+
+      {/* Chart Modal */}
+      <Modal isOpen={isChartOpen} onClose={onChartClose} size="xl" isCentered returnFocusOnClose={false}>
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent borderRadius="2xl">
+          <ModalHeader>
+            {(i18n.language === 'zh' ? selectedProblemForChart?.title.zh : selectedProblemForChart?.title.en) || selectedProblemForChart?.title.en}
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <ReviewHistoryChart problem={selectedProblemForChart} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }

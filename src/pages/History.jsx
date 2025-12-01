@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Heading,
@@ -179,22 +179,24 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
   const dateStr = format(dateObj, 'yyyy-MM-dd');
   const timeStr = format(dateObj, 'HH:mm');
   const dateColor = useColorModeValue('gray.700', 'gray.200');
+  const titleColor = useColorModeValue('gray.700', 'gray.200');
+  const hoverBg = useColorModeValue('gray.50', 'whiteAlpha.100');
 
   return (
-    <Tr>
-      <Td>
+    <Tr _hover={{ bg: hoverBg }}>
+      <Td py={3}>
         <VStack spacing={0} align="start">
           <Text fontSize="sm" fontWeight="bold" color={dateColor}>{dateStr}</Text>
           <Text fontSize="xs" color="gray.500">{timeStr}</Text>
         </VStack>
       </Td>
-      <Td fontSize="xs" color="gray.500">#{item.problem.id}</Td>
-      <Td>
-        <Text fontWeight="medium" noOfLines={1} maxW="250px" title={(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}>
+      <Td fontSize="xs" color="gray.500" py={3}>#{item.problem.id}</Td>
+      <Td py={3}>
+        <Text fontWeight="medium" noOfLines={1} maxW="250px" color={titleColor} title={(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}>
           {(i18n.language === 'zh' ? item.problem.title.zh : item.problem.title.en) || item.problem.title.en}
         </Text>
       </Td>
-      <Td display={{ base: 'none', md: 'table-cell' }} textAlign="center">
+      <Td display={{ base: 'none', md: 'table-cell' }} textAlign="center" py={3}>
         {item.plan ? (
           <Tag size="sm" variant="subtle" colorScheme="gray" borderRadius="full">
             {t(`study_plans.${item.plan}.name`, item.plan)}
@@ -203,7 +205,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
           <Text color="gray.400">-</Text>
         )}
       </Td>
-      <Td textAlign="center">
+      <Td textAlign="center" py={3}>
         <Badge
           colorScheme={DIFFICULTY_MAP[item.problem.difficulty?.toLowerCase()] || 'gray'}
           variant="subtle"
@@ -215,7 +217,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
           {item.problem.difficulty}
         </Badge>
       </Td>
-      <Td textAlign="center">
+      <Td textAlign="center" py={3}>
         <Tag 
           size="sm" 
           colorScheme={item.type === 'learn' ? 'green' : 'blue'} 
@@ -226,7 +228,7 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
           {t(`history.actionType.${item.type}`)}
         </Tag>
       </Td>
-      <Td textAlign="center">
+      <Td textAlign="center" py={3}>
         <HStack spacing={2} justify="center">
           <Tooltip label={t('history.table.viewChart')}>
             <IconButton aria-label="Chart" icon={<FiBarChart2 />} size="sm" variant="ghost" onClick={() => handleChartOpen(item.problem)} />
@@ -296,6 +298,19 @@ function HistoryBoard() {
     allHistory: [], totalLearns: 0, totalReviews: 0, activeDays: 0, historyByDate: new Map() 
   };
 
+  // Infinite scroll state
+  const [displayCount, setDisplayCount] = useState(15);
+  const scrollContainerRef = useRef(null);
+
+  const handleScroll = useCallback((e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 300) {
+      setDisplayCount(prev => Math.min(prev + 15, allHistory.length));
+    }
+  }, [allHistory.length]);
+
+  const displayedHistory = useMemo(() => allHistory.slice(0, displayCount), [allHistory, displayCount]);
+
   const handleChartOpen = useCallback((problem) => {
     setSelectedProblemForChart(problem);
     onOpen();
@@ -306,6 +321,7 @@ function HistoryBoard() {
   const scrollbarThumbBg = useColorModeValue('gray.200', 'gray.600');
   const borderColor = useColorModeValue('gray.100', 'gray.700');
   const emptyStateBg = useColorModeValue('gray.50', 'whiteAlpha.50');
+  const headerBg = useColorModeValue('white', 'gray.800');
 
   // Heatmap Colors (Using Tokens for CSS injection)
   const emptyCellBgToken = useColorModeValue('gray.100', 'gray.700');
@@ -460,28 +476,32 @@ function HistoryBoard() {
             <Box 
               overflowY="auto" 
               flex={1} 
+              onScroll={handleScroll}
+              ref={scrollContainerRef}
               css={{
                 '&::-webkit-scrollbar': { width: '4px', height: '4px' },
                 '&::-webkit-scrollbar-track': { width: '6px' },
                 '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg, borderRadius: '24px' },
+                overscrollBehavior: 'contain',
               }}
             >
-              <Table variant="simple" size="sm" sx={{ borderCollapse: 'separate', borderSpacing: '0' }}>
-                <Thead position="sticky" top={0} bg={cardBg} zIndex={1} shadow="sm">
+              <Table variant="unstyled" size="sm">
+                <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
                   <Tr>
-                    <Th width="120px">{t('history.table.date')}</Th>
-                    <Th width="80px">ID</Th>
-                    <Th>{t('history.table.problem')}</Th>
-                    <Th display={{ base: 'none', md: 'table-cell' }} textAlign="center">{t('history.table.plan')}</Th>
-                    <Th textAlign="center">{t('problems.table.difficulty')}</Th>
-                    <Th textAlign="center">{t('history.table.type')}</Th>
-                    <Th textAlign="center">{t('common.actions')}</Th>
+                    <Th width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
+                    <Th width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">ID</Th>
+                    <Th width="250px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
+                    <Th display={{ base: 'none', md: 'table-cell' }} textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.plan')}</Th>
+                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
+                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {allHistory.map((item) => (
+                  {displayedHistory.map((item, index) => (
                     <HistoryRow
                       key={item.id}
+                      index={index}
                       item={item}
                       newDate={newDate}
                       setNewDate={setNewDate}
@@ -557,7 +577,7 @@ function HistoryBoard() {
       </Flex> {/* End Main Content Split */}
 
       {/* Chart Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered returnFocusOnClose={false}>
         <ModalOverlay backdropFilter="blur(4px)" />
         <ModalContent borderRadius="2xl">
           <ModalHeader>
