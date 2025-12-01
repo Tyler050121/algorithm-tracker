@@ -31,7 +31,7 @@ import {
   FiTrash2, FiAlertTriangle, FiChevronDown, FiCheck, FiChevronUp, FiDroplet 
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppTheme } from '../context/ThemeContext';
+import { useAppTheme } from '../../context/ThemeContext';
 
 const MotionFlex = motion(Flex);
 const MotionBox = motion(Box);

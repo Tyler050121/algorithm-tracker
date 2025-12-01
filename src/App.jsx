@@ -5,7 +5,7 @@ import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Problems from './pages/Problems';
 import History from './pages/History';
-import SolutionDrawer from './components/SolutionDrawer';
+import SolutionDrawer from './components/common/SolutionDrawer';
 
 const AppContent = () => {
   const { focusedProblem, closeSolutions, addSolution, updateSolution, deleteSolution, openSolutions } = useProblems();

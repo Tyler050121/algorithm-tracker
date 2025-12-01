@@ -17,8 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AddIcon, SettingsIcon } from '@chakra-ui/icons';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useProblems } from '../context/ProblemContext';
-import NewSolveModal from '../components/NewSolveModal';
-import SettingsModal from '../components/SettingsModal';
+import NewSolveModal from '../components/common/NewSolveModal';
+import SettingsModal from '../components/common/SettingsModal';
 
 const MotionBox = motion(Box);
 const pageVariants = {
