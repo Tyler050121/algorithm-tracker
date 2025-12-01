@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import {
   Avatar,
   Badge,
@@ -442,6 +443,36 @@ function Dashboard({ onOpenSolutions }) {
     difficultyStats,
   } = useDashboardStats();
 
+  const [suggestionLimit, setSuggestionLimit] = useState(3);
+  const listRef = useRef(null);
+
+  // Review list pagination
+  const [reviewLimit, setReviewLimit] = useState(10);
+  
+  const handleReviewScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    // Load more when user scrolls near bottom (50px threshold)
+    if (scrollHeight - scrollTop - clientHeight < 50) {
+      setReviewLimit((prev) => (prev < toReviewToday.length ? prev + 10 : prev));
+    }
+  };
+
+  useEffect(() => {
+    const calculateLimit = () => {
+      if (listRef.current) {
+        const height = listRef.current.clientHeight;
+        // Item height ~60px + 12px gap = 72px
+        // Formula: N * 72 - 12 <= Height  =>  N <= (Height + 12) / 72
+        const count = Math.floor((height + 12) / 72);
+        setSuggestionLimit(Math.max(1, count));
+      }
+    };
+
+    calculateLimit();
+    window.addEventListener('resize', calculateLimit);
+    return () => window.removeEventListener('resize', calculateLimit);
+  }, []);
+
   const onRecordReview = (id) => completeProblem(id, 'review');
   const onRecordNew = (id) => completeProblem(id, 'new');
 
@@ -497,20 +528,26 @@ function Dashboard({ onOpenSolutions }) {
   };
 
   return (
-    <Flex h="100%" gap={6} overflow="hidden" direction={{ base: 'column', lg: 'row' }}>
+    <Flex 
+      h="100%" 
+      gap={6} 
+      overflowY={{ base: 'auto', xl: 'hidden' }} 
+      overflowX="hidden" 
+      direction={{ base: 'column', xl: 'row' }}
+    >
       
       {/* Left Column: Greeting/Achievements, Schedule, Review */}
-      <Flex direction="column" flex={{ base: 1, lg: 3 }} gap={6} overflow="hidden">
+      <Flex direction="column" flex={{ base: 'none', xl: 3 }} gap={6} overflow={{ base: 'visible', xl: 'hidden' }}>
         
         {/* Row 1: Greeting & Achievements */}
-        <Flex gap={4} h={{ base: 'auto', xl: '160px' }} shrink={0} direction={{ base: 'column', md: 'row' }}>
-            <Box flex={1}><GreetingCard streak={streak} isFrozen={isFrozen} todayActivityCount={todayActivityCount} overdueCount={overdueCount} /></Box>
-            <Box flex={1.5}><AchievementsCard achievements={achievements} /></Box>
+        <Flex gap={4} flex={{ base: 'none', xl: 2.2 }} minH={{ base: '160px', xl: 0 }} shrink={0} direction={{ base: 'column', lg: 'row' }}>
+            <Box flex={1} h="full"><GreetingCard streak={streak} isFrozen={isFrozen} todayActivityCount={todayActivityCount} overdueCount={overdueCount} /></Box>
+            <Box flex={1.5} h="full"><AchievementsCard achievements={achievements} /></Box>
         </Flex>
 
         {/* Row 2: Schedule */}
-        <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flexShrink={0} h="160px" display="flex" flexDirection="column" justifyContent="center">
-           <HStack spacing={3} mb={2}>
+        <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex={{ base: 'none', xl: 2 }} minH={{ base: '160px', xl: 0 }} display="flex" flexDirection="column" justifyContent="center">
+           <HStack spacing={3} mb={2} flexShrink={0}>
               <Flex p={1.5} bg="purple.50" color="purple.500" borderRadius="lg"><Icon as={CalendarIcon} boxSize={4} /></Flex>
               <Text fontWeight="bold" fontSize="md">{t('dashboard.schedule.title')}</Text>
            </HStack>
@@ -522,7 +559,18 @@ function Dashboard({ onOpenSolutions }) {
         </Box>
 
         {/* Row 3: Review List (Flex 1) */}
-        <Box flex={1} bg={cardBg} borderRadius="2xl" boxShadow="sm" display="flex" flexDirection="column" overflow="hidden" border="1px solid" borderColor={cardBorderColor}>
+        <Box 
+          flex={{ base: 'none', xl: 4.8 }} 
+          minH={{ base: '500px', xl: 0 }}
+          bg={cardBg} 
+          borderRadius="2xl" 
+          boxShadow="sm" 
+          display="flex" 
+          flexDirection="column" 
+          overflow="hidden" 
+          border="1px solid" 
+          borderColor={cardBorderColor}
+        >
             <Box p={5} pb={3} flexShrink={0} borderBottom="1px solid" borderColor={useColorModeValue('gray.100', 'gray.700')}>
                 <Flex justify="space-between" align="center">
                   <HStack spacing={3}>
@@ -537,7 +585,13 @@ function Dashboard({ onOpenSolutions }) {
                   </Badge>
                 </Flex>
             </Box>
-            <Box flex={1} overflowY="auto" p={4} css={{ '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { background: '#CBD5E0', borderRadius: '3px' } }}>
+            <Box 
+              flex={1} 
+              overflowY="auto" 
+              p={4} 
+              onScroll={handleReviewScroll}
+              css={{ '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { background: '#CBD5E0', borderRadius: '3px' } }}
+            >
               <Stack spacing={3}>
                 {toReviewToday.length === 0 && (
                   <Flex direction="column" align="center" justify="center" h="100%" color="gray.400">
@@ -545,7 +599,7 @@ function Dashboard({ onOpenSolutions }) {
                      <Text>{t('dashboard.review.empty')}</Text>
                   </Flex>
                 )}
-                {toReviewToday.map((problem) => {
+                {toReviewToday.slice(0, reviewLimit).map((problem) => {
                   const isOverdue = new Date(problem.nextReviewDate) < new Date(todayStr);
                   return (
                     <Box 
@@ -621,19 +675,19 @@ function Dashboard({ onOpenSolutions }) {
       </Flex>
 
       {/* Right Column: Suggestions & Charts */}
-      <Flex direction="column" flex={{ base: 1, lg: 2 }} gap={6} overflow="hidden">
+      <Flex direction="column" flex={{ base: 'none', xl: 2 }} gap={6} overflow={{ base: 'visible', xl: 'hidden' }}>
          
-         {/* Row 1: Suggestions (Limited to 3) */}
-         <Box bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex="none" minH="300px">
-             <Flex justify="space-between" align="center" mb={4}>
+         {/* Row 1: Suggestions */}
+         <Flex direction="column" bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex={{ base: 'none', xl: 1.5 }} minH="300px">
+             <Flex justify="space-between" align="center" mb={4} flexShrink={0}>
                 <HStack spacing={3}>
                    <Flex p={1.5} bg="orange.50" color="orange.500" borderRadius="lg"><Icon as={SunIcon} boxSize={4} /></Flex>
                    <Text fontWeight="bold" fontSize="md">{t('dashboard.suggestions.title')}</Text>
                 </HStack>
-                <Badge colorScheme="orange" variant="subtle" borderRadius="full" px={2}>Top 3</Badge>
+                <Badge colorScheme="orange" variant="subtle" borderRadius="full" px={2}>Top {suggestionLimit}</Badge>
              </Flex>
-             <Stack spacing={3}>
-                {suggestions.slice(0, 3).map((problem) => (
+             <Stack spacing={3} flex={1} justify="center" ref={listRef} overflow="hidden">
+                {suggestions.slice(0, suggestionLimit).map((problem) => (
                   <Flex 
                     key={problem.id} 
                     p={3} 
@@ -685,12 +739,12 @@ function Dashboard({ onOpenSolutions }) {
                 ))}
                 {suggestions.length === 0 && <Text fontSize="sm" color="gray.500" textAlign="center" py={2}>{t('dashboard.suggestions.empty')}</Text>}
              </Stack>
-         </Box>
+         </Flex>
 
          {/* Row 2: Charts Area (Activity Line Chart) */}
-         <Box flex={1} bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} minH="140px">
-             <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={2} textAlign="center">{t('dashboard.charts.activity')}</Text>
-             <Box w="100%" h="calc(100% - 24px)">
+         <Box flex={{ base: 'none', xl: 3 }} minH={{ base: '140px', xl: 0 }} bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} display="flex" flexDirection="column">
+             <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={2} textAlign="center" flexShrink={0}>{t('dashboard.charts.activity')}</Text>
+             <Box w="100%" flex={1} minH={0}>
                 <ResponsiveContainer>
                   <LineChart data={activitySeries} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                     <XAxis dataKey="date" fontSize={10} tick={{fontSize: 10}} />
@@ -704,11 +758,11 @@ function Dashboard({ onOpenSolutions }) {
          </Box>
          
          {/* Row 3: Coverage Pie & Difficulty Distribution */}
-         <Flex gap={4} flexShrink={0} h="140px">
+         <Flex gap={4} flex={{ base: 'none', xl: 2 }} minH={{ base: '140px', xl: 0 }}>
              {/* Coverage Pie Chart - Compact */}
-             <Box flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor}>
-                 <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={1} textAlign="center">{t('dashboard.charts.coverage')}</Text>
-                 <Box w="100%" h="calc(100% - 20px)">
+             <Box flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} display="flex" flexDirection="column">
+                 <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={1} textAlign="center" flexShrink={0}>{t('dashboard.charts.coverage')}</Text>
+                 <Box w="100%" flex={1} minH={0}>
                     <ResponsiveContainer>
                       <PieChart>
                         <Pie data={translatedProgressPie} cx="50%" cy="50%" innerRadius={20} outerRadius={35} dataKey="value" paddingAngle={3} stroke="none">
@@ -722,8 +776,8 @@ function Dashboard({ onOpenSolutions }) {
              </Box>
              
              {/* Difficulty Distribution */}
-             <Box flex={1} bg={cardBg} borderRadius="2xl" px={4} py={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor}>
-                 <Flex justify="space-between" align="center" mb={3}>
+             <Box flex={1} bg={cardBg} borderRadius="2xl" px={4} py={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} display="flex" flexDirection="column">
+                 <Flex justify="space-between" align="center" mb={3} flexShrink={0}>
                    <Text fontWeight="bold" fontSize="xs" color="gray.500">{t('dashboard.charts.difficulty', 'Difficulty')}</Text>
                    <HStack spacing={2} fontSize="9px">
                      <HStack spacing={1}>
@@ -736,7 +790,7 @@ function Dashboard({ onOpenSolutions }) {
                      </HStack>
                    </HStack>
                  </Flex>
-                 <VStack spacing={1.5} align="stretch" h="calc(100% - 36px)" justify="center">
+                 <VStack spacing={1.5} align="stretch" flex={1} justify="center">
                     {difficultyStats.map((item) => (
                       <Popover key={item.name} trigger="hover" placement="top" isLazy closeOnBlur={true}>
                         <PopoverTrigger>
@@ -752,8 +806,8 @@ function Dashboard({ onOpenSolutions }) {
                             _hover={{ bg: diffHoverBg, transform: 'scale(1.01)' }}
                             justify="center"
                           >
-                            <Text w="15%" fontWeight="semibold" fontSize="10px" color={item.color} isTruncated flexShrink={0}>{t(`dashboard.difficulty.${item.name.toLowerCase()}`, item.name)}</Text>
-                            <Box w="58%" h="12px" bg={diffProgressBg} borderRadius="full" overflow="hidden" position="relative">
+                            <Text w="45px" fontWeight="semibold" fontSize="10px" color={item.color} isTruncated flexShrink={0}>{t(`dashboard.difficulty.${item.name.toLowerCase()}`, item.name)}</Text>
+                            <Box flex={1} h="12px" bg={diffProgressBg} borderRadius="full" overflow="hidden" position="relative">
                               {/* Mastered portion - solid color */}
                               <Box 
                                 position="absolute"
@@ -777,7 +831,7 @@ function Dashboard({ onOpenSolutions }) {
                                 zIndex={1}
                               />
                             </Box>
-                            <Text w="16%" textAlign="right" fontWeight="bold" fontSize="9px" flexShrink={0}>
+                            <Text w="auto" minW="35px" textAlign="right" fontWeight="bold" fontSize="9px" flexShrink={0}>
                               <Text as="span" color={item.color}>{item.done}</Text>
                               <Text as="span" color="gray.400">/{item.total}</Text>
                             </Text>

@@ -475,6 +475,7 @@ function HistoryBoard() {
             {/* Scrollable Table Container */}
             <Box 
               overflowY="auto" 
+              overflowX="auto"
               flex={1} 
               onScroll={handleScroll}
               ref={scrollContainerRef}
@@ -488,13 +489,13 @@ function HistoryBoard() {
               <Table variant="unstyled" size="sm">
                 <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
                   <Tr>
-                    <Th width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
-                    <Th width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">ID</Th>
-                    <Th width="250px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
-                    <Th display={{ base: 'none', md: 'table-cell' }} textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.plan')}</Th>
-                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
-                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
-                    <Th textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
+                    <Th whiteSpace="nowrap" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
+                    <Th whiteSpace="nowrap" width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">ID</Th>
+                    <Th whiteSpace="nowrap" width="250px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
+                    <Th whiteSpace="nowrap" display={{ base: 'none', md: 'table-cell' }} textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.plan')}</Th>
+                    <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+                    <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
+                    <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
                   </Tr>
                 </Thead>
                 <Tbody>

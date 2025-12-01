@@ -277,6 +277,7 @@ function ProblemsBoard({ onOpenSolutions }) {
           right={0} 
           bottom={0} 
           overflowY="auto"
+          overflowX="auto"
           onScroll={handleScroll}
           ref={scrollContainerRef}
           css={{
@@ -289,13 +290,13 @@ function ProblemsBoard({ onOpenSolutions }) {
           <Table variant="unstyled" size="md">
             <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
               <Tr>
-                <Th width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.id')}</Th>
-                <Th minW="220px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.name')}</Th>
-                <Th textAlign="center" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
-                <Th textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.status')}</Th>
-                <Th textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.firstLearn')}</Th>
-                <Th textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.nextReview')}</Th>
-                <Th textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
+                <Th whiteSpace="nowrap" width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.id')}</Th>
+                <Th whiteSpace="nowrap" minW="220px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.name')}</Th>
+                <Th whiteSpace="nowrap" textAlign="center" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+                <Th whiteSpace="nowrap" textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.status')}</Th>
+                <Th whiteSpace="nowrap" textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.firstLearn')}</Th>
+                <Th whiteSpace="nowrap" textAlign="center" width="160px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.nextReview')}</Th>
+                <Th whiteSpace="nowrap" textAlign="center" width="140px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
               </Tr>
             </Thead>
             <Tbody>
