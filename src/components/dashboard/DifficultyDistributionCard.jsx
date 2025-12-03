@@ -14,6 +14,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
+import SpotlightCard from '../common/SpotlightCard';
 
 const DifficultyDistributionCard = ({ difficultyStats }) => {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ const DifficultyDistributionCard = ({ difficultyStats }) => {
   const diffPopoverBorder = useColorModeValue('gray.100', 'gray.600');
 
   return (
-     <Box flex={1} bg={cardBg} borderRadius="2xl" px={4} py={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} display="flex" flexDirection="column">
+     <SpotlightCard flex={1} bg={cardBg} borderRadius="2xl" px={4} py={3} boxShadow="sm" borderColor={cardBorderColor} display="flex" flexDirection="column">
          <Flex justify="space-between" align="center" mb={3} flexShrink={0}>
            <Text fontWeight="bold" fontSize="xs" color="gray.500">{t('dashboard.charts.difficulty', 'Difficulty')}</Text>
            <HStack spacing={2} fontSize="9px">
@@ -127,7 +128,7 @@ const DifficultyDistributionCard = ({ difficultyStats }) => {
               </Popover>
             ))}
          </VStack>
-     </Box>
+     </SpotlightCard>
   );
 };
 

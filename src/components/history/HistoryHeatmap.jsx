@@ -11,6 +11,7 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { subYears } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import SpotlightCard from '../common/SpotlightCard';
 import 'react-calendar-heatmap/dist/styles.css';
 
 const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
@@ -42,7 +43,7 @@ const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
   ]);
 
   return (
-    <Box
+    <SpotlightCard
       w="full"
       bg={cardBg}
       boxShadow="sm"
@@ -85,7 +86,7 @@ const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
         onClick={value => value && setSelectedDate(value)}
       />
       <ReactTooltip id="heatmap-tooltip" />
-    </Box>
+    </SpotlightCard>
   );
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useOutlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,6 +19,7 @@ import { useDashboardStats } from '../hooks/useDashboardStats';
 import { useProblems } from '../context/ProblemContext';
 import NewSolveModal from '../components/common/NewSolveModal';
 import SettingsModal from '../components/common/SettingsModal';
+import BorderBeam from '../components/common/BorderBeam';
 
 const MotionBox = motion(Box);
 const pageVariants = {
@@ -80,6 +81,7 @@ const NavLink = ({ to, children }) => {
 };
 
 const MainLayout = () => {
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
   const location = useLocation();
   const currentOutlet = useOutlet();
   const { t } = useTranslation();
@@ -161,6 +163,11 @@ const MainLayout = () => {
                 variant="solid"
                 bg={buttonBg}
                 color={buttonColor}
+                borderRadius="full"
+                position="relative"
+                overflow="hidden"
+                onMouseEnter={() => setIsButtonHovered(true)}
+                onMouseLeave={() => setIsButtonHovered(false)}
                 _hover={{
                   bg: useColorModeValue('brand.100', 'whiteAlpha.300'),
                   transform: 'scale(1.05)',
@@ -172,6 +179,7 @@ const MainLayout = () => {
                 onClick={newSolveModal.onOpen}
                 transition="transform 0.1s ease-out"
               >
+                <BorderBeam duration={8} borderWidth={1.5} isVisible={isButtonHovered} />
                 {t('header.addNewSolve')}
               </Button>
               <IconButton
@@ -182,10 +190,10 @@ const MainLayout = () => {
                 size="sm"
                 transition="transform 0.2s ease-in-out"
                 _hover={{
-                  transform: 'scale(1.1)',
+                  transform: 'scale(1.1) rotate(90deg)',
                 }}
                 _active={{
-                  transform: 'scale(0.9) rotate(90deg)',
+                  transform: 'scale(0.9)',
                 }}
               />
             </HStack>

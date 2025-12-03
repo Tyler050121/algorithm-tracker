@@ -12,6 +12,7 @@ import {
 import { WarningIcon } from '@chakra-ui/icons';
 import { FaFire, FaSnowflake } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import SpotlightCard from '../common/SpotlightCard';
 
 const GreetingCard = ({ streak, isFrozen, todayActivityCount, overdueCount }) => {
   const { t } = useTranslation();
@@ -46,15 +47,12 @@ const GreetingCard = ({ streak, isFrozen, todayActivityCount, overdueCount }) =>
   }
 
   return (
-    <Box 
+    <SpotlightCard 
       bg={bg} 
       p={6} 
       borderRadius="2xl" 
       boxShadow="sm" 
-      border="1px solid" 
       borderColor={borderColor}
-      position="relative"
-      overflow="hidden"
       h="100%"
     >
       {overdueCount > 0 && (
@@ -136,7 +134,7 @@ const GreetingCard = ({ streak, isFrozen, todayActivityCount, overdueCount }) =>
           </VStack>
         </HStack>
       </VStack>
-    </Box>
+    </SpotlightCard>
   );
 };
 

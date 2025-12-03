@@ -19,6 +19,7 @@ import {
 import { FaBookOpen } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import DifficultyBadge from '../common/DifficultyBadge';
+import SpotlightCard from '../common/SpotlightCard';
 
 const SuggestionsCard = ({ suggestions, onOpenSolutions, onRecordNew }) => {
   const { t, i18n } = useTranslation();
@@ -47,7 +48,7 @@ const SuggestionsCard = ({ suggestions, onOpenSolutions, onRecordNew }) => {
   }, []);
 
   return (
-     <Flex direction="column" bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} flex={{ base: 'none', xl: 1.5 }} minH="300px">
+     <SpotlightCard display="flex" flexDirection="column" bg={cardBg} borderRadius="2xl" p={5} boxShadow="sm" borderColor={cardBorderColor} flex={{ base: 'none', xl: 1.5 }} minH="300px">
          <Flex justify="space-between" align="center" mb={4} flexShrink={0}>
             <HStack spacing={3}>
                <Flex p={1.5} bg="orange.50" color="orange.500" borderRadius="lg"><Icon as={SunIcon} boxSize={4} /></Flex>
@@ -108,7 +109,7 @@ const SuggestionsCard = ({ suggestions, onOpenSolutions, onRecordNew }) => {
             ))}
             {suggestions.length === 0 && <Text fontSize="sm" color="gray.500" textAlign="center" py={2}>{t('dashboard.suggestions.empty')}</Text>}
          </Stack>
-     </Flex>
+     </SpotlightCard>
   );
 };
 

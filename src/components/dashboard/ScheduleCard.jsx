@@ -11,6 +11,7 @@ import {
 import { CalendarIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 import DayCard from './DayCard';
+import SpotlightCard from '../common/SpotlightCard';
 
 const ScheduleCard = ({ schedule }) => {
   const { t } = useTranslation();
@@ -18,12 +19,11 @@ const ScheduleCard = ({ schedule }) => {
   const cardBorderColor = useColorModeValue('gray.100', 'gray.700');
 
   return (
-    <Box 
+    <SpotlightCard 
       bg={cardBg} 
       borderRadius="2xl" 
       p={4} 
       boxShadow="sm" 
-      border="1px solid" 
       borderColor={cardBorderColor} 
       flexShrink={0} 
       h={{ base: 'auto', xl: '160px' }} 
@@ -42,7 +42,7 @@ const ScheduleCard = ({ schedule }) => {
             <DayCard key={day.iso} day={day} isToday={index === 0} />
           ))}
        </SimpleGrid>
-    </Box>
+    </SpotlightCard>
   );
 };
 

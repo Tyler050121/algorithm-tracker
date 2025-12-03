@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '../../context/ThemeContext';
+import SpotlightCard from '../common/SpotlightCard';
 
 const CustomPieTooltip = ({ active, payload }) => {
   const { t } = useTranslation();
@@ -47,7 +48,7 @@ const CoverageCard = ({ progressPie }) => {
   );
 
   return (
-     <Box flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" border="1px solid" borderColor={cardBorderColor} display="flex" flexDirection="column">
+     <SpotlightCard flex={1} bg={cardBg} borderRadius="2xl" p={3} boxShadow="sm" borderColor={cardBorderColor} display="flex" flexDirection="column">
          <Text fontWeight="bold" fontSize="xs" color="gray.500" mb={1} textAlign="center" flexShrink={0}>{t('dashboard.charts.coverage')}</Text>
          <Box w="100%" flex={1} minH={0}>
             <ResponsiveContainer>
@@ -60,7 +61,7 @@ const CoverageCard = ({ progressPie }) => {
               </PieChart>
             </ResponsiveContainer>
          </Box>
-     </Box>
+     </SpotlightCard>
   );
 };
 

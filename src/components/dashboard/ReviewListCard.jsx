@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/icons';
 import { FaBookOpen } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import SpotlightCard from '../common/SpotlightCard';
 
 const ReviewListCard = ({ 
   toReviewToday, 
@@ -42,7 +43,7 @@ const ReviewListCard = ({
   };
 
   return (
-    <Box 
+    <SpotlightCard 
       flex={{ base: 'none', xl: 4.8 }} 
       minH={{ base: '500px', xl: 0 }}
       bg={cardBg} 
@@ -51,7 +52,6 @@ const ReviewListCard = ({
       display="flex" 
       flexDirection="column" 
       overflow="hidden" 
-      border="1px solid" 
       borderColor={cardBorderColor}
     >
         <Box p={5} pb={3} flexShrink={0} borderBottom="1px solid" borderColor={useColorModeValue('gray.100', 'gray.700')}>
@@ -154,7 +154,7 @@ const ReviewListCard = ({
             })}
           </Stack>
         </Box>
-    </Box>
+    </SpotlightCard>
   );
 };
 

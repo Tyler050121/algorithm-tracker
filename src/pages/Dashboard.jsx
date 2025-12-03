@@ -9,6 +9,7 @@ import SuggestionsCard from '../components/dashboard/SuggestionsCard';
 import ActivityChartCard from '../components/dashboard/ActivityChartCard';
 import CoverageCard from '../components/dashboard/CoverageCard';
 import DifficultyDistributionCard from '../components/dashboard/DifficultyDistributionCard';
+import ScrollReveal from '../components/common/ScrollReveal';
 
 function Dashboard({ onOpenSolutions }) {
   const { completeProblem } = useProblems();
@@ -43,50 +44,66 @@ function Dashboard({ onOpenSolutions }) {
       <Flex direction="column" flex={{ base: 'none', xl: 3 }} gap={6} overflow={{ base: 'visible', xl: 'hidden' }}>
         
         {/* Row 1: Greeting & Achievements */}
-        <Flex gap={4} flex={{ base: 'none', xl: 2.2 }} minH={{ base: '160px', xl: 0 }} shrink={0} direction={{ base: 'column', lg: 'row' }}>
-            <Box flex={1} h="full">
-              <GreetingCard 
-                streak={streak} 
-                isFrozen={isFrozen} 
-                todayActivityCount={todayActivityCount} 
-                overdueCount={overdueCount} 
-              />
-            </Box>
-            <Box flex={1.5} h="full">
-              <AchievementsCard achievements={achievements} />
-            </Box>
-        </Flex>
+        <ScrollReveal animation="fade" stagger={1} flex={{ base: 'none', xl: 2.2 }} minH={{ base: '160px', xl: 0 }} flexShrink={0}>
+          <Flex gap={4} h="full" direction={{ base: 'column', lg: 'row' }}>
+              <Box flex={1} h="full">
+                <GreetingCard 
+                  streak={streak} 
+                  isFrozen={isFrozen} 
+                  todayActivityCount={todayActivityCount} 
+                  overdueCount={overdueCount} 
+                />
+              </Box>
+              <Box flex={1.5} h="full">
+                <AchievementsCard achievements={achievements} />
+              </Box>
+          </Flex>
+        </ScrollReveal>
 
         {/* Row 2: Schedule */}
-        <ScheduleCard schedule={upcomingSchedule} />
+        <ScrollReveal animation="slide" stagger={2} flexShrink={0}>
+          <ScheduleCard schedule={upcomingSchedule} w="100%" />
+        </ScrollReveal>
 
         {/* Row 3: Review List (Flex 1) */}
-        <ReviewListCard 
-          toReviewToday={toReviewToday} 
-          onRecordReview={onRecordReview} 
-          onOpenSolutions={onOpenSolutions} 
-          todayStr={todayStr} 
-        />
+        <ScrollReveal animation="slide" stagger={3} flex={{ base: 'none', xl: 4.8 }} minH={{ base: '500px', xl: 0 }} display="flex" flexDirection="column">
+          <ReviewListCard 
+            toReviewToday={toReviewToday} 
+            onRecordReview={onRecordReview} 
+            onOpenSolutions={onOpenSolutions} 
+            todayStr={todayStr}
+            flex="1"
+            minH="0"
+          />
+        </ScrollReveal>
       </Flex>
 
       {/* Right Column: Suggestions & Charts */}
       <Flex direction="column" flex={{ base: 'none', xl: 2 }} gap={6} overflow={{ base: 'visible', xl: 'hidden' }}>
          
          {/* Row 1: Suggestions */}
-         <SuggestionsCard 
-           suggestions={suggestions} 
-           onOpenSolutions={onOpenSolutions} 
-           onRecordNew={onRecordNew} 
-         />
+         <ScrollReveal animation="fade" stagger={1} flex={{ base: 'none', xl: 1.5 }} minH="300px" display="flex" flexDirection="column">
+           <SuggestionsCard 
+             suggestions={suggestions} 
+             onOpenSolutions={onOpenSolutions} 
+             onRecordNew={onRecordNew}
+             flex="1"
+             minH="0"
+           />
+         </ScrollReveal>
 
          {/* Row 2: Charts Area (Activity Line Chart) */}
-         <ActivityChartCard activitySeries={activitySeries} />
+         <ScrollReveal animation="blur" stagger={2} flex={{ base: 'none', xl: 3 }} minH={{ base: '140px', xl: 0 }} display="flex" flexDirection="column">
+           <ActivityChartCard activitySeries={activitySeries} flex="1" minH="0" />
+         </ScrollReveal>
          
          {/* Row 3: Coverage Pie & Difficulty Distribution */}
-         <Flex gap={4} flex={{ base: 'none', xl: 2 }} minH={{ base: '140px', xl: 0 }}>
-             <CoverageCard progressPie={progressPie} />
-             <DifficultyDistributionCard difficultyStats={difficultyStats} />
-         </Flex>
+         <ScrollReveal animation="slide" stagger={3} flex={{ base: 'none', xl: 2 }} minH={{ base: '140px', xl: 0 }}>
+           <Flex gap={4} h="full">
+               <CoverageCard progressPie={progressPie} />
+               <DifficultyDistributionCard difficultyStats={difficultyStats} />
+           </Flex>
+         </ScrollReveal>
 
       </Flex>
     </Flex>

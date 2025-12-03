@@ -1,3 +1,4 @@
+
 @keyframes glowing-border {
   0% {
     border-color: #f56565; /* red.500 */
@@ -59,3 +60,83 @@ button {
   transition: border-color 0.25s;
 }
 
+/* Scroll Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blurIn {
+  from { opacity: 0; filter: blur(10px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+.reveal-fade {
+  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.reveal-slide {
+  animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.reveal-blur {
+  animation: blurIn 1s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.stagger-1 { animation-delay: 100ms; }
+.stagger-2 { animation-delay: 200ms; }
+.stagger-3 { animation-delay: 300ms; }
+.stagger-4 { animation-delay: 400ms; }
+.stagger-5 { animation-delay: 500ms; }
+.stagger-6 { animation-delay: 600ms; }
+
+/* Capsule Button Border Beam */
+.capsule-beam {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.capsule-beam::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 300%;
+  background: conic-gradient(from 0deg, transparent 0 320deg, rgba(255,255,255,0.8) 360deg);
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: rotate 3s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -2;
+}
+
+.capsule-beam:hover::before {
+  opacity: 1;
+}
+
+.capsule-beam::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: inherit; /* This relies on the button setting a background */
+  border-radius: inherit;
+  z-index: -1;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Spotlight Card Styles handled via JS/Styled Components mostly, but adding helpers */
+.spotlight-wrapper {
+  position: relative;
+  border-radius: inherit;
+}

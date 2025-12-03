@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { FaTrophy } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import SpotlightCard from '../common/SpotlightCard';
 
 const AchievementsCard = ({ achievements }) => {
   const { t } = useTranslation();
@@ -21,12 +22,11 @@ const AchievementsCard = ({ achievements }) => {
   const nextAchievement = achievements.find(a => !a.unlocked);
 
   return (
-    <Box 
+    <SpotlightCard 
       bg={bg} 
       p={5} 
       borderRadius="2xl" 
       boxShadow="sm" 
-      border="1px solid" 
       borderColor={borderColor}
       display="flex"
       flexDirection="column"
@@ -99,7 +99,7 @@ const AchievementsCard = ({ achievements }) => {
             ))}
           </HStack>
       </Box>
-    </Box>
+    </SpotlightCard>
   );
 };
 
