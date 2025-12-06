@@ -65,6 +65,8 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
     setSelectedId(filtered[0]?.id ? String(filtered[0].id) : '');
   }, [filtered, isOpen, selectedId]);
 
+  const hoverBg = useColorModeValue('white', 'gray.600');
+
   const handleConfirm = () => {
     if (!selectedId) return;
     onConfirm(Number(selectedId));
@@ -110,7 +112,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
                         key={problem.id} 
                         p={3} 
                         borderRadius="md" 
-                        _hover={{ bg: useColorModeValue('white', 'gray.600'), shadow: 'sm' }}
+                        _hover={{ bg: hoverBg, shadow: 'sm' }}
                         transition="all 0.2s"
                         cursor="pointer"
                         onClick={() => setSelectedId(String(problem.id))}

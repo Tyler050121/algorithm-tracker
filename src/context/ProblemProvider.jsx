@@ -169,11 +169,12 @@ export const ProblemProvider = ({ children }) => {
       ...problem,
       solutions: [
         {
+          ...payload,
           id: createId(),
-          title: payload.title,
-          notes: payload.notes,
-          link: payload.link,
-          createdAt: format(new Date(), 'yyyy-MM-dd'),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          codes: Array.isArray(payload.codes) ? payload.codes : [],
+          tags: Array.isArray(payload.tags) ? payload.tags : [],
         },
         ...problem.solutions,
       ],
@@ -185,7 +186,11 @@ export const ProblemProvider = ({ children }) => {
       ...problem,
       solutions: problem.solutions.map((solution) =>
         solution.id === solutionId
-          ? { ...solution, ...payload, updatedAt: format(new Date(), 'yyyy-MM-dd') }
+          ? { 
+              ...solution, 
+              ...payload, 
+              updatedAt: new Date().toISOString() 
+            }
           : solution
       ),
     }));
