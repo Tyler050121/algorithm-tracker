@@ -21,7 +21,7 @@ import NewSolveModal from '../components/common/NewSolveModal';
 import SettingsModal from '../components/common/SettingsModal';
 import BorderBeam from '../components/common/BorderBeam';
 
-const MotionBox = motion(Box);
+const MotionBox = motion.create(Box);
 const pageVariants = {
   initial: { opacity: 0, y: 12, filter: 'blur(12px)' },
   enter: { opacity: 1, y: 0, filter: 'blur(0px)' },

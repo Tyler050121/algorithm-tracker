@@ -281,13 +281,25 @@ export const ProblemProvider = ({ children }) => {
     });
   }, [updateProblemAndSave, t, toast]);
 
-  const exportData = useCallback(async () => {
+  const exportData = useCallback(async (type = 'all') => {
     try {
       const allProblems = await db.problems.toArray();
       // Convert to the format expected by backup (object with IDs as keys)
       const exportObj = {};
+      
       allProblems.forEach(p => {
-        exportObj[p.id] = p;
+        if (type === 'all') {
+          exportObj[p.id] = p;
+        } else if (type === 'solutions') {
+          // Only export ID and solutions
+          if (p.solutions && p.solutions.length > 0) {
+            exportObj[p.id] = { id: p.id, solutions: p.solutions };
+          }
+        } else if (type === 'records') {
+          // Export everything EXCEPT solutions
+          const { solutions: _solutions, ...rest } = p;
+          exportObj[p.id] = rest;
+        }
       });
       
       const jsonString = JSON.stringify(exportObj);
@@ -295,7 +307,8 @@ export const ProblemProvider = ({ children }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `algorithm-tracker-backup-${format(new Date(), 'yyyyMMdd')}.json`;
+      const suffix = type === 'all' ? 'backup' : type;
+      link.download = `algorithm-tracker-${suffix}-${format(new Date(), 'yyyyMMdd')}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -307,7 +320,7 @@ export const ProblemProvider = ({ children }) => {
     }
   }, [t, toast]);
 
-  const importData = useCallback((file) => {
+  const importData = useCallback((file, type = 'all') => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
@@ -318,22 +331,76 @@ export const ProblemProvider = ({ children }) => {
         if (problemsList.length > 0) {
            // Ensure valid problems
            const validProblems = problemsList.filter(p => p.id);
-           await db.problems.bulkPut(validProblems);
+           
+           if (type === 'all') {
+             await db.problems.bulkPut(validProblems);
+           } else {
+             // 部分导入，需要与现有数据合并
+             await db.transaction('rw', db.problems, async () => {
+               // 如果是导入记录模式，先清空所有现有记录（保留题解）
+               if (type === 'records') {
+                 await db.problems.toCollection().modify(problem => {
+                   problem.status = 'unstarted';
+                   problem.reviewCycleIndex = 0;
+                   problem.nextReviewDate = null;
+                   problem.learnHistory = [];
+                   problem.reviewHistory = [];
+                 });
+               }
+
+               for (const p of validProblems) {
+                 const existing = await db.problems.get(p.id);
+                 
+                 if (type === 'solutions') {
+                   // 导入题解：如果备份中提供了题解，则覆盖现有题解
+                   if (p.solutions) {
+                     if (existing) {
+                       await db.problems.update(p.id, { solutions: p.solutions });
+                     } else {
+                       // 如果题目不存在，创建新条目（仅包含题解）
+                       await db.problems.add(p);
+                     }
+                   }
+                 } else if (type === 'records') {
+                   // 导入记录：覆盖状态、历史等
+                   const { solutions: _solutions, ...recordData } = p;
+                   
+                   if (existing) {
+                     // 更新记录数据（existing中的solutions会被保留）
+                     await db.problems.update(p.id, recordData);
+                   } else {
+                     // 如果题目不存在，添加新条目（确保包含 ID）
+                     recordData.id = p.id;
+                     await db.problems.add(recordData);
+                   }
+                 }
+               }
+             });
+           }
         }
         
         toast({ title: t('toast.importSuccess'), status: 'success', duration: 2000 });
-        loadProblems(currentPlanSlug); // Reload current view
+        // 导入成功后刷新页面，确保状态完全同步
+        setTimeout(() => window.location.reload(), 1000);
       } catch (error) {
         console.error("Failed to import data:", error);
         toast({ title: t('toast.importError'), status: 'error', duration: 3000 });
       }
     };
     reader.readAsText(file);
-  }, [t, toast, loadProblems, currentPlanSlug]);
+  }, [t, toast]);
 
   const clearData = useCallback(async () => {
     try {
-      await db.problems.clear();
+      // 修改为：只清空学习记录，保留题解
+      await db.problems.toCollection().modify(problem => {
+        problem.status = 'unstarted';
+        problem.reviewCycleIndex = 0;
+        problem.nextReviewDate = null;
+        problem.learnHistory = [];
+        problem.reviewHistory = [];
+      });
+      
       toast({ title: t('toast.clearSuccess'), status: 'warning', duration: 2000 });
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {

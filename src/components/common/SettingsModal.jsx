@@ -23,18 +23,23 @@ import {
   Flex,
   Collapse,
   Tooltip,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
 import { 
   FiMoon, FiSun, FiGlobe, FiBook, FiDownload, FiUpload, 
-  FiTrash2, FiAlertTriangle, FiChevronDown, FiCheck, FiChevronUp, FiDroplet 
+  FiTrash2, FiAlertTriangle, FiChevronDown, FiCheck, FiChevronUp, FiDroplet,
+  FiDatabase, FiCode, FiActivity
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from '../../context/ThemeContext';
 
-const MotionFlex = motion(Flex);
-const MotionBox = motion(Box);
+const MotionFlex = motion.create(Flex);
+const MotionBox = motion.create(Box);
 
 const DarkModeSwitch = ({ isDark, toggle }) => {
   return (
@@ -145,6 +150,7 @@ function SettingsModal({
   const cancelRef = useRef();
   const fileInputRef = useRef();
   const [isPlanExpanded, setIsPlanExpanded] = useState(false);
+  const [importType, setImportType] = useState('all');
 
   const bgHover = useColorModeValue('gray.100', 'gray.700');
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -158,16 +164,18 @@ function SettingsModal({
     i18n.changeLanguage(nextLanguage);
   };
 
-  const handleImportClick = () => {
+  const handleImportClick = (type) => {
+    setImportType(type);
     fileInputRef.current.click();
   };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      onImport(file);
+      onImport(file, importType);
       // 重置 input 以便允许重复上传同名文件
       event.target.value = ''; 
+      setImportType('all');
     }
   };
 
@@ -177,7 +185,6 @@ function SettingsModal({
         <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" transition="all 0.3s ease" />
         <ModalContent 
           borderRadius="2xl" 
-          overflow="hidden" 
           maxH="85vh"
           bg={useColorModeValue('rgba(255, 255, 255, 0.8)', 'rgba(26, 32, 44, 0.8)')}
           backdropFilter="blur(20px) saturate(180%)"
@@ -188,7 +195,7 @@ function SettingsModal({
           <ModalHeader borderBottomWidth="1px" borderColor={borderColor} py={4} bg="transparent">
             {t('settings.title')}
           </ModalHeader>
-          <ModalCloseButton />
+          <ModalCloseButton top="14px" />
           <ModalBody p={6} bg="transparent">
             <VStack spacing={8} align="stretch" key={isOpen ? 'open' : 'closed'}>
               
@@ -337,35 +344,121 @@ function SettingsModal({
                 </Text>
                 <VStack spacing={4} align="stretch">
                   <SimpleGrid columns={2} spacing={4}>
-                    <Button
-                      height="80px"
-                      flexDirection="column"
-                      gap={2}
-                      variant="outline"
-                      bg={cardBg}
-                      borderColor={borderColor}
-                      _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
-                      transition="all 0.2s"
-                      onClick={onExport}
-                    >
-                      <Icon as={FiDownload} boxSize={5} color="brand.500" />
-                      <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.export')}</Text>
-                    </Button>
+                    <Menu placement="bottom" isLazy autoSelect={false}>
+                      <MenuButton
+                        as={Button}
+                        height="80px"
+                        variant="outline"
+                        bg={cardBg}
+                        borderColor={borderColor}
+                        _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
+                        _active={{ transform: 'scale(0.98)' }}
+                        transition="all 0.2s"
+                        w="100%"
+                        p={0}
+                      >
+                        <Flex direction="column" align="center" justify="center" gap={2} h="100%" w="100%">
+                          <Icon as={FiDownload} boxSize={5} color="brand.500" />
+                          <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.export')}</Text>
+                        </Flex>
+                      </MenuButton>
+                      <MenuList 
+                        borderRadius="xl" 
+                        p={2} 
+                        shadow="xl" 
+                        borderColor={borderColor} 
+                        bg={cardBg}
+                        zIndex={1500}
+                      >
+                        <MenuItem 
+                          icon={<Icon as={FiDatabase} boxSize={4} color="brand.500" />} 
+                          onClick={() => onExport('all')}
+                          borderRadius="md"
+                          mb={1}
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'brand.500' }}
+                        >
+                          {t('settings.dataManagement.exportAll')}
+                        </MenuItem>
+                        <MenuItem 
+                          icon={<Icon as={FiCode} boxSize={4} color="blue.500" />} 
+                          onClick={() => onExport('solutions')}
+                          borderRadius="md"
+                          mb={1}
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'blue.500' }}
+                        >
+                          {t('settings.dataManagement.exportSolutions')}
+                        </MenuItem>
+                        <MenuItem 
+                          icon={<Icon as={FiActivity} boxSize={4} color="green.500" />} 
+                          onClick={() => onExport('records')}
+                          borderRadius="md"
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'green.500' }}
+                        >
+                          {t('settings.dataManagement.exportRecords')}
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
                     
-                    <Button
-                      height="80px"
-                      flexDirection="column"
-                      gap={2}
-                      variant="outline"
-                      bg={cardBg}
-                      borderColor={borderColor}
-                      _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
-                      transition="all 0.2s"
-                      onClick={handleImportClick}
-                    >
-                      <Icon as={FiUpload} boxSize={5} color="accent.500" />
-                      <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.import')}</Text>
-                    </Button>
+                    <Menu placement="bottom" isLazy autoSelect={false}>
+                      <MenuButton
+                        as={Button}
+                        height="80px"
+                        variant="outline"
+                        bg={cardBg}
+                        borderColor={borderColor}
+                        _hover={{ borderColor: 'brand.500', bg: bgHover, transform: 'translateY(-2px)', shadow: 'md' }}
+                        _active={{ transform: 'scale(0.98)' }}
+                        transition="all 0.2s"
+                        w="100%"
+                        p={0}
+                      >
+                        <Flex direction="column" align="center" justify="center" gap={2} h="100%" w="100%">
+                          <Icon as={FiUpload} boxSize={5} color="accent.500" />
+                          <Text fontSize="sm" fontWeight="bold">{t('settings.dataManagement.import')}</Text>
+                        </Flex>
+                      </MenuButton>
+                      <MenuList 
+                        borderRadius="xl" 
+                        p={2} 
+                        shadow="xl" 
+                        borderColor={borderColor} 
+                        bg={cardBg}
+                        zIndex={1500}
+                      >
+                        <MenuItem 
+                          icon={<Icon as={FiDatabase} boxSize={4} color="accent.500" />} 
+                          onClick={() => handleImportClick('all')}
+                          borderRadius="md"
+                          mb={1}
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'accent.500' }}
+                        >
+                          {t('settings.dataManagement.importAll')}
+                        </MenuItem>
+                        <MenuItem 
+                          icon={<Icon as={FiCode} boxSize={4} color="blue.500" />} 
+                          onClick={() => handleImportClick('solutions')}
+                          borderRadius="md"
+                          mb={1}
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'blue.500' }}
+                        >
+                          {t('settings.dataManagement.importSolutions')}
+                        </MenuItem>
+                        <MenuItem 
+                          icon={<Icon as={FiActivity} boxSize={4} color="green.500" />} 
+                          onClick={() => handleImportClick('records')}
+                          borderRadius="md"
+                          fontWeight="medium"
+                          _hover={{ bg: bgHover, color: 'green.500' }}
+                        >
+                          {t('settings.dataManagement.importRecords')}
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
                   </SimpleGrid>
                   
                   <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".json" onChange={handleFileChange} />
