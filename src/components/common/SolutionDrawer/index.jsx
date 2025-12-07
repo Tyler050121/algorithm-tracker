@@ -35,6 +35,79 @@ import SolutionEditor from './SolutionEditor';
 import SolutionViewer from './SolutionViewer';
 import { emptyForm } from './utils';
 
+const LongPressButton = ({ onComplete, duration = 2000, children, ...props }) => {
+  const [progress, setProgress] = useState(0);
+  const requestRef = useRef();
+  const startTimeRef = useRef();
+
+  const animate = (time) => {
+    if (!startTimeRef.current) startTimeRef.current = time;
+    const deltaTime = time - startTimeRef.current;
+    const newProgress = Math.min((deltaTime / duration) * 100, 100);
+    
+    setProgress(newProgress);
+
+    if (deltaTime < duration) {
+      requestRef.current = requestAnimationFrame(animate);
+    } else {
+      onComplete();
+      reset(); 
+    }
+  };
+
+  const reset = () => {
+    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+    startTimeRef.current = null;
+    setProgress(0);
+  };
+
+  const start = () => {
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  return (
+    <Button
+      position="relative"
+      overflow="hidden"
+      onMouseDown={start}
+      onMouseUp={reset}
+      onMouseLeave={reset}
+      onTouchStart={start}
+      onTouchEnd={reset}
+      css={{
+        WebkitUserSelect: 'none',
+        userSelect: 'none',
+        touchAction: 'none'
+      }}
+      {...props}
+    >
+      {progress > 0 && (
+        <>
+            <Box position="absolute" inset={0} zIndex={0}>
+              <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+                <rect
+                  x="1" y="1"
+                  width="calc(100% - 2px)"
+                  height="calc(100% - 2px)"
+                  rx="10" ry="10"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2"
+                  pathLength="100"
+                  strokeDasharray="100"
+                  strokeDashoffset={100 - progress}
+                  style={{ filter: 'drop-shadow(0 0 2px white)' }}
+                />
+              </svg>
+            </Box>
+            <Box position="absolute" inset={0} bg="white" opacity={progress / 600} transition="none" />
+        </>
+      )}
+      <Box position="relative" zIndex={1}>{children}</Box>
+    </Button>
+  );
+};
+
 function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolution, onDeleteSolution }) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +118,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   // Alert Dialog States
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'close' or 'cancel'
   const cancelRef = useRef();
 
   // Theme & Styles
@@ -55,6 +129,8 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const footerBg = useColorModeValue('gray.50', 'gray.900');
   const activeDotColor = useColorModeValue('brand.500', 'brand.300');
+  const cancelHoverBg = useColorModeValue('gray.100', 'whiteAlpha.100');
+  const cancelActiveBg = useColorModeValue('gray.200', 'whiteAlpha.200');
 
   const solutions = useMemo(() => problem?.solutions || [], [problem]);
   const hasSolutions = solutions.length > 0;
@@ -174,6 +250,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
 
   const handleCloseRequest = () => {
     if (isEditing) {
+      setPendingAction('close');
       setIsUnsavedAlertOpen(true);
     } else {
       onClose();
@@ -183,14 +260,14 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   const confirmClose = () => {
     setIsUnsavedAlertOpen(false);
     setIsEditing(false);
-    onClose();
+    if (pendingAction === 'close') {
+      onClose();
+    }
+    setPendingAction(null);
   };
 
   const handleCancelEdit = () => {
-    // Check if form is dirty? For now, just confirm if user wants to discard
-    // But user only asked for "accidentally click outside". 
-    // Let's apply the same logic for consistency if they click Cancel button
-    setIsUnsavedAlertOpen(true);
+    setIsEditing(false);
   };
 
   return (
@@ -240,9 +317,16 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
             <HStack spacing={3}>
               {isEditing ? (
                 <>
-                  <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                    {t('common.cancel')}
-                  </Button>
+                  <LongPressButton 
+                    size="sm" 
+                    variant="ghost" 
+                    onComplete={handleCancelEdit}
+                    duration={600}
+                    _active={{ bg: cancelActiveBg }}
+                    _hover={{ bg: cancelHoverBg }}
+                  >
+                    {t('common.cancel')} (Hold)
+                  </LongPressButton>
                   <Button 
                     size="sm" 
                     colorScheme="green" 

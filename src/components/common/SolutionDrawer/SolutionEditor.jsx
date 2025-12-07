@@ -34,6 +34,7 @@ const SolutionEditor = ({ form, setForm }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const editorBg = useColorModeValue('gray.50', 'gray.900');
   const syntaxTheme = useColorModeValue(oneLight, oneDark);
+
   const previewBg = useColorModeValue('gray.50', 'blackAlpha.200');
   
   // Hook values for map loop
@@ -287,6 +288,7 @@ const SolutionEditor = ({ form, setForm }) => {
                         language={form.codes?.[activeCodeTab]?.language || 'cpp'}
                         style={syntaxTheme}
                         customStyle={{ margin: 0, minHeight: '100%', fontSize: '14px', padding: '1.5rem', background: 'transparent' }}
+                        codeTagProps={{ style: { background: 'transparent' } }}
                         showLineNumbers
                       >
                         {form.codes?.[activeCodeTab]?.content || ''}

@@ -11,7 +11,6 @@ const MarkdownRenderer = ({ content }) => {
 
   return (
     <Box
-      className="markdown-body"
       sx={{
         'p': { fontSize: 'sm', lineHeight: '1.7' },
         'ul, ol': { mb: 3, pl: 4, fontSize: 'sm' },
