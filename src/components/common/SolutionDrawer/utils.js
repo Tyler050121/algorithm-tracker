@@ -24,6 +24,7 @@ export const emptyForm = {
   title: '', 
   notes: '', 
   link: '', 
+  pinned: false,
   tags: [], 
   codes: [{ language: 'cpp', content: '', id: Date.now() }] 
 };

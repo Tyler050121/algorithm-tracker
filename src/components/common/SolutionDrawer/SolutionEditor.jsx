@@ -15,9 +15,10 @@ import {
   IconButton,
   Select,
   useColorModeValue,
+  Tooltip,
 } from '@chakra-ui/react';
 import { AddIcon, SmallCloseIcon } from '@chakra-ui/icons';
-import { FaRegLightbulb, FaCode } from 'react-icons/fa';
+import { FaRegLightbulb, FaCode, FaThumbtack } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -80,11 +81,22 @@ const SolutionEditor = ({ form, setForm }) => {
               placeholder={t('solutions.linkPlaceholder')}
               size="md"
               variant="flushed"
-              w="35%"
+              w="30%"
               fontSize="sm"
               color="gray.500"
               _focus={{ borderColor: 'blue.500', boxShadow: 'none', color: 'inherit' }}
             />
+            <Tooltip label={t('solutions.pin', 'Pin Solution')}>
+              <IconButton
+                icon={<FaThumbtack />}
+                size="sm"
+                colorScheme={form.pinned ? 'red' : 'gray'}
+                variant={form.pinned ? 'solid' : 'ghost'}
+                onClick={() => setForm({ ...form, pinned: !form.pinned })}
+                aria-label="Pin solution"
+                mb={1}
+              />
+            </Tooltip>
           </HStack>
           <Flex justify="space-between" align="center">
             <TagSelector selectedTags={form.tags} onChange={(tags) => setForm({ ...form, tags })} />

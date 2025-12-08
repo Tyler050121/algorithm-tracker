@@ -132,18 +132,37 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   const cancelHoverBg = useColorModeValue('gray.100', 'whiteAlpha.100');
   const cancelActiveBg = useColorModeValue('gray.200', 'whiteAlpha.200');
 
-  const solutions = useMemo(() => problem?.solutions || [], [problem]);
+  const solutions = useMemo(() => {
+    if (!problem?.solutions) return [];
+    return [...problem.solutions].sort((a, b) => {
+      if (a.pinned === b.pinned) {
+        return 0;
+      }
+      return a.pinned ? -1 : 1;
+    });
+  }, [problem]);
+
   const hasSolutions = solutions.length > 0;
   const currentSolution = solutions[activeIndex];
   const prevSolutionsLength = useRef(solutions.length);
+  const lastEditedIdRef = useRef(null);
 
-  // Auto-switch to new solution when added
+  // 当解决方案列表更新时（如保存后重新排序），保持选中最后编辑的解决方案
   useEffect(() => {
-    if (solutions.length > prevSolutionsLength.current) {
-      setActiveIndex(solutions.length - 1);
+    if (lastEditedIdRef.current) {
+      const idx = solutions.findIndex(s => s.id === lastEditedIdRef.current);
+      if (idx !== -1) {
+        setActiveIndex(idx);
+      }
+      lastEditedIdRef.current = null;
+    } else if (solutions.length > prevSolutionsLength.current) {
+      // 如果是新增，选中最后一个（注意：如果是置顶的新增，可能不在最后，这里逻辑可能需要调整，
+      // 但通常新增的不带置顶，或者上面的 lastEditedIdRef 会处理）
+      // 实际上有了 lastEditedIdRef，这个逻辑可以简化，但为了兼容保留
+      // 如果 sort 后新增的不在最后，这里可能会错，所以最好都用 id 追踪
     }
     prevSolutionsLength.current = solutions.length;
-  }, [solutions.length]);
+  }, [solutions]);
 
   useEffect(() => {
     if (isOpen) {
@@ -221,6 +240,9 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
     };
 
     console.log('Saving solutionData:', solutionData);
+
+    // 记录最后编辑的ID，以便在列表更新后保持选中
+    lastEditedIdRef.current = solutionData.id;
 
     if (form.id && solutions.find(s => s.id === form.id)) {
       onUpdateSolution(problem.id, form.id, solutionData);

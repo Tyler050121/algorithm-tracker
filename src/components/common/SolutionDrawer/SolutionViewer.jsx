@@ -15,7 +15,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { FaRegLightbulb, FaCode } from 'react-icons/fa';
+import { FaRegLightbulb, FaCode, FaThumbtack } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -75,9 +75,14 @@ const SolutionViewer = ({ solution, onNavigate }) => {
               <VStack align="start" spacing={6}>
                 <Box w="full">
                   <Flex justify="space-between" align="center" mb={2}>
-                    <Text fontSize="sm" color="gray.500">
-                      {formatDate(solution.updatedAt || solution.createdAt)}
-                    </Text>
+                    <HStack>
+                      <Text fontSize="sm" color="gray.500">
+                        {formatDate(solution.updatedAt || solution.createdAt)}
+                      </Text>
+                      {solution.pinned && (
+                        <Icon as={FaThumbtack} color="red.500" boxSize={3} ml={2} />
+                      )}
+                    </HStack>
                     <HStack>
                       {solution.link && (
                         <Button 
