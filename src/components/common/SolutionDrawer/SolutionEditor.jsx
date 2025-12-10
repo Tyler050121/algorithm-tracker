@@ -13,12 +13,20 @@ import {
   Box,
   Textarea,
   IconButton,
-  Select,
   useColorModeValue,
   Tooltip,
+  InputGroup,
+  InputLeftElement,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  SimpleGrid,
+  Button,
+  useDisclosure,
 } from '@chakra-ui/react';
-import { AddIcon, SmallCloseIcon } from '@chakra-ui/icons';
-import { FaRegLightbulb, FaCode, FaThumbtack } from 'react-icons/fa';
+import { AddIcon, SmallCloseIcon, LinkIcon } from '@chakra-ui/icons';
+import { FaRegLightbulb, FaCode, FaFire, FaRegClock, FaDatabase } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -28,6 +36,127 @@ import { PROGRAMMING_LANGUAGES } from '../../../constants';
 import TagSelector from './TagSelector';
 import ResizableSplitPane from './ResizableSplitPane';
 import MarkdownRenderer from './MarkdownRenderer';
+
+const CodeAddButton = ({ onAdd, isMini, usedLanguages = [], ...props }) => {
+  const { t } = useTranslation();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const handleSelect = (lang) => {
+    onAdd(lang);
+    onClose();
+  };
+
+  return (
+    <Popover 
+        isOpen={isOpen} 
+        onOpen={onOpen} 
+        onClose={onClose} 
+        placement={isMini ? "bottom-start" : "bottom"}
+        isLazy
+    >
+      <PopoverTrigger>
+        {isMini ? (
+            <IconButton
+              icon={<AddIcon />}
+              size="xs"
+              variant="ghost"
+              aria-label="Add code block"
+              borderRadius="none"
+              h="full"
+              w="32px"
+              {...props}
+            />
+        ) : (
+            <Button
+                leftIcon={<AddIcon />}
+                colorScheme="brand"
+                size="md"
+                {...props}
+            >
+                {t('solutions.addCodeBlock', 'Add Code Block')}
+            </Button>
+        )}
+      </PopoverTrigger>
+      <PopoverContent w="auto" maxW="400px" _focus={{ boxShadow: 'none' }}>
+        <PopoverBody p={3}>
+          <Text fontSize="xs" fontWeight="bold" mb={2} color="gray.500" textTransform="uppercase">
+            {t('solutions.selectLanguage', 'Select Language')}
+          </Text>
+          <SimpleGrid columns={3} spacing={2}>
+            {PROGRAMMING_LANGUAGES.map(lang => {
+              const isDisabled = usedLanguages.includes(lang.value);
+              return (
+                <Button
+                  key={lang.value}
+                  isDisabled={isDisabled}
+                  size="sm"
+                  variant="ghost"
+                  justifyContent="flex-start"
+                  onClick={() => handleSelect(lang.value)}
+                  fontSize="xs"
+                  fontWeight="normal"
+                  _hover={!isDisabled ? { bg: 'blue.50', color: 'blue.600' } : undefined}
+                  opacity={isDisabled ? 0.4 : 1}
+                  cursor={isDisabled ? 'not-allowed' : 'pointer'}
+                >
+                  {lang.label}
+                </Button>
+              );
+            })}
+          </SimpleGrid>
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+const CodeTabItem = ({ language, isActive, onClick, onRemove }) => {
+    const activeBg = useColorModeValue('white', 'gray.800'); 
+    const inactiveBg = useColorModeValue('gray.50', 'gray.900');
+    const activeColor = useColorModeValue('brand.500', 'brand.300');
+    const borderColor = useColorModeValue('gray.200', 'gray.600');
+    const hoverBg = useColorModeValue('gray.100', 'gray.700');
+
+    const label = PROGRAMMING_LANGUAGES.find(l => l.value === language)?.label || language;
+
+    return (
+        <Flex
+            align="center"
+            px={4}
+            py={1}
+            bg={isActive ? activeBg : inactiveBg}
+            borderTop="2px solid"
+            borderTopColor={isActive ? activeColor : 'transparent'}
+            borderRight="1px solid"
+            borderRightColor={borderColor}
+            cursor="pointer"
+            onClick={onClick}
+            minW="auto"
+            h="32px"
+            _hover={{ bg: isActive ? activeBg : hoverBg }}
+            transition="all 0.2s"
+            role="group"
+            gap={3}
+        >
+            <Text 
+                fontSize="xs" 
+                fontWeight={isActive ? "bold" : "medium"} 
+                color={isActive ? activeColor : "gray.500"}
+            >
+                {label}
+            </Text>
+            <SmallCloseIcon 
+                boxSize={3} 
+                color="gray.400" 
+                opacity={isActive ? 1 : 0} 
+                _groupHover={{ opacity: 1 }}
+                _hover={{ color: 'red.500' }} 
+                onClick={(e) => onRemove(e)}
+            />
+        </Flex>
+    )
+};
+
 
 const SolutionEditor = ({ form, setForm }) => {
   const { t } = useTranslation();
@@ -39,62 +168,97 @@ const SolutionEditor = ({ form, setForm }) => {
   const previewBg = useColorModeValue('gray.50', 'blackAlpha.200');
   
   // Hook values for map loop
-  const tabActiveBg = useColorModeValue('white', 'gray.700');
-  const tabHoverBg = useColorModeValue('gray.100', 'gray.600');
   const tabHeaderBg = useColorModeValue('gray.50', 'gray.800');
-  const selectBg = useColorModeValue('white', 'gray.800');
   const activeColor = useColorModeValue('brand.500', 'brand.300');
 
-  const handleAddCodeBlock = () => {
-    const newCodes = [...(form.codes || []), { language: 'cpp', content: '', id: Date.now() }];
+  const handleAddCodeBlock = (language = 'cpp') => {
+    const newCodes = [...(form.codes || []), { language, content: '', id: Date.now() }];
     setForm({ ...form, codes: newCodes });
     setActiveCodeTab(newCodes.length - 1);
   };
 
   const handleRemoveCodeBlock = (index, e) => {
     e.stopPropagation();
-    if (!form.codes || form.codes.length <= 1) return;
     const newCodes = form.codes.filter((_, i) => i !== index);
     setForm({ ...form, codes: newCodes });
-    setActiveCodeTab(Math.max(0, activeCodeTab - 1));
+    if (activeCodeTab >= newCodes.length) {
+      setActiveCodeTab(Math.max(0, newCodes.length - 1));
+    }
   };
+
+  const hasCodes = form.codes && form.codes.length > 0;
+  const usedLanguages = (form.codes || []).map(c => c.language);
 
   return (
     <Tabs variant="unstyled" size="sm" isLazy h="full" display="flex" flexDirection="column">
       <Flex direction="column" h="full" p={6}>
         {/* Top Section: Title & Tags */}
         <VStack align="stretch" spacing={4} mb={4}>
-          <HStack spacing={4} align="flex-end">
-            <Input
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder={t('solutions.titlePlaceholder')}
-              size="lg"
-              fontWeight="bold"
-              variant="flushed"
-              _focus={{ borderColor: 'blue.500', boxShadow: 'none' }}
-              flex={1}
-            />
-            <Input
-              value={form.link}
-              onChange={(e) => setForm({ ...form, link: e.target.value })}
-              placeholder={t('solutions.linkPlaceholder')}
-              size="md"
-              variant="flushed"
-              w="30%"
-              fontSize="sm"
-              color="gray.500"
-              _focus={{ borderColor: 'blue.500', boxShadow: 'none', color: 'inherit' }}
-            />
-            <Tooltip label={t('solutions.pin', 'Pin Solution')}>
+          <Input
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            placeholder={t('solutions.titlePlaceholder')}
+            size="lg"
+            fontWeight="bold"
+            variant="flushed"
+            _focus={{ borderColor: 'blue.500', boxShadow: 'none' }}
+            mb={2}
+          />
+          <HStack spacing={4} align="center">
+            <InputGroup size="sm" width="180px">
+              <InputLeftElement pointerEvents="none" color="gray.400">
+                <FaRegClock />
+              </InputLeftElement>
+              <Input
+                value={form.timeComplexity || ''}
+                onChange={(e) => setForm({ ...form, timeComplexity: e.target.value })}
+                placeholder={t('solutions.timeComplexity', 'Time: O(N)')}
+                variant="flushed"
+                pl={8}
+                fontSize="sm"
+                _focus={{ borderColor: 'blue.500', boxShadow: 'none' }}
+              />
+            </InputGroup>
+            
+            <InputGroup size="sm" width="180px">
+              <InputLeftElement pointerEvents="none" color="gray.400">
+                <FaDatabase />
+              </InputLeftElement>
+              <Input
+                value={form.spaceComplexity || ''}
+                onChange={(e) => setForm({ ...form, spaceComplexity: e.target.value })}
+                placeholder={t('solutions.spaceComplexity', 'Space: O(1)')}
+                variant="flushed"
+                pl={8}
+                fontSize="sm"
+                _focus={{ borderColor: 'blue.500', boxShadow: 'none' }}
+              />
+            </InputGroup>
+
+            <InputGroup size="sm" flex={1}>
+              <InputLeftElement pointerEvents="none" color="gray.400">
+                <LinkIcon />
+              </InputLeftElement>
+              <Input
+                value={form.link}
+                onChange={(e) => setForm({ ...form, link: e.target.value })}
+                placeholder={t('solutions.linkPlaceholder')}
+                variant="flushed"
+                pl={8}
+                fontSize="sm"
+                color="gray.500"
+                _focus={{ borderColor: 'blue.500', boxShadow: 'none', color: 'inherit' }}
+              />
+            </InputGroup>
+
+            <Tooltip label={t('solutions.pin', 'Mark as Hot')}>
               <IconButton
-                icon={<FaThumbtack />}
+                icon={<FaFire />}
                 size="sm"
-                colorScheme={form.pinned ? 'red' : 'gray'}
+                colorScheme={form.pinned ? 'orange' : 'gray'}
                 variant={form.pinned ? 'solid' : 'ghost'}
                 onClick={() => setForm({ ...form, pinned: !form.pinned })}
-                aria-label="Pin solution"
-                mb={1}
+                aria-label="Mark as Hot"
               />
             </Tooltip>
           </HStack>
@@ -201,79 +365,33 @@ const SolutionEditor = ({ form, setForm }) => {
                 display="flex"
                 flexDirection="column"
               >
-              <Flex bg={tabHeaderBg} borderBottom="1px solid" borderColor={borderColor} px={2} pt={2}>
-                <HStack spacing={1} overflowX="auto" pb={0}>
-                  {(form.codes || []).map((code, idx) => (
-                    <Box
-                      key={code.id}
-                      px={3}
-                      py={2}
-                      bg={activeCodeTab === idx ? tabActiveBg : 'transparent'}
-                      borderTopRadius="md"
-                      border="1px solid"
-                      borderColor={activeCodeTab === idx ? borderColor : 'transparent'}
-                      borderBottomColor={activeCodeTab === idx ? tabActiveBg : borderColor}
-                      cursor="pointer"
-                      onClick={() => setActiveCodeTab(idx)}
-                      position="relative"
-                      top="1px"
-                      minW="100px"
-                      _hover={{ bg: activeCodeTab !== idx && tabHoverBg }}
-                    >
-                      <Flex align="center" justify="space-between">
-                        <Text 
-                          fontSize="xs" 
-                          fontWeight="bold" 
-                          mr={2}
-                          color={activeCodeTab === idx ? activeColor : 'inherit'}
-                        >
-                          {PROGRAMMING_LANGUAGES.find(l => l.value === code.language)?.label || code.language}
-                        </Text>
-                        {(form.codes || []).length > 1 && (
-                          <SmallCloseIcon 
-                            boxSize={3} 
-                            color="gray.400" 
-                            _hover={{ color: 'red.500' }} 
-                            onClick={(e) => handleRemoveCodeBlock(idx, e)}
-                          />
-                        )}
-                      </Flex>
-                    </Box>
-                  ))}
-                  <IconButton
-                    icon={<AddIcon />}
-                    size="xs"
-                    variant="ghost"
-                    onClick={handleAddCodeBlock}
-                    aria-label="Add code block"
-                    mb={1}
-                  />
-                </HStack>
-              </Flex>
+              {hasCodes && (
+                <Flex bg={tabHeaderBg} borderBottom="1px solid" borderColor={borderColor} px={2} pt={0}>
+                  <HStack spacing={0} overflowX="auto" align="end">
+                    {form.codes.map((code, idx) => (
+                      <CodeTabItem 
+                        key={code.id}
+                        language={code.language}
+                        isActive={activeCodeTab === idx}
+                        onClick={() => setActiveCodeTab(idx)}
+                        onRemove={(e) => handleRemoveCodeBlock(idx, e)}
+                      />
+                    ))}
+                    <CodeAddButton onAdd={handleAddCodeBlock} isMini usedLanguages={usedLanguages} />
+                  </HStack>
+                </Flex>
+              )}
               
               <Box flex={1} overflow="hidden">
+                {!hasCodes ? (
+                  <Flex h="full" align="center" justify="center" direction="column" color="gray.500">
+                    <Text mb={4}>{t('solutions.noCode', 'Click to add a code block')}</Text>
+                    <CodeAddButton onAdd={handleAddCodeBlock} usedLanguages={usedLanguages} />
+                  </Flex>
+                ) : (
                 <ResizableSplitPane
                   left={
                     <Flex direction="column" h="full">
-                      <Box p={2} borderBottom="1px solid" borderColor={borderColor} bg={selectBg}>
-                        <Select
-                          size="sm"
-                          width="150px"
-                          value={form.codes?.[activeCodeTab]?.language}
-                          onChange={(e) => {
-                            const newCodes = [...(form.codes || [])];
-                            if (newCodes[activeCodeTab]) {
-                              newCodes[activeCodeTab] = { ...newCodes[activeCodeTab], language: e.target.value };
-                              setForm({ ...form, codes: newCodes });
-                            }
-                          }}
-                          borderRadius="md"
-                        >
-                          {PROGRAMMING_LANGUAGES.map(lang => (
-                            <option key={lang.value} value={lang.value}>{lang.label}</option>
-                          ))}
-                        </Select>
-                      </Box>
                       <Textarea
                         value={form.codes?.[activeCodeTab]?.content || ''}
                         onChange={(e) => {
@@ -308,6 +426,7 @@ const SolutionEditor = ({ form, setForm }) => {
                     </Box>
                   }
                 />
+                )}
               </Box>
             </Box>
             </motion.div>

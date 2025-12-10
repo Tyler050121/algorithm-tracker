@@ -19,15 +19,20 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  VStack,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Badge,
 } from '@chakra-ui/react';
 import { 
   AddIcon, 
   DeleteIcon, 
   EditIcon, 
   CheckIcon, 
-  ChevronUpIcon, 
-  ChevronDownIcon, 
   SmallCloseIcon, 
+  ChevronDownIcon,
 } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 
@@ -39,6 +44,8 @@ const LongPressButton = ({ onComplete, duration = 2000, children, ...props }) =>
   const [progress, setProgress] = useState(0);
   const requestRef = useRef();
   const startTimeRef = useRef();
+  const overlayBg = useColorModeValue('black', 'white');
+  const strokeColor = useColorModeValue('var(--chakra-colors-brand-400)', 'var(--chakra-colors-brand-300)');
 
   const animate = (time) => {
     if (!startTimeRef.current) startTimeRef.current = time;
@@ -91,16 +98,16 @@ const LongPressButton = ({ onComplete, duration = 2000, children, ...props }) =>
                   height="calc(100% - 2px)"
                   rx="10" ry="10"
                   fill="none"
-                  stroke="white"
+                  stroke={strokeColor}
                   strokeWidth="2"
                   pathLength="100"
                   strokeDasharray="100"
                   strokeDashoffset={100 - progress}
-                  style={{ filter: 'drop-shadow(0 0 2px white)' }}
+                  style={{ filter: `drop-shadow(0 0 2px ${strokeColor})` }}
                 />
               </svg>
             </Box>
-            <Box position="absolute" inset={0} bg="white" opacity={progress / 600} transition="none" />
+            <Box position="absolute" inset={0} bg={overlayBg} opacity={progress / 600} transition="none" />
         </>
       )}
       <Box position="relative" zIndex={1}>{children}</Box>
@@ -112,35 +119,51 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [sortBy, setSortBy] = useState('default');
   const [form, setForm] = useState(emptyForm);
   const toast = useToast();
 
-  // Alert Dialog States
+  // 弹窗状态
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [isUnsavedAlertOpen, setIsUnsavedAlertOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); // 'close' or 'cancel'
+  const [pendingAction, setPendingAction] = useState(null); // 'close' 或 'cancel'
   const cancelRef = useRef();
 
-  // Theme & Styles
+  // 主题与样式
   const modalContentBg = useColorModeValue('rgba(255, 255, 255, 0.95)', 'rgba(22, 27, 34, 0.95)');
   const modalBackdropFilter = 'blur(10px)';
   const modalBorder = useColorModeValue('1px solid rgba(0, 0, 0, 0.1)', '1px solid rgba(255, 255, 255, 0.1)');
   const modalShadow = 'xl';
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const footerBg = useColorModeValue('gray.50', 'gray.900');
   const activeDotColor = useColorModeValue('brand.500', 'brand.300');
   const cancelHoverBg = useColorModeValue('gray.100', 'whiteAlpha.100');
   const cancelActiveBg = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const headerTextColor = useColorModeValue('gray.700', 'gray.200');
 
   const solutions = useMemo(() => {
     if (!problem?.solutions) return [];
-    return [...problem.solutions].sort((a, b) => {
-      if (a.pinned === b.pinned) {
-        return 0;
-      }
-      return a.pinned ? -1 : 1;
-    });
-  }, [problem]);
+    const sorted = [...problem.solutions];
+
+    switch (sortBy) {
+      case 'name':
+        sorted.sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true }));
+        break;
+      case 'complexity':
+        sorted.sort((a, b) => (a.timeComplexity || '').localeCompare(b.timeComplexity || ''));
+        break;
+      case 'updatedAt':
+        sorted.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        break;
+      case 'default':
+      default:
+        sorted.sort((a, b) => {
+          if (a.pinned === b.pinned) return 0;
+          return a.pinned ? -1 : 1;
+        });
+        break;
+    }
+    return sorted;
+  }, [problem, sortBy]);
 
   const hasSolutions = solutions.length > 0;
   const currentSolution = solutions[activeIndex];
@@ -156,22 +179,12 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
       }
       lastEditedIdRef.current = null;
     } else if (solutions.length > prevSolutionsLength.current) {
-      // 如果是新增，选中最后一个（注意：如果是置顶的新增，可能不在最后，这里逻辑可能需要调整，
-      // 但通常新增的不带置顶，或者上面的 lastEditedIdRef 会处理）
-      // 实际上有了 lastEditedIdRef，这个逻辑可以简化，但为了兼容保留
-      // 如果 sort 后新增的不在最后，这里可能会错，所以最好都用 id 追踪
+      // 如果是新增，选中最后一个
     }
     prevSolutionsLength.current = solutions.length;
   }, [solutions]);
 
-  useEffect(() => {
-    if (isOpen) {
-      // Only reset if it's a different problem or we are forcing a reset
-      // But we handle that in the other effect with ref
-    }
-  }, [isOpen]);
-
-  // Safe check for current solution
+  // 当前解决方案的安全检查
   useEffect(() => {
     if (!isEditing && hasSolutions && !currentSolution) {
       setActiveIndex(0);
@@ -197,7 +210,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
     setIsEditing(true);
   }, [solutions.length, t]);
 
-  // Reset state only when opening a NEW problem
+  // 仅在打开新问题时重置状态
   const prevProblemId = useRef(problem?.id);
   useEffect(() => {
     if (isOpen) {
@@ -312,7 +325,6 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
           h="90vh"
           overflow="hidden"
         >
-          {/* Header */}
           <Flex 
             px={6} 
             py={4} 
@@ -323,15 +335,38 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
             bg={useColorModeValue('whiteAlpha.500', 'blackAlpha.500')}
           >
             <HStack spacing={4}>
-              <Text fontWeight="bold" fontSize="lg" color={useColorModeValue('gray.700', 'gray.200')}>
-                {isEditing 
-                  ? (form.id ? t('solutions.editTooltip') : t('solutions.addTitle')) 
-                  : `${t('solutions.header')} (${solutions.length})`
-                }
-              </Text>
-              {!isEditing && currentSolution && (
-                <HStack spacing={2}>
-                  {/* Tags removed from header as requested */}
+              {isEditing ? (
+                <Text fontWeight="bold" fontSize="lg" color={headerTextColor}>
+                  {form.id ? t('solutions.editTooltip') : t('solutions.addTitle')}
+                </Text>
+              ) : (
+                <HStack>
+                  <Text fontWeight="bold" fontSize="lg" color={headerTextColor}>
+                    {t('solutions.header')}
+                  </Text>
+                  <Badge colorScheme="brand" borderRadius="full" px={2} fontSize="sm">
+                    {solutions.length}
+                  </Badge>
+                  {hasSolutions && (
+                    <Menu>
+                      <MenuButton
+                        as={Button}
+                        size="xs"
+                        variant="ghost"
+                        rightIcon={<ChevronDownIcon />}
+                        fontWeight="normal"
+                        color="gray.500"
+                      >
+                        {t(`solutions.sortOptions.${sortBy}`)}
+                      </MenuButton>
+                      <MenuList minW="150px" fontSize="sm" zIndex={1500}>
+                        <MenuItem onClick={() => setSortBy('default')}>{t('solutions.sortOptions.default')}</MenuItem>
+                        <MenuItem onClick={() => setSortBy('name')}>{t('solutions.sortOptions.name')}</MenuItem>
+                        <MenuItem onClick={() => setSortBy('complexity')}>{t('solutions.sortOptions.complexity')}</MenuItem>
+                        <MenuItem onClick={() => setSortBy('updatedAt')}>{t('solutions.sortOptions.updatedAt')}</MenuItem>
+                      </MenuList>
+                    </Menu>
+                  )}
                 </HStack>
               )}
             </HStack>
@@ -400,87 +435,71 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
             </HStack>
           </Flex>
 
-          {/* Main Body */}
           <Flex flex={1} overflow="hidden" position="relative">
-            {/* Content Area */}
-            <Box flex={1} h="full" overflow="hidden">
-              {isEditing ? (
-                <Box h="full">
-                  <SolutionEditor form={form} setForm={setForm} />
-                </Box>
-              ) : (
-                <Box h="full">
-                  {hasSolutions && currentSolution ? (
-                    <SolutionViewer 
-                      solution={currentSolution} 
-                      onNavigate={handleNavigate}
-                    />
-                  ) : (
-                    <Flex h="full" align="center" justify="center" direction="column" color="gray.500">
-                      <Text fontSize="lg" mb={4}>{t('solutions.empty')}</Text>
-                      <Button leftIcon={<AddIcon />} onClick={handleCreate} colorScheme="green">
-                        {t('solutions.addTitle')}
-                      </Button>
-                    </Flex>
-                  )}
-                </Box>
+            <Box flex={1} w="full" h="full" position="relative">
+              <Box w="full" h="full" overflow="hidden">
+                {isEditing ? (
+                  <Box h="full">
+                    <SolutionEditor form={form} setForm={setForm} />
+                  </Box>
+                ) : (
+                  <Box h="full">
+                    {hasSolutions && currentSolution ? (
+                      <SolutionViewer 
+                        solution={currentSolution}
+                        onNavigate={handleNavigate}
+                      />
+                    ) : (
+                      <Flex h="full" align="center" justify="center" direction="column" color="gray.500">
+                        <Text fontSize="lg" mb={4}>{t('solutions.empty')}</Text>
+                        <Button leftIcon={<AddIcon />} onClick={handleCreate} colorScheme="green">
+                          {t('solutions.addTitle')}
+                        </Button>
+                      </Flex>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              {/* 右侧指示器 - 仅在非编辑模式且有 solutions 时显示 */}
+              {!isEditing && hasSolutions && (
+                 <Flex 
+                   direction="column" 
+                   position="absolute"
+                   right={3}
+                   top={0}
+                   bottom={0}
+                   w="40px" 
+                   align="center"
+                   justify="center"
+                   py={4}
+                   pointerEvents="none"
+                 >
+                   <VStack spacing={4} pointerEvents="auto">
+                      {solutions.map((_, idx) => (
+                        <Tooltip key={idx} label={solutions[idx].title} placement="left">
+                          <Box
+                            w={idx === activeIndex ? "10px" : "8px"}
+                            h={idx === activeIndex ? "10px" : "8px"}
+                            borderRadius="full"
+                            bg={idx === activeIndex ? activeDotColor : "gray.300"}
+                            cursor="pointer"
+                            onClick={() => setActiveIndex(idx)}
+                            transition="all 0.2s"
+                            _hover={{ transform: 'scale(1.2)' }}
+                            boxShadow="sm"
+                          />
+                        </Tooltip>
+                      ))}
+                   </VStack>
+                 </Flex>
               )}
             </Box>
           </Flex>
-
-          {/* Footer Navigation */}
-          {!isEditing && hasSolutions && (
-            <Flex 
-              py={3} 
-              px={6} 
-              borderTop="1px solid" 
-              borderColor={borderColor} 
-              bg={footerBg}
-              align="center"
-              justify="center"
-            >
-              <HStack spacing={4}>
-                <IconButton
-                  icon={<ChevronUpIcon transform="rotate(-90deg)" />}
-                  onClick={() => setActiveIndex(prev => prev - 1)}
-                  isDisabled={activeIndex === 0}
-                  variant="ghost"
-                  aria-label="Previous"
-                  size="sm"
-                  borderRadius="full"
-                />
-                <HStack spacing={2}>
-                  {solutions.map((_, idx) => (
-                    <Tooltip key={idx} label={solutions[idx].title}>
-                      <Box
-                        w={idx === activeIndex ? "8px" : "6px"}
-                        h={idx === activeIndex ? "8px" : "6px"}
-                        borderRadius="full"
-                        bg={idx === activeIndex ? activeDotColor : "gray.300"}
-                        cursor="pointer"
-                        onClick={() => setActiveIndex(idx)}
-                        transition="all 0.2s"
-                        _hover={{ transform: 'scale(1.2)' }}
-                      />
-                    </Tooltip>
-                  ))}
-                </HStack>
-                <IconButton
-                  icon={<ChevronDownIcon transform="rotate(-90deg)" />}
-                  onClick={() => setActiveIndex(prev => prev + 1)}
-                  isDisabled={activeIndex === solutions.length - 1}
-                  variant="ghost"
-                  aria-label="Next"
-                  size="sm"
-                  borderRadius="full"
-                />
-              </HStack>
-            </Flex>
-          )}
         </ModalContent>
       </Modal>
 
-      {/* Delete Confirmation Alert */}
+      {/* 删除确认弹窗 */}
       <AlertDialog
         isOpen={isDeleteAlertOpen}
         leastDestructiveRef={cancelRef}
@@ -508,7 +527,7 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
         </AlertDialogOverlay>
       </AlertDialog>
 
-      {/* Unsaved Changes Alert */}
+      {/* 未保存更改弹窗 */}
       <AlertDialog
         isOpen={isUnsavedAlertOpen}
         leastDestructiveRef={cancelRef}

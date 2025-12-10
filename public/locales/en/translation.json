@@ -280,7 +280,16 @@
     "code": "Code",
     "preview": "Preview",
     "write": "Write",
-    "deleteConfirm": "Are you sure you want to delete this solution? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete this solution? This action cannot be undone.",
+    "sortBy": "Sort by",
+    "sortOptions": {
+      "default": "Default",
+      "name": "Title",
+      "complexity": "Time Complexity",
+      "updatedAt": "Edit Time"
+    },
+    "timeComplexity": "Time Complexity",
+    "spaceComplexity": "Space Complexity"
   },
   "newSolve": {
     "title": "Record New Solve",

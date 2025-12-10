@@ -280,7 +280,16 @@
     "code": "代码",
     "preview": "预览",
     "write": "编辑",
-    "deleteConfirm": "确定要删除这个题解吗？此操作无法撤销。"
+    "deleteConfirm": "确定要删除这个题解吗？此操作无法撤销。",
+    "sortBy": "排序方式",
+    "sortOptions": {
+      "default": "默认",
+      "name": "标题",
+      "complexity": "时间复杂度",
+      "updatedAt": "编辑时间"
+    },
+    "timeComplexity": "时间复杂度",
+    "spaceComplexity": "空间复杂度"
   },
   "newSolve": {
     "title": "记录新题",
