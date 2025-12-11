@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Flex,
   Box,
@@ -251,38 +251,108 @@ const SolutionItem = ({ solution }) => {
 };
 
 const SolutionViewer = ({ solution, onNavigate }) => {
+  const scrollContainerRef = useRef(null);
   const lastScrollTime = useRef(0);
+  const scrollAccumulator = useRef(0);
+  const resetTimer = useRef(null);
+
+  // Inertia scroll protection state
+  const wasAtTop = useRef(true);
+  const wasAtBottom = useRef(false);
+  const edgeCooldown = useRef(0);
+
+  // Reset states when solution changes
+  useEffect(() => {
+    scrollAccumulator.current = 0;
+    wasAtTop.current = true;
+    wasAtBottom.current = false;
+    edgeCooldown.current = 0;
+  }, [solution.id]);
 
   const handleWheel = (e) => {
     const now = Date.now();
-    if (now - lastScrollTime.current < 500) return; // Debounce 500ms
+    
+    // Global debounce to prevent double triggers
+    if (now - lastScrollTime.current < 500) {
+      scrollAccumulator.current = 0;
+      return;
+    }
 
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const isBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 5; // 5px threshold
     const isTop = scrollTop === 0;
+    
+    // --- Inertia Protection Logic ---
+    // If we just arrived at the bottom (and weren't there before), set cooldown
+    if (isBottom && !wasAtBottom.current) {
+      edgeCooldown.current = now;
+      scrollAccumulator.current = 0;
+    }
+    // If we just arrived at the top
+    if (isTop && !wasAtTop.current) {
+      edgeCooldown.current = now;
+      scrollAccumulator.current = 0;
+    }
+
+    // Update previous state
+    wasAtBottom.current = isBottom;
+    wasAtTop.current = isTop;
+
+    // If we are within 500ms of hitting the edge, ignore scrolling (absorb inertia)
+    if ((isBottom || isTop) && now - edgeCooldown.current < 500) {
+      return;
+    }
+    // -------------------------------
+
+    // Threshold for triggering navigation (pixels of "virtual" scrolling)
+    const THRESHOLD = 250;
+
+    // Clear existing reset timer
+    if (resetTimer.current) {
+      clearTimeout(resetTimer.current);
+    }
+
+    // Set new reset timer: if no scroll event for 200ms, reset accumulator
+    resetTimer.current = setTimeout(() => {
+      scrollAccumulator.current = 0;
+    }, 200);
 
     if (e.deltaY > 0 && isBottom) {
-      // Scrolling down at bottom -> Next
-      if (onNavigate) {
-        onNavigate("next");
-        lastScrollTime.current = now;
+      // Accumulate downward scroll at bottom
+      scrollAccumulator.current += e.deltaY;
+      
+      if (scrollAccumulator.current > THRESHOLD) {
+        if (onNavigate) {
+          onNavigate("next");
+          lastScrollTime.current = now;
+          scrollAccumulator.current = 0;
+        }
       }
     } else if (e.deltaY < 0 && isTop) {
-      // Scrolling up at top -> Prev
-      if (onNavigate) {
-        onNavigate("prev");
-        lastScrollTime.current = now;
+      // Accumulate upward scroll at top (deltaY is negative)
+      scrollAccumulator.current += e.deltaY;
+      
+      if (scrollAccumulator.current < -THRESHOLD) {
+        if (onNavigate) {
+          onNavigate("prev");
+          lastScrollTime.current = now;
+          scrollAccumulator.current = 0;
+        }
       }
+    } else {
+      // Not at boundary or scrolling away from boundary -> reset
+      scrollAccumulator.current = 0;
     }
   };
 
   return (
     <Flex direction="column" h="full">
       <Box
+        ref={scrollContainerRef}
         flex={1}
         overflowY="auto"
         px={24}
-        pt={12}
+        py={12}
         onWheel={handleWheel}
         css={{
           '&::-webkit-scrollbar': { display: 'none' },
@@ -290,7 +360,14 @@ const SolutionViewer = ({ solution, onNavigate }) => {
           '-ms-overflow-style': 'none',
         }}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence
+          mode="wait"
+          onExitComplete={() => {
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollTop = 0;
+            }
+          }}
+        >
           <motion.div
             key={solution.id}
             initial={{ opacity: 0, y: 10 }}
