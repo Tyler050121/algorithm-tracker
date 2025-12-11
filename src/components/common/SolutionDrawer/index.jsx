@@ -20,10 +20,6 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   VStack,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Badge,
 } from '@chakra-ui/react';
 import { 
@@ -32,12 +28,12 @@ import {
   EditIcon, 
   CheckIcon, 
   SmallCloseIcon, 
-  ChevronDownIcon,
 } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 
 import SolutionEditor from './SolutionEditor';
 import SolutionViewer from './SolutionViewer';
+import SortMenu from './SortMenu';
 import { emptyForm } from './utils';
 
 const LongPressButton = ({ onComplete, duration = 2000, children, ...props }) => {
@@ -116,12 +112,14 @@ const LongPressButton = ({ onComplete, duration = 2000, children, ...props }) =>
 };
 
 function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolution, onDeleteSolution }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [sortBy, setSortBy] = useState('default');
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
   const [form, setForm] = useState(emptyForm);
   const toast = useToast();
+  const currentSolutionIdRef = useRef(null);
 
   // 弹窗状态
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
@@ -140,35 +138,61 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
   const cancelActiveBg = useColorModeValue('gray.200', 'whiteAlpha.200');
   const headerTextColor = useColorModeValue('gray.700', 'gray.200');
 
+  const displayTitle = useMemo(() => {
+    if (!problem?.title) return '';
+    if (typeof problem.title === 'object') {
+      return i18n.language === 'zh' ? problem.title.zh : problem.title.en;
+    }
+    return problem.title;
+  }, [problem, i18n.language]);
+
   const solutions = useMemo(() => {
     if (!problem?.solutions) return [];
     const sorted = [...problem.solutions];
+    const multiplier = sortOrder === 'asc' ? 1 : -1;
 
     switch (sortBy) {
       case 'name':
-        sorted.sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true }));
+        sorted.sort((a, b) => multiplier * (a.title || '').localeCompare(b.title || '', undefined, { numeric: true }));
         break;
       case 'complexity':
-        sorted.sort((a, b) => (a.timeComplexity || '').localeCompare(b.timeComplexity || ''));
+        sorted.sort((a, b) => multiplier * (a.timeComplexity || '').localeCompare(b.timeComplexity || ''));
         break;
       case 'updatedAt':
-        sorted.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        // sortOrder 'asc' means oldest first (small timestamp to large timestamp)
+        // sortOrder 'desc' means newest first (large timestamp to small timestamp)
+        sorted.sort((a, b) => {
+          const dateA = new Date(a.updatedAt || 0).getTime();
+          const dateB = new Date(b.updatedAt || 0).getTime();
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+        });
         break;
       case 'default':
       default:
+        // Pinned first usually means pinned items are at top.
+        // Pinned=true (-1) < Pinned=false (1).
+        // If sortOrder is asc: Pinned First.
+        // If sortOrder is desc: Pinned Last.
         sorted.sort((a, b) => {
           if (a.pinned === b.pinned) return 0;
-          return a.pinned ? -1 : 1;
+          return (a.pinned ? -1 : 1) * multiplier;
         });
         break;
     }
     return sorted;
-  }, [problem, sortBy]);
+  }, [problem, sortBy, sortOrder]);
 
   const hasSolutions = solutions.length > 0;
   const currentSolution = solutions[activeIndex];
   const prevSolutionsLength = useRef(solutions.length);
   const lastEditedIdRef = useRef(null);
+
+  // 记录当前查看的 solution ID，以便在排序后恢复
+  useEffect(() => {
+    if (currentSolution && !isEditing) {
+      currentSolutionIdRef.current = currentSolution.id;
+    }
+  }, [currentSolution, isEditing]);
 
   // 当解决方案列表更新时（如保存后重新排序），保持选中最后编辑的解决方案
   useEffect(() => {
@@ -178,8 +202,11 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
         setActiveIndex(idx);
       }
       lastEditedIdRef.current = null;
-    } else if (solutions.length > prevSolutionsLength.current) {
-      // 如果是新增，选中最后一个
+    } else if (currentSolutionIdRef.current) {
+      const idx = solutions.findIndex(s => s.id === currentSolutionIdRef.current);
+      if (idx !== -1) {
+        setActiveIndex(idx);
+      }
     }
     prevSolutionsLength.current = solutions.length;
   }, [solutions]);
@@ -337,35 +364,25 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
             <HStack spacing={4}>
               {isEditing ? (
                 <Text fontWeight="bold" fontSize="lg" color={headerTextColor}>
-                  {form.id ? t('solutions.editTooltip') : t('solutions.addTitle')}
+                  {displayTitle || (form.id ? t('solutions.editTooltip') : t('solutions.addTitle'))}
                 </Text>
               ) : (
                 <HStack>
                   <Text fontWeight="bold" fontSize="lg" color={headerTextColor}>
-                    {t('solutions.header')}
+                    {displayTitle || t('solutions.header')}
                   </Text>
                   <Badge colorScheme="brand" borderRadius="full" px={2} fontSize="sm">
                     {solutions.length}
                   </Badge>
                   {hasSolutions && (
-                    <Menu>
-                      <MenuButton
-                        as={Button}
-                        size="xs"
-                        variant="ghost"
-                        rightIcon={<ChevronDownIcon />}
-                        fontWeight="normal"
-                        color="gray.500"
-                      >
-                        {t(`solutions.sortOptions.${sortBy}`)}
-                      </MenuButton>
-                      <MenuList minW="150px" fontSize="sm" zIndex={1500}>
-                        <MenuItem onClick={() => setSortBy('default')}>{t('solutions.sortOptions.default')}</MenuItem>
-                        <MenuItem onClick={() => setSortBy('name')}>{t('solutions.sortOptions.name')}</MenuItem>
-                        <MenuItem onClick={() => setSortBy('complexity')}>{t('solutions.sortOptions.complexity')}</MenuItem>
-                        <MenuItem onClick={() => setSortBy('updatedAt')}>{t('solutions.sortOptions.updatedAt')}</MenuItem>
-                      </MenuList>
-                    </Menu>
+                    <SortMenu 
+                      sortBy={sortBy}
+                      sortOrder={sortOrder}
+                      onSortChange={(newSort, newOrder) => {
+                        setSortBy(newSort);
+                        setSortOrder(newOrder);
+                      }}
+                    />
                   )}
                 </HStack>
               )}
@@ -452,9 +469,6 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
                     ) : (
                       <Flex h="full" align="center" justify="center" direction="column" color="gray.500">
                         <Text fontSize="lg" mb={4}>{t('solutions.empty')}</Text>
-                        <Button leftIcon={<AddIcon />} onClick={handleCreate} colorScheme="green">
-                          {t('solutions.addTitle')}
-                        </Button>
                       </Flex>
                     )}
                   </Box>
