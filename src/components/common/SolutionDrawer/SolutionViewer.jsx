@@ -252,70 +252,104 @@ const SolutionItem = ({ solution }) => {
 
 const SolutionViewer = ({ solution, onNavigate }) => {
   const scrollContainerRef = useRef(null);
-  const lastScrollTime = useRef(0);
+  const lastScrollTime = useRef(0); // For navigation debounce
   const scrollAccumulator = useRef(0);
   const resetTimer = useRef(null);
 
-  // Inertia scroll protection state
+  // Inertia detection state
+  const lastWheelEventTime = useRef(0);
+  const lastDeltaY = useRef(0);
+  const potentialInertia = useRef(false);
   const wasAtTop = useRef(true);
   const wasAtBottom = useRef(false);
-  const edgeCooldown = useRef(0);
+  const cleanupTimestamp = useRef(0);
 
   // Reset states when solution changes
   useEffect(() => {
     scrollAccumulator.current = 0;
     wasAtTop.current = true;
     wasAtBottom.current = false;
-    edgeCooldown.current = 0;
+    potentialInertia.current = false;
+    // Force lock for 300ms to allow render and prevent inertia leak
+    cleanupTimestamp.current = Date.now() + 300;
   }, [solution.id]);
 
   const handleWheel = (e) => {
     const now = Date.now();
-    
-    // Global debounce to prevent double triggers
-    if (now - lastScrollTime.current < 500) {
+    const dt = now - lastWheelEventTime.current;
+    const { deltaY } = e;
+
+    // Force Lock: Ignore all events during navigation/render phase
+    if (now < cleanupTimestamp.current) {
+      lastWheelEventTime.current = now;
+      lastDeltaY.current = deltaY;
+      return;
+    }
+
+    // Short debounce for function re-entry protection
+    if (now - lastScrollTime.current < 200) {
       scrollAccumulator.current = 0;
       return;
     }
 
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    const isBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 5; // 5px threshold
+    const isBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 5;
     const isTop = scrollTop === 0;
+
+    // Detect edge arrival
+    const justHitBottom = isBottom && !wasAtBottom.current;
+    const justHitTop = isTop && !wasAtTop.current;
     
-    // --- Inertia Protection Logic ---
-    // If we just arrived at the bottom (and weren't there before), set cooldown
-    if (isBottom && !wasAtBottom.current) {
-      edgeCooldown.current = now;
-      scrollAccumulator.current = 0;
-    }
-    // If we just arrived at the top
-    if (isTop && !wasAtTop.current) {
-      edgeCooldown.current = now;
+    if (justHitBottom || justHitTop) {
+      potentialInertia.current = true;
       scrollAccumulator.current = 0;
     }
 
-    // Update previous state
+    let shouldIgnore = false;
+    if (potentialInertia.current && (isBottom || isTop)) {
+      // Logic to distinguish Inertia vs Active Scroll
+      // 1. High Frequency (dt < 50): Could be Trackpad Inertia OR Mouse Rapid Scroll
+      if (dt < 50) {
+          // Check for Mouse characteristics: Stable and Large Delta (e.g., 100, 100, 100)
+          const isStableLarge = Math.abs(deltaY) > 50 && Math.abs(deltaY - lastDeltaY.current) < 5;
+          // Check for Intentional Acceleration (Finger push)
+          const isAccelerating = Math.abs(deltaY) > Math.abs(lastDeltaY.current) * 1.2;
+
+          if (isStableLarge || isAccelerating) {
+              // Active intent detected -> Unlock
+              potentialInertia.current = false;
+          } else {
+              // Likely Inertia (Decaying, Fluctuating, or Small) -> Lock
+              shouldIgnore = true;
+          }
+      } else {
+          // Low Frequency (dt >= 50): User paused or is scrolling slowly -> Unlock
+          potentialInertia.current = false;
+      }
+    } else {
+      potentialInertia.current = false;
+    }
+
+    // Update state for next event
+    lastWheelEventTime.current = now;
+    lastDeltaY.current = deltaY;
     wasAtBottom.current = isBottom;
     wasAtTop.current = isTop;
 
-    // If we are within 500ms of hitting the edge, ignore scrolling (absorb inertia)
-    if ((isBottom || isTop) && now - edgeCooldown.current < 500) {
-      return;
-    }
-    // -------------------------------
+    if (shouldIgnore) return;
 
     // Threshold for triggering navigation (pixels of "virtual" scrolling)
-    const THRESHOLD = 250;
+    const THRESHOLD = 150;
 
     // Clear existing reset timer
     if (resetTimer.current) {
       clearTimeout(resetTimer.current);
     }
 
-    // Set new reset timer: if no scroll event for 200ms, reset accumulator
+    // Set new reset timer: if no scroll event for 500ms, reset accumulator
     resetTimer.current = setTimeout(() => {
       scrollAccumulator.current = 0;
-    }, 200);
+    }, 500);
 
     if (e.deltaY > 0 && isBottom) {
       // Accumulate downward scroll at bottom
@@ -326,6 +360,7 @@ const SolutionViewer = ({ solution, onNavigate }) => {
           onNavigate("next");
           lastScrollTime.current = now;
           scrollAccumulator.current = 0;
+          cleanupTimestamp.current = now + 300;
         }
       }
     } else if (e.deltaY < 0 && isTop) {
@@ -337,6 +372,7 @@ const SolutionViewer = ({ solution, onNavigate }) => {
           onNavigate("prev");
           lastScrollTime.current = now;
           scrollAccumulator.current = 0;
+          cleanupTimestamp.current = now + 300;
         }
       }
     } else {

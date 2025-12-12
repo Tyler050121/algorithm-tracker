@@ -1,7 +1,5 @@
 import {
   Modal,
-  ModalBody,
-  ModalCloseButton,
   ModalContent,
   ModalOverlay,
   useColorMode,
@@ -11,12 +9,15 @@ import {
   HStack,
   Icon,
   VStack,
+  Text,
+  IconButton,
   Heading,
-  Divider,
+  Container,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import { useState, useRef, useEffect } from 'react';
-import { FiSettings, FiBook, FiDatabase, FiCpu } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiSettings, FiBook, FiDatabase, FiCpu, FiX } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from '../../context/ThemeContext';
 
 import GeneralSlide from './Settings/GeneralSlide';
@@ -24,12 +25,51 @@ import StudySlide from './Settings/StudySlide';
 import DataSlide from './Settings/DataSlide';
 import AISlide from './Settings/AISlide';
 
+// 定义设置类别配置 - 移除硬编码颜色，改用动态主题色
 const CATEGORIES = [
   { id: 'general', icon: FiSettings, component: GeneralSlide, title: 'settings.general' },
   { id: 'study', icon: FiBook, component: StudySlide, title: 'settings.studyPlan.title' },
   { id: 'data', icon: FiDatabase, component: DataSlide, title: 'settings.dataManagement.title' },
   { id: 'ai', icon: FiCpu, component: AISlide, title: 'AI Settings' },
 ];
+
+// 动画变量配置 - 优化 3D 效果
+const contentVariants = {
+  hidden: { 
+    opacity: 0, 
+    x: 40, 
+    rotateY: -5, 
+    scale: 0.98 
+  },
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    rotateY: 0, 
+    scale: 1,
+    transition: { 
+      type: "spring",
+      stiffness: 120,
+      damping: 18,
+      mass: 0.8
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    x: -40, 
+    rotateY: 5, 
+    scale: 0.98,
+    transition: { duration: 0.2 } 
+  }
+};
+
+const navItemVariants = {
+  hidden: { x: -20, opacity: 0 },
+  visible: (i) => ({
+    x: 0,
+    opacity: 1,
+    transition: { delay: i * 0.05, duration: 0.3 }
+  })
+};
 
 function SettingsModal({
   isOpen,
@@ -45,200 +85,226 @@ function SettingsModal({
   const { colorMode, toggleColorMode } = useColorMode();
   const { colorScheme, changeColorScheme, schemes } = useAppTheme();
   
-  const [activeTab, setActiveTab] = useState(0);
-  const scrollContainerRef = useRef(null);
-  const sectionRefs = useRef([]);
-  const isClickScrolling = useRef(false);
+  const [activeTab, setActiveTab] = useState('general');
 
-  const modalBg = useColorModeValue('rgba(255, 255, 255, 0.95)', 'rgba(26, 32, 44, 0.95)');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
-  const navHoverBg = useColorModeValue('gray.200', 'whiteAlpha.200');
-  const headingColor = useColorModeValue('gray.700', 'gray.200');
+  // 主题颜色配置
+  const modalBg = useColorModeValue('rgba(255, 255, 255, 0.90)', 'rgba(23, 25, 35, 0.90)');
+  const sidebarBg = useColorModeValue('gray.50', 'rgba(0, 0, 0, 0.2)');
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   
-  // Reset scroll when opening
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(0);
-      // Wait for render/mount
-      setTimeout(() => {
-          if(scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-      }, 0);
-    }
-  }, [isOpen]);
+  // 侧边栏选中样式 - 使用 Brand 主题色
+  const activeBg = useColorModeValue('brand.50', 'whiteAlpha.100');
+  const activeColor = 'brand.500'; // 始终使用品牌色文字
+  const activeBorderColor = 'brand.500';
+  const inactiveColor = useColorModeValue('gray.600', 'gray.400');
+  const hoverBg = useColorModeValue('gray.100', 'whiteAlpha.50');
 
-  const handleTabClick = (index) => {
-    setActiveTab(index);
-    isClickScrolling.current = true;
-    
-    const container = scrollContainerRef.current;
-    const section = sectionRefs.current[index];
-    
-    if (container && section) {
-        // Use getBoundingClientRect for accurate relative positioning
-        const containerRect = container.getBoundingClientRect();
-        const sectionRect = section.getBoundingClientRect();
-        
-        // Calculate the target scroll position
-        // currentScrollTop + (distance from section top to container top)
-        const targetScrollTop = container.scrollTop + (sectionRect.top - containerRect.top);
-        
-        container.scrollTo({
-            top: targetScrollTop,
-            behavior: 'smooth'
-        });
-
-        // Re-enable scroll spy after scrolling animation
-        setTimeout(() => {
-            isClickScrolling.current = false;
-        }, 600);
-    }
-  };
-
-  const handleScroll = () => {
-      if (isClickScrolling.current) return;
-      
-      const container = scrollContainerRef.current;
-      if (!container) return;
-      
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      
-      let newActiveTab = activeTab;
-      
-      // Logic: If section top is within the viewport (or slightly above), it's active
-      CATEGORIES.forEach((_, idx) => {
-          const section = sectionRefs.current[idx];
-          if (!section) return;
-          
-          const offsetTop = section.offsetTop;
-          
-          // Use a threshold (e.g., 100px from top)
-          if (scrollTop >= offsetTop - 100) { 
-              newActiveTab = idx;
-          }
-      });
-      
-      // Edge case: if at bottom, select last tab
-      if (scrollTop + containerHeight >= container.scrollHeight - 20) {
-          newActiveTab = CATEGORIES.length - 1;
-      }
-
-      if (newActiveTab !== activeTab) {
-          setActiveTab(newActiveTab);
-      }
-  };
+  // 获取当前活动组件
+  const ActiveComponent = CATEGORIES.find(c => c.id === activeTab)?.component || GeneralSlide;
+  const activeCategory = CATEGORIES.find(c => c.id === activeTab);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered size="xl" motionPreset="scale" scrollBehavior="inside">
-      <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      isCentered 
+      size="5xl" // 加大尺寸，给内容更多空间
+      motionPreset="slideInBottom"
+    >
+      <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(8px)" />
       <ModalContent 
-        borderRadius="2xl" 
+        borderRadius="3xl" 
         bg={modalBg}
-        backdropFilter="blur(20px) saturate(180%)"
-        boxShadow="2xl"
+        backdropFilter="blur(24px) saturate(120%)" // 增强毛玻璃质感
+        boxShadow="dark-lg"
         borderWidth="1px"
         borderColor={borderColor}
-        h="600px" 
+        h="750px"
         overflow="hidden"
+        display="flex"
+        flexDirection="row"
+        maxW="1100px"
       >
-        <Flex h="full" direction="column">
-            {/* Header / Nav */}
-            <Flex 
-                p={4} 
-                borderBottom="1px" 
-                borderColor={borderColor} 
-                align="center"
-                justify="center"
-                bg={useColorModeValue('gray.50', 'whiteAlpha.50')}
-                position="relative"
-                zIndex={10}
-            >
-                <HStack spacing={4}>
-                    {CATEGORIES.map((cat, idx) => {
-                        const isActive = activeTab === idx;
-                        return (
-                            <Box 
-                                key={cat.id}
-                                as="button"
-                                onClick={() => handleTabClick(idx)}
-                                w="44px"
-                                h="44px"
-                                borderRadius="full"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                bg={isActive ? 'brand.500' : 'transparent'}
-                                color={isActive ? 'white' : 'gray.500'}
-                                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                                _hover={{ bg: isActive ? 'brand.600' : navHoverBg }}
-                                boxShadow={isActive ? 'lg' : 'none'}
-                                transform={isActive ? 'scale(1.1)' : 'scale(1)'}
-                            >
-                                <Icon as={cat.icon} boxSize={5} />
-                            </Box>
-                        )
-                    })}
-                </HStack>
-                
-                <Box position="absolute" right={4} top="50%" transform="translateY(-50%)">
-                    <ModalCloseButton position="static" />
-                </Box>
-            </Flex>
+        {/* 左侧侧边栏 */}
+        <Box 
+          w="260px" 
+          bg={sidebarBg} 
+          borderRight="1px solid" 
+          borderColor={borderColor}
+          display="flex"
+          flexDirection="column"
+          position="relative"
+          zIndex={2}
+        >
+          <Box p={8} pb={6}>
+              <Text 
+                fontSize="2xl" 
+                fontWeight="800" 
+                bgGradient="linear(to-r, brand.400, brand.600)"
+                bgClip="text"
+                letterSpacing="-0.02em"
+              >
+                {t('settings.title', 'Settings')}
+              </Text>
+              <Text fontSize="xs" color="gray.500" mt={1} fontWeight="medium">
+                Personalize your experience
+              </Text>
+          </Box>
 
-            {/* Content Body */}
-            <ModalBody 
-                p={0} 
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                css={{
-                    scrollBehavior: 'smooth',
-                    '&::-webkit-scrollbar': { width: '4px' },
-                    '&::-webkit-scrollbar-track': { background: 'transparent' },
-                    '&::-webkit-scrollbar-thumb': { 
-                        background: useColorModeValue('rgba(0,0,0,0.2)', 'rgba(255,255,255,0.2)'),
-                        borderRadius: '4px'
-                    },
-                }}
+          <VStack spacing={2} align="stretch" px={4}>
+            {CATEGORIES.map((cat, idx) => {
+              const isActive = activeTab === cat.id;
+              return (
+                <motion.div
+                  key={cat.id}
+                  custom={idx}
+                  initial="hidden"
+                  animate="visible"
+                  variants={navItemVariants}
+                >
+                  <HStack
+                    as="button"
+                    w="full"
+                    py={3.5}
+                    px={4}
+                    borderRadius="xl"
+                    spacing={3}
+                    onClick={() => setActiveTab(cat.id)}
+                    bg={isActive ? activeBg : 'transparent'}
+                    color={isActive ? activeColor : inactiveColor}
+                    transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                    _hover={{ 
+                      bg: isActive ? activeBg : hoverBg,
+                      transform: 'translateX(2px)'
+                    }}
+                    position="relative"
+                    overflow="hidden"
+                  >
+                    {/* 选中时的左侧指示条 */}
+                    {isActive && (
+                      <Box
+                        as={motion.div}
+                        layoutId="activeIndicator"
+                        position="absolute"
+                        left={0}
+                        top="15%"
+                        bottom="15%"
+                        w="3px"
+                        bg={activeBorderColor}
+                        borderTopRightRadius="full"
+                        borderBottomRightRadius="full"
+                      />
+                    )}
+                    <Icon as={cat.icon} boxSize={5} />
+                    <Text fontWeight={isActive ? "bold" : "medium"} fontSize="sm">
+                      {t(cat.title, cat.title)}
+                    </Text>
+                  </HStack>
+                </motion.div>
+              );
+            })}
+          </VStack>
+
+          {/* 底部信息 */}
+          <Box mt="auto" p={6}>
+            <Box 
+                p={4} 
+                borderRadius="xl" 
+                bg={useColorModeValue('white', 'whiteAlpha.100')} 
+                borderWidth="1px"
+                borderColor={borderColor}
+                boxShadow="sm"
             >
-                 <VStack spacing={0} align="stretch" pb={10}>
-                    {CATEGORIES.map((Category, idx) => (
-                        <Box 
-                            key={Category.id} 
-                            ref={el => sectionRefs.current[idx] = el}
-                            id={`settings-${Category.id}`}
-                            p={6}
-                            pt={8}
-                            pb={0}
-                        >
-                            <HStack spacing={3} mb={6} align="center">
-                                <Icon as={Category.icon} boxSize={6} color={headingColor} />
-                                <Heading size="md" color={headingColor}>
-                                    {t(Category.title, Category.title)}
-                                </Heading>
-                            </HStack>
-                            
-                            <Category.component 
-                                // Pass all props (some might be unused by some components, but that's fine)
-                                colorMode={colorMode}
-                                toggleColorMode={toggleColorMode}
-                                colorScheme={colorScheme}
-                                changeColorScheme={changeColorScheme}
-                                schemes={schemes}
-                                studyPlans={studyPlans}
-                                currentPlanSlug={currentPlanSlug}
-                                onSelectPlan={onSelectPlan}
-                                onExport={onExport}
-                                onImport={onImport}
-                                onClear={onClear}
-                            />
-                            
-                            {idx < CATEGORIES.length - 1 && (
-                                <Divider mt={8} borderColor={borderColor} />
-                            )}
-                        </Box>
-                    ))}
-                 </VStack>
-            </ModalBody>
+                <Text fontSize="xs" color="gray.500" fontWeight="bold" mb={1}>
+                    Algorithm Tracker
+                </Text>
+                <Text fontSize="xs" color="gray.400">
+                    Version 0.1.0 (Beta)
+                </Text>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* 右侧内容区域 */}
+        <Flex direction="column" flex={1} position="relative" bg="transparent" overflow="hidden">
+           {/* 顶部关闭按钮，稍微独立出来 */}
+           <Flex justify="flex-end" p={4} position="absolute" right={0} top={0} zIndex={10}>
+              <IconButton
+                icon={<FiX />}
+                variant="ghost"
+                onClick={onClose}
+                aria-label="Close"
+                borderRadius="full"
+                size="sm"
+                color="gray.500"
+                _hover={{ bg: 'blackAlpha.100', color: 'red.500', transform: 'rotate(90deg)' }}
+              />
+           </Flex>
+
+           {/* 主内容滚动区 */}
+           <Box 
+             flex={1} 
+             overflowY="auto" 
+             sx={{
+               perspective: '1200px', // 增强 3D 透视
+               '&::-webkit-scrollbar': { width: '6px' },
+               '&::-webkit-scrollbar-track': { background: 'transparent' },
+               '&::-webkit-scrollbar-thumb': { 
+                 background: useColorModeValue('rgba(0,0,0,0.05)', 'rgba(255,255,255,0.1)'),
+                 borderRadius: '3px'
+               },
+             }}
+           >
+             <Container maxW="container.md" h="full" py={12} px={8}>
+               <AnimatePresence mode="wait">
+                 <motion.div
+                   key={activeTab}
+                   variants={contentVariants}
+                   initial="hidden"
+                   animate="visible"
+                   exit="exit"
+                   style={{ 
+                     minHeight: '100%', 
+                     transformStyle: 'preserve-3d',
+                   }}
+                 >
+                   {/* 优化后的标题区域 */}
+                   <Box mb={8} borderBottomWidth="1px" borderColor={borderColor} pb={4}>
+                      <Heading 
+                        size="lg" 
+                        mb={2} 
+                        fontWeight="800"
+                        bgGradient="linear(to-br, gray.800, gray.500)"
+                        _dark={{ bgGradient: "linear(to-br, white, gray.400)" }}
+                        bgClip="text"
+                      >
+                        {t(activeCategory?.title)}
+                      </Heading>
+                      <Text color="gray.500" fontSize="md">
+                        Customize your {t(activeCategory?.title).toLowerCase()} preferences and options.
+                      </Text>
+                   </Box>
+                   
+                   {/* 内容容器 - 移除额外的背景色，让子组件自己决定或直接融入 */}
+                   <Box>
+                      <ActiveComponent
+                          colorMode={colorMode}
+                          toggleColorMode={toggleColorMode}
+                          colorScheme={colorScheme}
+                          changeColorScheme={changeColorScheme}
+                          schemes={schemes}
+                          studyPlans={studyPlans}
+                          currentPlanSlug={currentPlanSlug}
+                          onSelectPlan={onSelectPlan}
+                          onExport={onExport}
+                          onImport={onImport}
+                          onClear={onClear}
+                      />
+                   </Box>
+                 </motion.div>
+               </AnimatePresence>
+             </Container>
+           </Box>
         </Flex>
       </ModalContent>
     </Modal>

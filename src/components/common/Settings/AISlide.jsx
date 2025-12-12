@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   VStack,
   Input,
-  Select,
   Text,
   Button,
   useToast,
@@ -10,10 +9,24 @@ import {
   InputRightElement,
   FormControl,
   FormLabel,
+  Box,
+  HStack,
+  Icon,
+  useColorModeValue,
+  SimpleGrid,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import { FiEye, FiEyeOff, FiSave, FiServer } from 'react-icons/fi';
-import SettingItem from './SettingItem';
+import { FiEye, FiEyeOff, FiSave, FiCpu, FiKey, FiServer, FiCheck } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+
+const MotionBox = motion.create(Box);
+
+const PROVIDERS = [
+    { id: 'openai', name: 'OpenAI', desc: 'GPT-3.5 / GPT-4', color: 'green.500' },
+    { id: 'anthropic', name: 'Anthropic', desc: 'Claude 3 Family', color: 'orange.500' },
+    { id: 'gemini', name: 'Google Gemini', desc: 'Gemini Pro / Ultra', color: 'blue.500' },
+    { id: 'deepseek', name: 'DeepSeek', desc: 'DeepSeek-V3', color: 'purple.500' },
+];
 
 const AISlide = () => {
   const { t } = useTranslation();
@@ -34,61 +47,134 @@ const AISlide = () => {
     localStorage.setItem('ai_api_key', apiKey);
     
     toast({
-      title: t('common.saved', 'Saved'),
-      description: "AI configuration has been updated.",
+      title: t('common.saved', 'Configuration Saved'),
+      description: "Your AI settings have been updated successfully.",
       status: "success",
       duration: 3000,
       isClosable: true,
+      position: "top",
     });
   };
 
+  const cardBg = useColorModeValue('white', 'whiteAlpha.100');
+  const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
+  const providerActiveBg = useColorModeValue('brand.50', 'whiteAlpha.200');
+  const providerActiveBorder = 'brand.500';
+
   return (
-    <VStack spacing={4} align="stretch">
-      <SettingItem
-        icon={FiServer}
-        title="AI Provider"
-        description="Select your AI service provider"
-        action={
-          <Select 
-            w="150px" 
-            size="sm" 
-            value={provider} 
-            onChange={(e) => setProvider(e.target.value)}
-            borderRadius="md"
-          >
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="deepseek">DeepSeek</option>
-          </Select>
-        }
-      />
+    <VStack spacing={6} align="stretch" pb={8}>
+       <MotionBox
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         p={6}
+         bg={cardBg}
+         borderRadius="2xl"
+         borderWidth="1px"
+         borderColor={borderColor}
+         boxShadow="sm"
+       >
+         <HStack mb={6} spacing={3}>
+            <Box p={2} bg="orange.100" borderRadius="lg" color="orange.600">
+                <Icon as={FiCpu} boxSize={5} />
+            </Box>
+            <Box>
+                <Text fontWeight="bold" fontSize="lg">AI Provider Settings</Text>
+                <Text fontSize="sm" color="gray.500">Configure connection to LLM services</Text>
+            </Box>
+         </HStack>
 
-      <FormControl>
-        <FormLabel fontSize="sm" fontWeight="bold">API Key</FormLabel>
-        <InputGroup size="md">
-          <Input
-            pr="4.5rem"
-            type={showKey ? 'text' : 'password'}
-            placeholder="sk-..."
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            borderRadius="md"
-          />
-          <InputRightElement width="3rem">
-            <Button h="1.75rem" size="sm" variant="ghost" onClick={() => setShowKey(!showKey)}>
-              {showKey ? <FiEyeOff /> : <FiEye />}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-        <Text fontSize="xs" color="gray.500" mt={1}>
-          Your API key is stored locally on your device.
-        </Text>
-      </FormControl>
+         <VStack spacing={8} align="stretch">
+            {/* Provider Selection Grid */}
+            <FormControl>
+                <FormLabel fontWeight="bold" fontSize="sm" color="gray.600" mb={3}>
+                    <HStack>
+                        <Icon as={FiServer} />
+                        <Text>Select Provider</Text>
+                    </HStack>
+                </FormLabel>
+                <SimpleGrid columns={[1, 2]} spacing={3}>
+                    {PROVIDERS.map((p) => {
+                        const isSelected = provider === p.id;
+                        return (
+                            <Box
+                                key={p.id}
+                                as="button"
+                                onClick={() => setProvider(p.id)}
+                                p={4}
+                                borderRadius="xl"
+                                borderWidth="2px"
+                                borderColor={isSelected ? providerActiveBorder : borderColor}
+                                bg={isSelected ? providerActiveBg : 'transparent'}
+                                transition="all 0.2s"
+                                _hover={{ borderColor: isSelected ? providerActiveBorder : 'gray.400' }}
+                                textAlign="left"
+                                position="relative"
+                            >
+                                {isSelected && (
+                                    <Box position="absolute" top={3} right={3} color="brand.500">
+                                        <Icon as={FiCheck} />
+                                    </Box>
+                                )}
+                                <Text fontWeight="bold" fontSize="sm" color={isSelected ? 'brand.600' : 'inherit'}>
+                                    {p.name}
+                                </Text>
+                                <Text fontSize="xs" color="gray.500">
+                                    {p.desc}
+                                </Text>
+                            </Box>
+                        );
+                    })}
+                </SimpleGrid>
+            </FormControl>
 
-      <Button leftIcon={<FiSave />} colorScheme="brand" onClick={handleSave} alignSelf="flex-end">
-        Save
-      </Button>
+            {/* API Key Input */}
+            <FormControl>
+                <FormLabel fontWeight="bold" fontSize="sm" color="gray.600">
+                    <HStack>
+                        <Icon as={FiKey} />
+                        <Text>API Key</Text>
+                    </HStack>
+                </FormLabel>
+                <InputGroup size="lg">
+                    <Input
+                        pr="4.5rem"
+                        type={showKey ? 'text' : 'password'}
+                        placeholder={`Enter your ${PROVIDERS.find(p => p.id === provider)?.name} API Key`}
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        borderRadius="xl"
+                        variant="filled"
+                        bg={useColorModeValue('gray.50', 'whiteAlpha.50')}
+                        _focus={{ bg: 'transparent', borderColor: 'brand.500' }}
+                    />
+                    <InputRightElement width="4.5rem">
+                        <Button h="1.75rem" size="sm" variant="ghost" onClick={() => setShowKey(!showKey)}>
+                        {showKey ? <FiEyeOff /> : <FiEye />}
+                        </Button>
+                    </InputRightElement>
+                </InputGroup>
+                <Text fontSize="xs" color="gray.500" mt={2} display="flex" alignItems="center">
+                    <Icon as={FiServer} mr={1} />
+                    Keys are stored locally in your browser's LocalStorage.
+                </Text>
+            </FormControl>
+
+            <Box pt={2} display="flex" justifyContent="flex-end">
+                <Button 
+                    leftIcon={<FiSave />} 
+                    colorScheme="brand" 
+                    size="lg" 
+                    onClick={handleSave}
+                    px={8}
+                    borderRadius="xl"
+                    boxShadow="md"
+                    _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
+                >
+                    Save Changes
+                </Button>
+            </Box>
+         </VStack>
+       </MotionBox>
     </VStack>
   );
 };

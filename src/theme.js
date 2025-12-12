@@ -4,6 +4,7 @@ import { mode } from '@chakra-ui/theme-tools';
 const config = {
   initialColorMode: 'system',
   useSystemColorMode: true,
+  disableTransitionOnChange: false, // Ensure transitions are enabled
 };
 
 const colors = {
@@ -29,6 +30,15 @@ const styles = {
     body: {
       bg: mode('#F7F9FC', '#0F1117')(props), // Warm white / Deep dark
       color: mode('gray.800', 'gray.100')(props),
+      transitionProperty: 'background-color, border-color, color',
+      transitionDuration: '0.4s',
+      transitionTimingFunction: 'ease-in-out',
+    },
+    // Apply smooth transition to common structural elements
+    '*, *::before, *::after': {
+      transitionProperty: 'background-color, border-color, text-decoration-color, fill, stroke',
+      transitionDuration: '0.3s',
+      transitionTimingFunction: 'ease-in-out',
     },
   }),
 };
@@ -54,7 +64,6 @@ const components = {
       }),
     },
   },
-  // Custom Card style configuration if we use Card component or similar
   Container: {
     baseStyle: {
       maxW: 'container.xl',

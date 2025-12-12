@@ -4,13 +4,21 @@ import baseTheme from '../theme';
 import { COLOR_SCHEMES } from '../theme/colorSchemes';
 import { ThemeContext } from './ThemeContext';
 
+const DEFAULT_SCHEME = 'ocean';
+
 export const AppThemeProvider = ({ children }) => {
   const [colorScheme, setColorScheme] = useState(() => {
-    return localStorage.getItem('app_color_scheme') || 'indigo';
+    const saved = localStorage.getItem('app_color_scheme');
+    // Validate that the saved scheme actually exists
+    if (saved && COLOR_SCHEMES[saved]) {
+      return saved;
+    }
+    return DEFAULT_SCHEME;
   });
 
   const currentTheme = useMemo(() => {
-    const scheme = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES.indigo;
+    // Fallback to default if somehow the state is invalid
+    const scheme = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES[DEFAULT_SCHEME];
     return extendTheme(
       { colors: scheme.colors },
       baseTheme
