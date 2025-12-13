@@ -113,6 +113,7 @@ const GeneralSlide = ({
   
   const langActiveColor = useColorModeValue('brand.600', 'white');
   const langHighlightBg = useColorModeValue('white', 'brand.500');
+  const themeCardBg = useColorModeValue('gray.50', 'whiteAlpha.100');
 
   const handleLanguageChange = (nextLanguage) => {
     i18n.changeLanguage(nextLanguage);
@@ -206,39 +207,33 @@ const GeneralSlide = ({
             </Box>
         </HStack>
         
-        <SimpleGrid columns={[3, 4, 6]} spacing={4}>
+        <SimpleGrid columns={[1, 2]} spacing={4}>
             {Object.entries(schemes).map(([key, scheme]) => (
-              <Tooltip key={key} label={scheme.name} hasArrow placement="top">
-                <Box
-                  as="button"
-                  w="100%"
-                  pb="100%" // Aspect Ratio 1:1
-                  borderRadius="xl"
-                  bg={scheme.colors.brand[500]}
-                  onClick={() => changeColorScheme(key)}
-                  position="relative"
-                  overflow="hidden"
-                  boxShadow={colorScheme === key ? 'lg' : 'none'}
-                  transform={colorScheme === key ? 'scale(1.05)' : 'scale(1)'}
-                  transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                  _hover={{ transform: 'scale(1.1)' }}
-                  ring={colorScheme === key ? 2 : 0}
-                  ringColor="brand.500"
-                  ringOffset={2}
-                >
-                   {colorScheme === key && (
-                       <Flex 
-                         position="absolute" 
-                         inset={0} 
-                         align="center" 
-                         justify="center"
-                         bg="blackAlpha.200"
-                       >
-                           <Box w="8px" h="8px" bg="white" borderRadius="full" />
-                       </Flex>
-                   )}
-                </Box>
-              </Tooltip>
+              <Box
+                key={key}
+                as="button"
+                onClick={() => changeColorScheme(key)}
+                borderRadius="xl"
+                borderWidth="2px"
+                borderColor={colorScheme === key ? 'brand.500' : 'transparent'}
+                position="relative"
+                overflow="hidden"
+                transition="all 0.2s"
+                _hover={{ transform: 'scale(1.02)', shadow: 'md' }}
+                bg={themeCardBg}
+              >
+                 <HStack spacing={0} h="48px">
+                    {scheme.palette && scheme.palette.map((c, i) => (
+                        <Box key={i} flex={1} bg={c} h="full" />
+                    ))}
+                 </HStack>
+                 <Flex p={3} justify="space-between" align="center">
+                    <Text fontSize="sm" fontWeight="bold">{scheme.name}</Text>
+                    {colorScheme === key && (
+                        <Icon as={FiDroplet} color="brand.500" />
+                    )}
+                 </Flex>
+              </Box>
             ))}
         </SimpleGrid>
       </MotionBox>

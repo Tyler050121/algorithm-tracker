@@ -3,6 +3,7 @@ import {
   Box,
   Text,
   useColorModeValue,
+  useTheme,
 } from '@chakra-ui/react';
 import {
   Cell,
@@ -13,7 +14,6 @@ import {
   Tooltip,
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { useAppTheme } from '../../context/ThemeContext';
 import SpotlightCard from '../common/SpotlightCard';
 
 const CustomPieTooltip = ({ active, payload }) => {
@@ -32,7 +32,7 @@ const CustomPieTooltip = ({ active, payload }) => {
 
 const CoverageCard = ({ progressPie }) => {
   const { t } = useTranslation();
-  const { colorScheme, schemes } = useAppTheme();
+  const theme = useTheme();
 
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorderColor = useColorModeValue('gray.100', 'gray.700');
@@ -43,8 +43,8 @@ const CoverageCard = ({ progressPie }) => {
   }));
 
   const pieColors = useColorModeValue(
-    [schemes[colorScheme].colors.brand[200], schemes[colorScheme].colors.brand[500], schemes[colorScheme].colors.brand[800]], 
-    [schemes[colorScheme].colors.brand[700], schemes[colorScheme].colors.brand[400], schemes[colorScheme].colors.brand[200]]
+    [theme.colors.brand[200], theme.colors.brand[500], theme.colors.brand[800]],
+    [theme.colors.brand[700], theme.colors.brand[400], theme.colors.brand[200]]
   );
 
   return (

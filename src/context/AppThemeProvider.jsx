@@ -2,14 +2,14 @@ import { useState, useMemo } from 'react';
 import { extendTheme, ChakraProvider } from '@chakra-ui/react';
 import baseTheme from '../theme';
 import { COLOR_SCHEMES } from '../theme/colorSchemes';
+import { deriveThemeColorsFromScheme } from '../theme/deriveThemeColors';
 import { ThemeContext } from './ThemeContext';
 
-const DEFAULT_SCHEME = 'ocean';
+const DEFAULT_SCHEME = 'monet';
 
 export const AppThemeProvider = ({ children }) => {
   const [colorScheme, setColorScheme] = useState(() => {
     const saved = localStorage.getItem('app_color_scheme');
-    // Validate that the saved scheme actually exists
     if (saved && COLOR_SCHEMES[saved]) {
       return saved;
     }
@@ -17,12 +17,13 @@ export const AppThemeProvider = ({ children }) => {
   });
 
   const currentTheme = useMemo(() => {
-    // Fallback to default if somehow the state is invalid
     const scheme = COLOR_SCHEMES[colorScheme] || COLOR_SCHEMES[DEFAULT_SCHEME];
-    return extendTheme(
-      { colors: scheme.colors },
-      baseTheme
-    );
+
+    // 从 palette 派生 Chakra 需要的色阶（brand/accent），并同时注入原始 palette
+    const themeColors = deriveThemeColorsFromScheme(scheme);
+
+    // Ensure derived scheme colors override base theme defaults.
+    return extendTheme(baseTheme, { colors: themeColors });
   }, [colorScheme]);
 
   const changeColorScheme = (scheme) => {

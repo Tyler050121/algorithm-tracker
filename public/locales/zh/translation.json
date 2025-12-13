@@ -14,7 +14,8 @@
     "unsavedChanges": "未保存的更改",
     "unsavedChangesConfirm": "你有未保存的更改，确定要放弃吗？",
     "continueEditing": "继续编辑",
-    "discard": "放弃更改"
+    "discard": "放弃更改",
+    "saved": "已保存"
   },
   "tags": {
     "Array": "数组",
@@ -92,13 +93,35 @@
   },
   "settings": {
     "title": "设置",
+    "sidebar": {
+      "subtitle": "个性化你的使用体验"
+    },
     "general": "常规设置",
+    "sectionSubtitle": "在这里配置 {{section}} 相关选项。",
     "darkMode": "夜间模式",
     "darkModeDesc": "切换深色/浅色主题",
     "language": "语言",
     "languageDesc": "选择你偏好的显示语言",
     "theme": "主题颜色",
     "themeDesc": "选择你最喜欢的主题配色",
+    "ai": {
+      "title": "AI 设置",
+      "headerTitle": "AI 服务配置",
+      "headerDesc": "配置大模型服务的连接信息",
+      "selectProvider": "选择服务商",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "请输入你的 {{provider}} API Key",
+      "storageHint": "密钥仅保存在浏览器本地 LocalStorage 中。",
+      "save": "保存更改",
+      "savedTitle": "配置已保存",
+      "savedDesc": "AI 设置已更新。"
+    },
+    "study": {
+      "introTitle": "选择你的学习题库",
+      "introDesc": "选择适合你当前节奏的题库；切换题库不会丢失你的进度。",
+      "selfPaced": "自定进度",
+      "focusPatterns": "聚焦核心题型"
+    },
     "studyPlan": {
        "title": "当前题库"
      },
@@ -106,10 +129,12 @@
     "dataManagement": {
       "title": "数据管理",
       "export": "导出学习存档",
+      "exportDesc": "将数据备份为 JSON 文件",
       "exportAll": "导出全部数据",
       "exportSolutions": "仅导出题解",
       "exportRecords": "仅导出学习记录",
       "import": "导入学习存档",
+      "importDesc": "从 JSON 文件恢复数据",
       "importAll": "导入全部数据",
       "importSolutions": "仅导入题解",
       "importRecords": "仅导入学习记录",

@@ -3,6 +3,7 @@ import {
   Box,
   Text,
   useColorModeValue,
+  useTheme,
 } from '@chakra-ui/react';
 import {
   Line,
@@ -13,7 +14,6 @@ import {
   YAxis,
 } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { useAppTheme } from '../../context/ThemeContext';
 import SpotlightCard from '../common/SpotlightCard';
 
 const CustomLineTooltip = ({ active, payload, label }) => {
@@ -33,12 +33,12 @@ const CustomLineTooltip = ({ active, payload, label }) => {
 
 const ActivityChartCard = ({ activitySeries }) => {
   const { t } = useTranslation();
-  const { colorScheme, schemes } = useAppTheme();
+  const theme = useTheme();
   
   const cardBg = useColorModeValue('white', 'gray.800');
   const cardBorderColor = useColorModeValue('gray.100', 'gray.700');
-  const learnedColor = useColorModeValue(schemes[colorScheme].colors.brand[500], schemes[colorScheme].colors.brand[300]);
-  const reviewedColor = useColorModeValue(schemes[colorScheme].colors.accent[500], schemes[colorScheme].colors.accent[300]);
+  const learnedColor = useColorModeValue(theme.colors.brand[500], theme.colors.brand[300]);
+  const reviewedColor = useColorModeValue(theme.colors.accent[500], theme.colors.accent[300] || theme.colors.accent[500]);
 
   return (
      <SpotlightCard flex={{ base: 'none', xl: 3 }} minH={{ base: '140px', xl: 0 }} bg={cardBg} borderRadius="2xl" p={4} boxShadow="sm" borderColor={cardBorderColor} display="flex" flexDirection="column">

@@ -25,26 +25,29 @@ const StudySlide = ({ studyPlans, currentPlanSlug, onSelectPlan }) => {
   const activeBorder = 'brand.500';
   const activeBg = useColorModeValue('brand.50', 'whiteAlpha.100');
   const dividerColor = useColorModeValue('gray.100', 'whiteAlpha.100');
+  const introBg = useColorModeValue('brand.50', `rgba(255,255,255,0.06)`);
+  const introBorder = useColorModeValue('brand.400', 'brand.300');
+  const introIconColor = useColorModeValue('brand.500', 'brand.300');
 
   return (
     <VStack align="stretch" spacing={6}>
        {/* 介绍性文字 */}
        <Box 
          p={4} 
-         bg={useColorModeValue('blue.50', 'blue.900')} 
+         bg={introBg}
          borderRadius="xl" 
          borderLeft="4px solid" 
-         borderColor="blue.400"
+         borderColor={introBorder}
        >
           <HStack align="start">
-              <Icon as={FiBookOpen} color="blue.400" mt={1} />
+           <Icon as={FiBookOpen} color={introIconColor} mt={1} />
               <VStack align="start" spacing={0}>
-                  <Text fontWeight="bold" fontSize="sm" color={useColorModeValue('blue.700', 'blue.200')}>
-                      Select Your Study Plan
-                  </Text>
-                  <Text fontSize="xs" color={useColorModeValue('blue.600', 'blue.300')}>
-                      Choose a plan that fits your current interview preparation schedule. Switching plans will not lose your progress.
-                  </Text>
+             <Text fontWeight="bold" fontSize="sm" color={useColorModeValue('brand.700', 'brand.200')}>
+               {t('settings.study.introTitle', 'Select Your Study Plan')}
+             </Text>
+             <Text fontSize="xs" color={useColorModeValue('brand.600', 'brand.300')}>
+               {t('settings.study.introDesc', 'Choose a plan that fits your current schedule. Switching plans will not lose your progress.')}
+             </Text>
               </VStack>
           </HStack>
        </Box>
@@ -111,7 +114,7 @@ const StudySlide = ({ studyPlans, currentPlanSlug, onSelectPlan }) => {
                     {/* 假数据展示：持续时间 */}
                     <HStack fontSize="xs" color="gray.500">
                         <Icon as={FiClock} />
-                        <Text>Self-paced</Text>
+                        <Text>{t('settings.study.selfPaced', 'Self-paced')}</Text>
                     </HStack>
                 </HStack>
 
@@ -128,7 +131,7 @@ const StudySlide = ({ studyPlans, currentPlanSlug, onSelectPlan }) => {
                 <HStack pt={2} borderTopWidth="1px" borderColor={dividerColor} w="full">
                     <Icon as={FiTarget} color="gray.400" size="sm" />
                     <Text fontSize="xs" color="gray.400">
-                        Focus on core patterns
+                      {t('settings.study.focusPatterns', 'Focus on core patterns')}
                     </Text>
                 </HStack>
               </VStack>

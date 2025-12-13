@@ -1,176 +1,76 @@
+// 艺术配色方案
+// 纯净的数据设计：只包含调色板，不包含为了兼容生成的冗余数据
+
 export const COLOR_SCHEMES = {
-  ocean: {
-    name: 'Ocean Blue',
-    colors: {
-      brand: {
-        50: '#E0F2FE',
-        100: '#BAE6FD',
-        200: '#7DD3FC',
-        300: '#38BDF8',
-        400: '#0EA5E9',
-        500: '#0284C7', // Sky 600
-        600: '#0369A1',
-        700: '#075985',
-        800: '#0C4A6E',
-        900: '#082F49',
-      },
-      accent: { 
-        50: '#F5F3FF',
-        100: '#EDE9FE',
-        200: '#DDD6FE',
-        300: '#C4B5FD',
-        400: '#A78BFA',
-        500: '#8B5CF6',
-        600: '#7C3AED',
-        700: '#6D28D9',
-        800: '#5B21B6',
-        900: '#4C1D95',
-      },
-    }
+  monet: {
+    name: '莫奈花园',
+    isDark: false,
+    palette: [
+      '#C0B87F', // 花园里都是星星的碎片
+      '#D4DEC3', // 我愿站在大海面前或波涛之巅
+      '#BCD5C1', // 我曾以为,留住光,就可以留住你
+      '#87ACCF', // 我想用一种鸟儿唱歌的方式画画
+      '#B6BCD9', // 色观主义者是看天的化身
+      '#D4B9BE', // 四月将勤劳和注入万物
+      '#C3949B', // 春天是一种永远的经历
+    ]
   },
-  violet: {
-    name: 'Royal Violet',
-    colors: {
-      brand: {
-        50: '#F5F3FF',
-        100: '#EDE9FE',
-        200: '#DDD6FE',
-        300: '#C4B5FD',
-        400: '#A78BFA',
-        500: '#8B5CF6', // Violet 500
-        600: '#7C3AED',
-        700: '#6D28D9',
-        800: '#5B21B6',
-        900: '#4C1D95',
-      },
-      accent: { 
-        50: '#FDF2F8',
-        100: '#FCE7F3',
-        200: '#FBCFE8',
-        300: '#F9A8D4',
-        400: '#F472B6',
-        500: '#EC4899',
-        600: '#DB2777',
-        700: '#BE185D',
-        800: '#9D174D',
-        900: '#831843',
-      },
-    }
-  },
-  emerald: {
-    name: 'Forest Emerald',
-    colors: {
-      brand: {
-        50: '#ECFDF5',
-        100: '#D1FAE5',
-        200: '#A7F3D0',
-        300: '#6EE7B7',
-        400: '#34D399',
-        500: '#10B981', // Emerald 500
-        600: '#059669',
-        700: '#047857',
-        800: '#065F46',
-        900: '#064E3B',
-      },
-      accent: { 
-        50: '#FFF7ED',
-        100: '#FFEDD5',
-        200: '#FED7AA',
-        300: '#FDBA74',
-        400: '#FB923C',
-        500: '#F97316',
-        600: '#EA580C',
-        700: '#C2410C',
-        800: '#9A3412',
-        900: '#7C2D12',
-      },
-    }
+  moonlight: {
+    name: '昨日月光',
+    isDark: false,
+    // Override which palette color becomes "brand" (primary buttons, highlights)
+    // and key semantic roles. Index is 0-based.
+    roles: {
+      brand: 5,   // #DB6C32 (warm orange) works better as primary
+      accent: 0,  // #BBEEC7 (mint) as secondary highlight
+      success: 1,
+      warning: 3,
+      danger: 6,
+      neutral: 4,
+    },
+    palette: [
+      '#BBEEC7', // 月亮甚至不知道自己是月亮
+      '#D4E9D9', // 走向星星,走向月亮
+      '#FCE5BA', // 只有月光,月光没有篱笆
+      '#FFD07B', // 月光转动她梦的齿轮
+      '#F7A462', // 你的窗子里看得见月亮么
+      '#DB6C32', // 每个人都是月亮
+      '#A14D21', // 山中若有眠,枕的是月
+    ]
   },
   rose: {
-    name: 'Neon Rose',
-    colors: {
-      brand: {
-        50: '#FFF1F2',
-        100: '#FFE4E6',
-        200: '#FECDD3',
-        300: '#FDA4AF',
-        400: '#FB7185',
-        500: '#F43F5E', // Rose 500
-        600: '#E11D48',
-        700: '#BE123C',
-        800: '#9F1239',
-        900: '#881337',
-      },
-      accent: { 
-        50: '#EFF6FF',
-        100: '#DBEAFE',
-        200: '#BFDBFE',
-        300: '#93C5FD',
-        400: '#60A5FA',
-        500: '#3B82F6',
-        600: '#2563EB',
-        700: '#1D4ED8',
-        800: '#1E40AF',
-        900: '#1E3A8A',
-      },
-    }
+    name: '玫瑰庄园',
+    isDark: true, // 这一套颜色比较深沉，适合深色模式或作为浓郁主题
+    roles: {
+      // Make primary UI a bit more pleasant/clean than deep red.
+      brand: 5,   // #6A9064 (sage green)
+      accent: 0,  // #B04F4F (rose)
+      success: 5,
+      warning: 2,
+      danger: 0,
+      neutral: 4,
+    },
+    palette: [
+      '#B04F4F', // 玫瑰到了花期,我很想你
+      '#E79999', // 让它永远捧着一束玫瑰
+      '#DFB59C', // 玫瑰误了花期,月光隐在云里
+      '#DADAA0', // 玫瑰易名,芳香如故
+      '#94AAA0', // 祝我们都是横冲直撞的玫瑰
+      '#6A9064', // 正如最初的玫瑰,使我一病多年
+      '#41653B', // 只有玫瑰才能盛开如玫瑰
+    ]
   },
-  amber: {
-    name: 'Sunset Amber',
-    colors: {
-      brand: {
-        50: '#FFFBEB',
-        100: '#FEF3C7',
-        200: '#FDE68A',
-        300: '#FCD34D',
-        400: '#FBBF24',
-        500: '#F59E0B', // Amber 500
-        600: '#D97706',
-        700: '#B45309',
-        800: '#92400E',
-        900: '#78350F',
-      },
-      accent: { 
-        50: '#ECFDF5',
-        100: '#D1FAE5',
-        200: '#A7F3D0',
-        300: '#6EE7B7',
-        400: '#34D399',
-        500: '#10B981',
-        600: '#059669',
-        700: '#047857',
-        800: '#065F46',
-        900: '#064E3B',
-      },
-    }
-  },
-  cyan: {
-    name: 'Cyber Cyan',
-    colors: {
-      brand: {
-        50: '#ECFEFF',
-        100: '#CFFAFE',
-        200: '#A5F3FC',
-        300: '#67E8F9',
-        400: '#22D3EE',
-        500: '#06B6D4', // Cyan 500
-        600: '#0891B2',
-        700: '#0E7490',
-        800: '#155E75',
-        900: '#164E63',
-      },
-      accent: { 
-        50: '#FDF4FF',
-        100: '#FAE8FF',
-        200: '#F5D0FE',
-        300: '#F0ABFC',
-        400: '#E879F9',
-        500: '#D946EF',
-        600: '#C026D3',
-        700: '#A21CAF',
-        800: '#86198F',
-        900: '#701A75',
-      },
-    }
-  },
+  dream: {
+    name: '梦里看花',
+    isDark: false,
+    palette: [
+      '#A5C9F9', // 被白昼关闭的,由梦来送给我们
+      '#D2E5FF', // 爱与梦是括号的两端
+      '#EEEEEE', // 很多的梦,趁黄昏起哄
+      '#E7D5CD', // 梦中是你,与枕俱醒
+      '#CAB0B5', // 醒,是梦中往外跳伞
+      '#C0C8E9', // 你枕着我的臂弯,酣睡不醒
+      '#B6B4F8', // 夜正深沉,我因梦见你而醒
+    ]
+  }
 };

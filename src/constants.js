@@ -2,9 +2,9 @@ export const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30]; // 复习周期
 export const STORAGE_KEY = 'algorithmTrackerProblems_ALL';
 
 export const DIFFICULTY_MAP = {
-  easy: { label: 'Easy', color: 'green' },
-  medium: { label: 'Medium', color: 'orange' },
-  hard: { label: 'Hard', color: 'red' },
+  easy: { label: 'Easy', color: 'success' },
+  medium: { label: 'Medium', color: 'warning' },
+  hard: { label: 'Hard', color: 'danger' },
 };
 
 export const ALGORITHM_TAGS = [

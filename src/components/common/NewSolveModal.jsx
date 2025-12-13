@@ -17,17 +17,12 @@ import {
   Stack,
   Text,
   useColorModeValue,
-  Badge,
   HStack,
 } from '@chakra-ui/react';
 import { SearchIcon } from '@chakra-ui/icons';
 import { useTranslation } from 'react-i18next';
 
-const DIFFICULTY_MAP = {
-  easy: { color: 'green' },
-  medium: { color: 'orange' },
-  hard: { color: 'red' },
-};
+import DifficultyBadge from './DifficultyBadge';
 
 function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
   const { t, i18n } = useTranslation();
@@ -122,13 +117,7 @@ function NewSolveModal({ isOpen, onClose, onConfirm, problems = [] }) {
                             <Text fontWeight="semibold">
                               {(i18n.language === 'zh' ? problem.title.zh : problem.title.en) || problem.title.en}
                             </Text>
-                            <Badge 
-                              colorScheme={DIFFICULTY_MAP[problem.difficulty?.toLowerCase()]?.color || 'gray'} 
-                              fontSize="xs" 
-                              variant="subtle"
-                            >
-                              {problem.difficulty}
-                            </Badge>
+                            <DifficultyBadge difficulty={problem.difficulty} />
                           </HStack>
                           <Text fontSize="xs" color="gray.500" mt={0.5}>
                             #{problem.id} · {i18n.language === 'zh' ? problem.groupName.zh : problem.groupName.en}

@@ -19,9 +19,9 @@ import DifficultyBadge from '../common/DifficultyBadge';
 import { DIFFICULTY_MAP } from '../../constants';
 
 const STATUS_MAP = {
-  unstarted: { label: 'Unstarted', color: 'gray' },
-  learning: { label: 'Learning', color: 'teal' },
-  mastered: { label: 'Mastered', color: 'purple' },
+  unstarted: { label: 'Unstarted', color: 'neutral' },
+  learning: { label: 'Learning', color: 'accent' },
+  mastered: { label: 'Mastered', color: 'success' },
 };
 
 const parseDate = (value) => {

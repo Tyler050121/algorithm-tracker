@@ -14,7 +14,8 @@
     "unsavedChanges": "Unsaved Changes",
     "unsavedChangesConfirm": "You have unsaved changes, are you sure you want to discard them?",
     "continueEditing": "Continue Editing",
-    "discard": "Discard Changes"
+    "discard": "Discard Changes",
+    "saved": "Saved"
   },
   "tags": {
     "Array": "Array",
@@ -92,13 +93,35 @@
   },
   "settings": {
     "title": "Settings",
+    "sidebar": {
+      "subtitle": "Personalize your experience"
+    },
     "general": "General",
+    "sectionSubtitle": "Customize your {{section}} preferences and options.",
     "darkMode": "Dark Mode",
     "darkModeDesc": "Switch between light and dark themes",
     "language": "Language",
     "languageDesc": "Choose your preferred language",
     "theme": "Theme Color",
     "themeDesc": "Choose your favorite color scheme",
+    "ai": {
+      "title": "AI Settings",
+      "headerTitle": "AI Provider Settings",
+      "headerDesc": "Configure connection to LLM services",
+      "selectProvider": "Select Provider",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Enter your {{provider}} API Key",
+      "storageHint": "Keys are stored locally in your browser's LocalStorage.",
+      "save": "Save Changes",
+      "savedTitle": "Configuration Saved",
+      "savedDesc": "Your AI settings have been updated successfully."
+    },
+    "study": {
+      "introTitle": "Select Your Study Plan",
+      "introDesc": "Choose a plan that fits your current schedule. Switching plans will not lose your progress.",
+      "selfPaced": "Self-paced",
+      "focusPatterns": "Focus on core patterns"
+    },
     "studyPlan": {
        "title": "Current Study Plan"
      },
@@ -106,10 +129,12 @@
     "dataManagement": {
       "title": "Data Management",
       "export": "Export Backup",
+      "exportDesc": "Backup your data to a JSON file",
       "exportAll": "Export All Data",
       "exportSolutions": "Export Solutions Only",
       "exportRecords": "Export Records Only",
       "import": "Import Backup",
+      "importDesc": "Restore data from a JSON file",
       "importAll": "Import All Data",
       "importSolutions": "Import Solutions Only",
       "importRecords": "Import Records Only",
