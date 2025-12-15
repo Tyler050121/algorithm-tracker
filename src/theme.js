@@ -67,6 +67,12 @@ const components = {
   },
 };
 
-const theme = extendTheme({ config, colors, styles, components });
+const fonts = {
+  heading: "'Plus Jakarta Sans', sans-serif",
+  body: "'Plus Jakarta Sans', sans-serif",
+  mono: "'JetBrains Mono', monospace",
+};
+
+const theme = extendTheme({ config, colors, styles, components, fonts });
 
 export default theme;

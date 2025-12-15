@@ -1,70 +1,195 @@
-import { useMemo } from 'react';
-import { Box, Flex, Text, Tag, Icon, VStack } from '@chakra-ui/react';
-import { FiStar, FiRepeat } from 'react-icons/fi';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Box,
+  Divider,
+  Flex,
+  HStack,
+  SimpleGrid,
+  Text,
+  VStack,
+  useColorModeValue,
+} from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import ReviewProgressBars from '../history/ReviewProgressBars';
+import { TypeTag } from '../history/HistoryBadges';
 
-// 单个时间线事件的组件
-function TimelineEvent({ type, date, isLast }) {
-  const { t } = useTranslation();
-  const isLearn = type === 'learn';
-  const icon = isLearn ? FiStar : FiRepeat;
-  const colorScheme = isLearn ? 'brand' : 'accent';
-
-  return (
-    <Flex minH={20}>
-      {/* 左侧的图标和竖线 */}
-      <Flex direction="column" alignItems="center" mr={4}>
-        <Icon as={icon} color={`${colorScheme}.500`} boxSize={6} zIndex={1} />
-        {!isLast && <Box w="2px" flex="1" bg="gray.200" mt="-2px" />}
-      </Flex>
-      {/* 右侧的日期和类型 */}
-      <VStack align="start" justify="center" spacing={1}>
-        <Text fontWeight="bold" fontSize="md">
-          {format(parseISO(date), 'yyyy-MM-dd')}
-        </Text>
-        <Tag colorScheme={colorScheme} size="sm">
-          {t(`history.actionType.${type}`)}
-        </Tag>
-      </VStack>
-    </Flex>
-  );
-}
-
-// 主组件
 function ReviewHistoryChart({ problem }) {
   const { t } = useTranslation();
+  const [selectedStep, setSelectedStep] = useState(null);
+  const clearTimerRef = useRef(null);
 
-  const timelineEvents = useMemo(() => {
+  const FLASH_MS = 1100;
+  const CLEAR_AFTER_MS = FLASH_MS * 3;
+
+  useEffect(() => {
+    if (clearTimerRef.current) {
+      window.clearTimeout(clearTimerRef.current);
+      clearTimerRef.current = null;
+    }
+    if (typeof selectedStep !== 'number') return;
+
+    clearTimerRef.current = window.setTimeout(() => {
+      setSelectedStep(null);
+      clearTimerRef.current = null;
+    }, CLEAR_AFTER_MS);
+
+    return () => {
+      if (clearTimerRef.current) {
+        window.clearTimeout(clearTimerRef.current);
+        clearTimerRef.current = null;
+      }
+    };
+  }, [selectedStep]);
+
+  const events = useMemo(() => {
     if (!problem) return [];
-    const events = [];
-    problem.learnHistory.forEach(item => events.push({ date: item.date, type: 'learn' }));
-    problem.reviewHistory.forEach(item => events.push({ date: item.date, type: 'review' }));
-    // 按时间正序排列，构建从上到下的时间线
-    return events.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const list = [];
+    (problem.learnHistory || []).forEach((item) =>
+      list.push({ date: typeof item === 'string' ? item : item.date, type: 'learn', plan: item?.plan }),
+    );
+    (problem.reviewHistory || []).forEach((item) =>
+      list.push({ date: typeof item === 'string' ? item : item.date, type: 'review', plan: item?.plan }),
+    );
+    return list
+      .filter((e) => !!e.date)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [problem]);
 
-  if (!problem || timelineEvents.length === 0) {
+  const cardBg = useColorModeValue('gray.50', 'whiteAlpha.50');
+  const subtle = useColorModeValue('gray.600', 'gray.400');
+  const value = useColorModeValue('gray.900', 'gray.100');
+  const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100');
+
+  if (!problem || events.length === 0) {
     return (
       <Flex justify="center" align="center" h="150px">
-        <Text color="gray.500">{t('history.noRecords.title')}</Text>
+        <Text color={subtle}>{t('history.noRecords.title')}</Text>
       </Flex>
     );
   }
 
+  const learnedAt = events.find((e) => e.type === 'learn')?.date;
+  const reviewCount = (problem.reviewHistory || []).length;
+  const nextReviewDate = problem.nextReviewDate;
+
+  // Steps: learn (index 0) + each review in chronological order (index 1..N)
+  const learnEvent = events.find((e) => e.type === 'learn') ?? null;
+  const reviewEvents = events.filter((e) => e.type === 'review');
+  const steps = [learnEvent, ...reviewEvents].filter(Boolean);
+  const selectedEvent =
+    typeof selectedStep === 'number' && steps[selectedStep]
+      ? steps[selectedStep]
+      : null;
+
   return (
-    <Flex justify="center" w="100%" p={4}>
-      <Box>
-        {timelineEvents.map((event, index) => (
-          <TimelineEvent
-            key={`${event.date}-${event.type}-${index}`}
-            type={event.type}
-            date={event.date}
-            isLast={index === timelineEvents.length - 1}
-          />
-        ))}
-      </Box>
-    </Flex>
+    <VStack align="stretch" spacing={5} w="full" p={1}>
+      <VStack align="start" spacing={2}>
+        <HStack w="full" spacing={3} justify="space-between" wrap="wrap" rowGap={2}>
+          <HStack spacing={3} fontSize="sm" color={subtle}>
+            <Text fontWeight="bold">{t('history.table.viewChart')}</Text>
+            <HStack spacing={3} fontSize="xs" color={subtle}>
+              <HStack spacing={1.5}>
+                <Box w="8px" h="8px" borderRadius="full" bg={useColorModeValue('brand.600', 'brand.300')} />
+                <Text>{t('history.actionType.learn')}</Text>
+              </HStack>
+              <HStack spacing={1.5}>
+                <Box w="8px" h="8px" borderRadius="full" bg={useColorModeValue('accent.600', 'accent.300')} />
+                <Text>{t('history.actionType.review')}</Text>
+              </HStack>
+            </HStack>
+          </HStack>
+        </HStack>
+
+        <ReviewProgressBars
+          problem={problem}
+          size="md"
+          selectedIndex={selectedStep ?? undefined}
+          onSelectIndex={(idx) => setSelectedStep((prev) => (prev === idx ? null : idx))}
+          enableHover={false}
+        />
+      </VStack>
+
+      <SimpleGrid columns={{ base: 1, md: 3 }} spacing={3}>
+        <Box bg={cardBg} borderRadius="lg" p={3}>
+          <Text fontSize="xs" color={subtle}>
+            {t('history.detail.learningDate', 'Learning Date')}
+          </Text>
+          <Text fontSize="sm" fontWeight="bold" color={value}>
+            {learnedAt ? format(parseISO(learnedAt), 'yyyy-MM-dd') : '-'}
+          </Text>
+        </Box>
+        <Box bg={cardBg} borderRadius="lg" p={3}>
+          <Text fontSize="xs" color={subtle}>
+            {t('history.stats.totalReviews')}
+          </Text>
+          <Text fontSize="sm" fontWeight="bold" color={value}>
+            {reviewCount}
+          </Text>
+        </Box>
+        <Box bg={cardBg} borderRadius="lg" p={3}>
+          <Text fontSize="xs" color={subtle}>
+            {t('history.detail.nextReview', 'Next Review')}
+          </Text>
+          <Text fontSize="sm" fontWeight="bold" color={value}>
+            {nextReviewDate || '-'}
+          </Text>
+        </Box>
+      </SimpleGrid>
+
+      <Divider />
+
+      <VStack align="stretch" spacing={2}>
+        <Text fontSize="sm" fontWeight="bold" color={value}>
+          {t('history.detail.records', 'Records')}
+        </Text>
+        <VStack align="stretch" spacing={1}>
+          {events
+            .slice()
+            .reverse()
+            .map((e, idx) => {
+              const ts = e.date ? parseISO(e.date) : null;
+              const day = ts ? format(ts, 'yyyy-MM-dd') : '';
+              const time = ts ? format(ts, 'HH:mm') : '';
+              const isSelected =
+                selectedEvent && selectedEvent.date === e.date && selectedEvent.type === e.type;
+              return (
+                <HStack
+                  key={`${e.date}-${e.type}-${idx}`}
+                  justify="space-between"
+                  bg={isSelected ? rowHover : useColorModeValue('transparent', 'transparent')}
+                  px={2}
+                  py={2}
+                  borderRadius="md"
+                  _hover={{ bg: rowHover }}
+                  onClick={() => {
+                    const targetIndex = steps.findIndex(
+                      (s) => s && s.date === e.date && s.type === e.type,
+                    );
+                    if (targetIndex >= 0) {
+                      setSelectedStep(targetIndex);
+                    }
+                  }}
+                  cursor="pointer"
+                >
+                  <HStack spacing={2} minW={0}>
+                    <TypeTag type={e.type} label={t(`history.actionType.${e.type}`)} />
+                    <Text fontSize="sm" color={value} noOfLines={1}>
+                      {day}
+                      {time ? ` ${time}` : ''}
+                    </Text>
+                  </HStack>
+                  {e.plan ? (
+                    <Text fontSize="xs" color={subtle} noOfLines={1} maxW="40%">
+                      {e.plan}
+                    </Text>
+                  ) : null}
+                </HStack>
+              );
+            })}
+        </VStack>
+      </VStack>
+    </VStack>
   );
 }
 

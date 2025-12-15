@@ -7,15 +7,15 @@ import {
   Icon,
   VStack,
   Text,
-  IconButton,
   Heading,
   Container,
   Portal,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiSettings, FiBook, FiDatabase, FiCpu, FiX } from 'react-icons/fi';
+import { FiSettings, FiBook, FiDatabase, FiCpu } from 'react-icons/fi';
 import { useAppTheme } from '../../context/ThemeContext';
+import CornerCloseButton from './CornerCloseButton';
 
 import GeneralSlide from './Settings/GeneralSlide';
 import StudySlide from './Settings/StudySlide';
@@ -228,16 +228,7 @@ function SettingsModal({
         <Flex direction="column" flex={1} position="relative" bg="transparent" overflow="hidden">
            {/* 顶部关闭按钮，稍微独立出来 */}
            <Flex justify="flex-end" p={4} position="absolute" right={0} top={0} zIndex={10}>
-              <IconButton
-                icon={<FiX />}
-                variant="ghost"
-                onClick={handleClose}
-                aria-label="Close"
-                borderRadius="full"
-                size="sm"
-                color="gray.500"
-                _hover={{ bg: 'blackAlpha.100', color: 'red.500', transform: 'rotate(90deg)' }}
-              />
+              <CornerCloseButton onClick={handleClose} ariaLabel={t('common.close', 'Close')} position="static" />
            </Flex>
 
            {/* 主内容滚动区 */}

@@ -401,7 +401,7 @@
       "problem": "Problem",
       "type": "Type",
       "plan": "Plan",
-      "viewChart": "View History Chart",
+      "viewChart": "Review Progress",
       "chartTitle": "History Chart"
     },
     "selectedDay": {
@@ -417,6 +417,11 @@
       "title": "No History Yet",
       "description": "Start learning or reviewing problems to see your progress here.",
       "cta": "Go to Dashboard"
+    },
+    "detail": {
+      "learningDate": "Learning Date",
+      "nextReview": "Next Review",
+      "records": "Records"
     }
   },
   "study_plans": {

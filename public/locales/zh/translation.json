@@ -123,8 +123,8 @@
       "focusPatterns": "聚焦核心题型"
     },
     "studyPlan": {
-       "title": "当前题库"
-     },
+      "title": "当前题库"
+    },
     "studyPlanDesc": "选择你当前正在进行的刷题计划",
     "dataManagement": {
       "title": "数据管理",
@@ -162,48 +162,48 @@
       "streak": "连续打卡",
       "streakHelp": "持续学习，保持节奏",
       "days": "天"
-  },
-  "greeting": {
+    },
+    "greeting": {
       "morning": "早上好",
       "afternoon": "下午好",
       "evening": "晚上好"
-  },
-  "welcome": {
+    },
+    "welcome": {
       "subtitle": "准备好解决一些问题了吗？",
       "streak": "连胜",
       "streakFrozen": "冻结",
       "activities": "今日活动",
       "overdueTasks": "个任务已逾期"
-  },
-  "achievements": {
+    },
+    "achievements": {
       "title": "成就",
       "nextGoal": "下个目标",
       "streak_3": {
-          "title": "连胜新手",
-          "desc": "达成 3 天连胜"
+        "title": "连胜新手",
+        "desc": "达成 3 天连胜"
       },
       "streak_7": {
-          "title": "连胜大师",
-          "desc": "达成 7 天连胜"
+        "title": "连胜大师",
+        "desc": "达成 7 天连胜"
       },
       "streak_21": {
-          "title": "习惯养成者",
-          "desc": "达成 21 天连胜"
+        "title": "习惯养成者",
+        "desc": "达成 21 天连胜"
       },
       "daily_5": {
-          "title": "每日刷题狂人",
-          "desc": "一天内完成 5 次活动"
+        "title": "每日刷题狂人",
+        "desc": "一天内完成 5 次活动"
       },
       "master_10": {
-          "title": "解题能手",
-          "desc": "掌握 10 道题目"
+        "title": "解题能手",
+        "desc": "掌握 10 道题目"
       },
       "master_50": {
-          "title": "专家",
-          "desc": "掌握 50 道题目"
+        "title": "专家",
+        "desc": "掌握 50 道题目"
       }
-  },
-  "charts": {
+    },
+    "charts": {
       "coverage": "练习覆盖率",
       "coverageBadge": "实时",
       "activity": "21 日学习曲线",
@@ -401,7 +401,7 @@
       "problem": "题目",
       "type": "类型",
       "plan": "题库",
-      "viewChart": "查看历史图表",
+      "viewChart": "复习进度",
       "chartTitle": "历史记录图表"
     },
     "selectedDay": {
@@ -417,6 +417,11 @@
       "title": "暂无历史记录",
       "description": "开始学习或复习题目，在这里查看你的进度。",
       "cta": "返回仪表盘"
+    },
+    "detail": {
+      "learningDate": "学习日期",
+      "nextReview": "下次复习",
+      "records": "记录"
     }
   },
   "study_plans": {

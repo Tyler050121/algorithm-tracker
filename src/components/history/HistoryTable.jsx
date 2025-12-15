@@ -49,7 +49,7 @@ const HistoryTable = ({
       {/* Scrollable Table Container */}
       <Box 
         overflowY="auto" 
-        overflowX="auto"
+        overflowX="hidden"
         flex={1} 
         onScroll={handleScroll}
         ref={scrollContainerRef}
@@ -60,23 +60,21 @@ const HistoryTable = ({
           overscrollBehavior: 'contain',
         }}
       >
-        <Table variant="unstyled" size="sm">
+        <Table variant="unstyled" size="sm" sx={{ tableLayout: 'fixed' }}>
           <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
             <Tr>
               <Th whiteSpace="nowrap" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
-              <Th whiteSpace="nowrap" width="80px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">ID</Th>
-              <Th whiteSpace="nowrap" width="250px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
-              <Th whiteSpace="nowrap" display={{ base: 'none', md: 'table-cell' }} textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.plan')}</Th>
-              <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
-              <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
-              <Th whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
+              <Th whiteSpace="nowrap" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
+              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
+              <Th whiteSpace="nowrap" width="170px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.viewChart')}</Th>
+              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {displayedHistory.map((item, index) => (
+            {displayedHistory.map((item) => (
               <HistoryRow
                 key={item.id}
-                index={index}
                 item={item}
                 newDate={newDate}
                 setNewDate={setNewDate}
