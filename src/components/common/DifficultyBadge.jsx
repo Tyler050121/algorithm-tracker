@@ -1,41 +1,80 @@
-import React from 'react';
-import { Badge, useColorModeValue, useToken } from '@chakra-ui/react';
-import { useTranslation } from 'react-i18next';
-import { DIFFICULTY_MAP } from '../../constants';
-import { hexToRgba } from '../../theme/deriveThemeColors';
+import { Badge, Box, HStack, Icon, useColorModeValue } from "@chakra-ui/react";
+import { FiBookOpen, FiCheckCircle, FiRefreshCcw, FiZap } from "react-icons/fi";
 
-const DifficultyBadge = ({ difficulty, ...props }) => {
-  const { t } = useTranslation();
-  const safeDifficulty = difficulty?.toLowerCase() || 'unknown';
-  const { label, color } = DIFFICULTY_MAP[safeDifficulty] || { label: 'Unknown', color: 'gray' };
+const getDifficultyLevel = (difficulty) => {
+  const d = String(difficulty ?? "").toLowerCase();
+  if (d === "easy") return 1;
+  if (d === "medium") return 2;
+  if (d === "hard") return 3;
+  return 0;
+};
 
-  const [bgLightHex, bgDarkHex, borderLightHex, borderDarkHex] = useToken('colors', [
-    `${color}.200`,
-    `${color}.500`,
-    `${color}.300`,
-    `${color}.500`,
-  ]);
+const getDifficultyTone = (difficulty) => {
+  const d = String(difficulty ?? "").toLowerCase();
+  if (d === "easy") return "green";
+  if (d === "medium") return "orange";
+  if (d === "hard") return "red";
+  return "gray";
+};
 
-  const bg = useColorModeValue(bgLightHex, hexToRgba(bgDarkHex, 0.45));
-  const textColor = useColorModeValue(`${color}.900`, `${color}.50`);
-  const borderColor = useColorModeValue(borderLightHex, hexToRgba(borderDarkHex, 0.5));
+export const DifficultyMeter = ({ difficulty, ...props }) => {
+  const level = getDifficultyLevel(difficulty);
+  const tone = getDifficultyTone(difficulty);
+  const filled = useColorModeValue(`${tone}.600`, `${tone}.300`);
+  const empty = useColorModeValue("gray.300", "whiteAlpha.600");
+
+  return (
+    <HStack
+      spacing={0.5}
+      px={0}
+      py={0}
+      alignItems="flex-end"
+      display="inline-flex"
+      aria-label={`difficulty:${difficulty}`}
+      {...props}
+    >
+      {[0, 1, 2].map((i) => (
+        <Box
+          key={i}
+          as="span"
+          w="4px"
+          h={i === 0 ? "6px" : i === 1 ? "8px" : "10px"}
+          borderRadius="sm"
+          bg={level >= i + 1 ? filled : empty}
+        />
+      ))}
+    </HStack>
+  );
+};
+
+export const TypeTag = ({ type, label, ...props }) => {
+  const icon =
+    type === "learn"
+      ? FiBookOpen
+      : type === "review"
+      ? FiRefreshCcw
+      : type === "solve"
+      ? FiCheckCircle
+      : FiZap;
+  const isLearn = type === "learn";
 
   return (
     <Badge
-      bg={bg}
-      color={textColor}
-      border="1px solid"
-      borderColor={borderColor}
-      fontSize="xs"
-      px={2}
+      variant="subtle"
+      colorScheme={isLearn ? "brand" : "accent"}
+      fontSize="10px"
+      px={1.5}
       py={0.5}
       borderRadius="md"
-      fontWeight="bold"
+      display="inline-flex"
+      alignItems="center"
+      gap={1}
       {...props}
     >
-      {t(`dashboard.difficulty.${safeDifficulty}`, label)}
+      <Icon as={icon} boxSize={3} />
+      {label}
     </Badge>
   );
 };
 
-export default DifficultyBadge;
+export default DifficultyMeter;

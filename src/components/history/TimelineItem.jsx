@@ -15,7 +15,7 @@ import {
 } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import ReviewProgressBars from "./ReviewProgressBars";
-import { DifficultyMeter, TypeTag } from "./HistoryBadges";
+import { DifficultyMeter, TypeTag } from "../common/DifficultyBadge";
 
 const TimelineItem = ({ item, isLast, onChartOpen, onUndo }) => {
   const { t, i18n } = useTranslation();

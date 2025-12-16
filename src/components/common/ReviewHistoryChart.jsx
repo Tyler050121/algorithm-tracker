@@ -12,7 +12,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import ReviewProgressBars from '../history/ReviewProgressBars';
-import { TypeTag } from '../history/HistoryBadges';
+import { TypeTag } from './DifficultyBadge';
 
 function ReviewHistoryChart({ problem }) {
   const { t } = useTranslation();
@@ -21,6 +21,14 @@ function ReviewHistoryChart({ problem }) {
 
   const FLASH_MS = 1100;
   const CLEAR_AFTER_MS = FLASH_MS * 3;
+
+  const cardBg = useColorModeValue('gray.50', 'whiteAlpha.50');
+  const subtle = useColorModeValue('gray.600', 'gray.400');
+  const value = useColorModeValue('gray.900', 'gray.100');
+  const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100');
+  const brandColor = useColorModeValue('brand.600', 'brand.300');
+  const accentColor = useColorModeValue('accent.600', 'accent.300');
+  const transparentColor = useColorModeValue('transparent', 'transparent');
 
   useEffect(() => {
     if (clearTimerRef.current) {
@@ -56,11 +64,6 @@ function ReviewHistoryChart({ problem }) {
       .sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [problem]);
 
-  const cardBg = useColorModeValue('gray.50', 'whiteAlpha.50');
-  const subtle = useColorModeValue('gray.600', 'gray.400');
-  const value = useColorModeValue('gray.900', 'gray.100');
-  const rowHover = useColorModeValue('blackAlpha.50', 'whiteAlpha.100');
-
   if (!problem || events.length === 0) {
     return (
       <Flex justify="center" align="center" h="150px">
@@ -90,11 +93,11 @@ function ReviewHistoryChart({ problem }) {
             <Text fontWeight="bold">{t('history.table.viewChart')}</Text>
             <HStack spacing={3} fontSize="xs" color={subtle}>
               <HStack spacing={1.5}>
-                <Box w="8px" h="8px" borderRadius="full" bg={useColorModeValue('brand.600', 'brand.300')} />
+                <Box w="8px" h="8px" borderRadius="full" bg={brandColor} />
                 <Text>{t('history.actionType.learn')}</Text>
               </HStack>
               <HStack spacing={1.5}>
-                <Box w="8px" h="8px" borderRadius="full" bg={useColorModeValue('accent.600', 'accent.300')} />
+                <Box w="8px" h="8px" borderRadius="full" bg={accentColor} />
                 <Text>{t('history.actionType.review')}</Text>
               </HStack>
             </HStack>
@@ -157,7 +160,7 @@ function ReviewHistoryChart({ problem }) {
                 <HStack
                   key={`${e.date}-${e.type}-${idx}`}
                   justify="space-between"
-                  bg={isSelected ? rowHover : useColorModeValue('transparent', 'transparent')}
+                  bg={isSelected ? rowHover : transparentColor}
                   px={2}
                   py={2}
                   borderRadius="md"

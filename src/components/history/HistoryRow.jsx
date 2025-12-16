@@ -26,7 +26,7 @@ import {
 } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import ReviewProgressBars from './ReviewProgressBars';
-import { DifficultyMeter, TypeTag } from './HistoryBadges';
+import { DifficultyMeter, TypeTag } from '../common/DifficultyBadge';
 
 const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate, handleChartOpen }) => {
   const { t, i18n } = useTranslation();
