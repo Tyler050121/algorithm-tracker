@@ -230,16 +230,21 @@
       "unstarted": "Unstarted"
     },
     "review": {
-      "title": "Today's Review",
+      "todayGroup": "Today",
+      "listTitle": "Review List",
+      "badgeToday": "Review Today: {{count}}",
+      "subtitle": "Daily Review",
       "tomorrow": "Reviewing is the key to mastery.",
       "countBadge": "{{count}} problems",
       "empty": "All reviews for today are done ✨",
       "next": "Next: {{date}}",
       "done": "Done",
+      "pending": "Pending",
       "tooltip": "Mark as Reviewed"
     },
     "suggestions": {
       "title": "New Suggestions",
+      "badgeTop": "TOP3",
       "badge": "Focus Practice",
       "subtitle": "Pick a new problem and challenge yourself!",
       "empty": "No unstarted problems. Keep it up!",

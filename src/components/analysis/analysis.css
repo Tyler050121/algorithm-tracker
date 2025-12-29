@@ -1,0 +1,214 @@
+/* Analysis Table Column Widths */
+.analysis-date-col {
+  width: 150px;
+}
+
+.analysis-difficulty-col {
+  width: 110px;
+}
+
+.analysis-type-col {
+  width: 110px;
+}
+
+.analysis-chart-col {
+  width: 170px;
+}
+
+.analysis-actions-col {
+  width: 110px;
+}
+
+/* Scrollbar Styles */
+.analysis-scroll-container::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.analysis-scroll-container::-webkit-scrollbar-track {
+  width: 6px;
+}
+
+.analysis-scroll-container::-webkit-scrollbar-thumb {
+  border-radius: 24px;
+}
+
+/* AnalysisHeatmap.jsx */
+.heatmap-container {
+  width: 100%;
+  padding: 24px;
+  border-radius: 16px; /* 2xl */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* sm */
+  border-width: 1px;
+  border-style: solid;
+  flex-shrink: 0;
+}
+
+.calendar-container .react-calendar-heatmap rect { 
+  rx: 3px; 
+  ry: 3px; 
+}
+
+.calendar-container text { 
+  font-size: 10px; 
+}
+
+/* TimeScopeChart.jsx */
+.timescope-container {
+  border-radius: 16px; /* 2xl */
+  padding: 24px; /* 6 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* sm */
+  border-width: 1px;
+  border-style: solid;
+  display: flex;
+  flex-direction: column;
+}
+
+.timescope-select {
+  width: 150px !important;
+}
+
+.timescope-date-label {
+  min-width: 100px;
+}
+
+.timescope-tooltip {
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* TimelineItem.jsx */
+.timeline-row {
+  display: flex;
+  gap: 12px; /* 3 */
+  position: relative;
+  padding-bottom: 20px; /* 5 */
+}
+
+.timeline-row.last {
+  padding-bottom: 0;
+}
+
+.timeline-item-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 48px;
+  padding-top: 4px; /* 1 */
+}
+
+.timeline-dot-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.timeline-time-text {
+  font-size: 12px; /* xs */
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.timeline-dot {
+  width: 8px;
+  height: 8px;
+  z-index: 1;
+  margin-top: 6px;
+}
+
+.timeline-line {
+  width: 1px;
+  flex: 1;
+  position: absolute;
+  bottom: 0;
+  top: 10px;
+}
+
+.timeline-content-box {
+  flex: 1;
+}
+
+.timeline-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px; /* 3 */
+  border-radius: 8px; /* lg */
+  margin-left: 2px; /* 0.5 */
+}
+
+/* ActivityStream.jsx */
+.activity-stream-container {
+  width: 100%;
+  height: 500px;
+  flex-shrink: 0;
+  padding: 24px; /* 6 */
+  border-radius: 16px; /* 2xl */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* sm */
+  border-width: 1px;
+  border-style: solid;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 1280px) {
+  .activity-stream-container {
+    height: 100%;
+  }
+}
+
+.activity-stream-empty {
+  min-height: 200px;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 12px; /* xl */
+}
+
+/* AnalysisTable.jsx */
+.analysis-table-container {
+  width: 100%;
+  padding: 24px; /* 6 */
+  border-radius: 16px; /* 2xl */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* sm */
+  border-width: 1px;
+  border-style: solid;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.analysis-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+}
+
+/* ReviewProgressBars.jsx */
+.review-progress-dot {
+  display: inline-block;
+  border-radius: 9999px; /* full */
+  border: 1px solid;
+  transition: transform 180ms ease-out, opacity 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+.review-progress-dot-xs {
+  width: 5px;
+  height: 5px;
+}
+
+.review-progress-dot-sm {
+  width: 6px;
+  height: 6px;
+}
+
+.review-progress-dot-md {
+  width: 8px;
+  height: 8px;
+}

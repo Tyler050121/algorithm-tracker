@@ -10,9 +10,10 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import HistoryRow from './HistoryRow';
+import AnalysisRow from './AnalysisRow';
+import './analysis.css';
 
-const HistoryTable = ({ 
+const AnalysisTable = ({ 
   displayedHistory, 
   handleScroll, 
   newDate, 
@@ -32,48 +33,36 @@ const HistoryTable = ({
 
   return (
     <Box 
-      w="full"
+      className="analysis-table-container"
       bg={cardBg} 
-      boxShadow="sm" 
-      borderRadius="2xl" 
-      p={6}
-      border="1px solid"
       borderColor={borderColor}
-      flex={1}
-      display="flex"
-      flexDirection="column"
-      overflow="hidden"
     >
       <Heading size="md" mb={4} flexShrink={0}>{t('history.table.title')}</Heading>
       
       {/* Scrollable Table Container */}
       <Box 
-        overflowY="auto" 
-        overflowX="hidden"
-        flex={1} 
+        className="analysis-scroll-container"
         onScroll={handleScroll}
         ref={scrollContainerRef}
         css={{
-          '&::-webkit-scrollbar': { width: '4px', height: '4px' },
-          '&::-webkit-scrollbar-track': { width: '6px' },
-          '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg, borderRadius: '24px' },
+          '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg },
           overscrollBehavior: 'contain',
         }}
       >
         <Table variant="unstyled" size="sm" sx={{ tableLayout: 'fixed' }}>
           <Thead position="sticky" top={0} bg={headerBg} zIndex={10} shadow="sm">
             <Tr>
-              <Th whiteSpace="nowrap" width="120px" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
+              <Th className="analysis-date-col" whiteSpace="nowrap" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.date')}</Th>
               <Th whiteSpace="nowrap" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.problem')}</Th>
-              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
-              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
-              <Th whiteSpace="nowrap" width="170px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.viewChart')}</Th>
-              <Th whiteSpace="nowrap" width="110px" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
+              <Th className="analysis-difficulty-col" whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('problems.table.difficulty')}</Th>
+              <Th className="analysis-type-col" whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.type')}</Th>
+              <Th className="analysis-chart-col" whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('history.table.viewChart')}</Th>
+              <Th className="analysis-actions-col" whiteSpace="nowrap" textAlign="center" py={4} fontSize="xs" color="gray.500" textTransform="uppercase" letterSpacing="wider">{t('common.actions')}</Th>
             </Tr>
           </Thead>
           <Tbody>
             {displayedHistory.map((item) => (
-              <HistoryRow
+              <AnalysisRow
                 key={item.id}
                 item={item}
                 newDate={newDate}
@@ -90,4 +79,4 @@ const HistoryTable = ({
   );
 };
 
-export default HistoryTable;
+export default AnalysisTable;

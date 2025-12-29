@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import ReviewProgressBars from '../history/ReviewProgressBars';
+import ReviewProgressBars from '../analysis/ReviewProgressBars';
 import { TypeTag } from './DifficultyBadge';
 
 function ReviewHistoryChart({ problem }) {

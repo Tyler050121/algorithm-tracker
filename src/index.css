@@ -10,6 +10,17 @@
     border-color: #f56565; /* red.500 */
   }
 }
+
+html {
+  /* 
+    Fluid Typography for Scaling
+    - Base size: 16px
+    - Scaling factor: 100vw / 1920 * 16 = 0.833333vw
+    - Behavior: Remains 16px on screens <= 1920px, scales up on screens > 1920px (e.g., 2K, 4K)
+  */
+  font-size: max(16px, 0.833333vw);
+}
+
 :root {
   font-family: 'Plus Jakarta Sans', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

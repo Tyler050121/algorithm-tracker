@@ -304,7 +304,8 @@ function SolutionDrawer({ problem, isOpen, onClose, onAddSolution, onUpdateSolut
     const solId = currentSolution.id;
     onDeleteSolution(problem.id, solId);
     if (solutions.length <= 1) {
-      handleCreate(); 
+      setIsEditing(false);
+      setActiveIndex(0);
     } else {
       setActiveIndex(prev => Math.max(0, prev - 1));
     }

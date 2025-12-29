@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, HStack, useColorModeValue } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { REVIEW_INTERVALS } from '../../constants';
+import './analysis.css';
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -32,8 +33,6 @@ const ReviewProgressBars = ({
   const reviews = Array.isArray(problem?.reviewHistory) ? problem.reviewHistory.length : 0;
   const done = clamp(learned + reviews, 0, total);
 
-  // Dot-matrix style: compact circles, no outer border.
-  const dot = size === 'xs' ? '5px' : size === 'md' ? '8px' : '6px';
   const spacing = size === 'xs' ? 0.5 : 1;
   const paddingX = size === 'xs' ? 1 : 2;
   const paddingY = size === 'xs' ? 0.5 : 1;
@@ -56,20 +55,16 @@ const ReviewProgressBars = ({
       {Array.from({ length: total }).map((_, i) => {
         const filled = i === 0 ? learnFilled : reviewFilled;
         const isSelected = typeof selectedIndex === 'number' && selectedIndex === i;
+        const sizeClass = `review-progress-dot-${size}`;
         return (
           <Box
             key={i}
-            display="inline-block"
-            w={dot}
-            h={dot}
-            borderRadius="full"
+            className={`review-progress-dot ${sizeClass}`}
             bg={i < done ? filled : emptyBg}
-            border="1px solid"
             borderColor={i < done ? 'transparent' : emptyBorder}
             sx={isSelected ? { '--flashRing': selectedRing } : undefined}
             animation={isSelected ? `${flash} 1100ms ease-in-out infinite` : undefined}
             willChange={isSelected ? 'transform, opacity, box-shadow' : undefined}
-            transition="transform 180ms ease-out, opacity 180ms ease-out, box-shadow 180ms ease-out"
             onClick={(e) => {
               if (!onSelectIndex) return;
               e.stopPropagation();

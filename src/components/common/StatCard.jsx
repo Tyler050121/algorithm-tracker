@@ -8,7 +8,6 @@ import {
   VStack,
   useColorModeValue,
 } from '@chakra-ui/react';
-import SpotlightCard from '../common/SpotlightCard';
 
 function StatCard({ icon, label, value, helpText }) {
   const bg = useColorModeValue('white', 'gray.800');
@@ -17,7 +16,7 @@ function StatCard({ icon, label, value, helpText }) {
   const borderColor = useColorModeValue('gray.100', 'gray.700');
 
   return (
-    <SpotlightCard 
+    <Box 
       bg={bg} 
       p={5} 
       borderRadius="2xl" 
@@ -43,7 +42,7 @@ function StatCard({ icon, label, value, helpText }) {
           {helpText && <Text fontSize="xs" color="gray.400">{helpText}</Text>}
         </VStack>
       </HStack>
-    </SpotlightCard>
+    </Box>
   );
 }
 

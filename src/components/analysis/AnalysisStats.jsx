@@ -4,7 +4,7 @@ import { FiActivity, FiCalendar, FiRepeat } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import StatCard from '../common/StatCard';
 
-const HistoryStats = ({ totalLearns, totalReviews, activeDays }) => {
+const AnalysisStats = ({ totalLearns, totalReviews, activeDays }) => {
   const { t } = useTranslation();
 
   return (
@@ -31,4 +31,4 @@ const HistoryStats = ({ totalLearns, totalReviews, activeDays }) => {
   );
 };
 
-export default HistoryStats;
+export default AnalysisStats;

@@ -11,6 +11,7 @@ import {
 import { FiCalendar } from 'react-icons/fi';
 import { format, parseISO } from 'date-fns';
 import TimelineItem from './TimelineItem';
+import './analysis.css';
 
 const ActivityStream = ({ 
   selectedDate, 
@@ -25,18 +26,9 @@ const ActivityStream = ({
 
   return (
     <Box 
-      w={{ base: 'full', xl: '380px' }} 
-      h={{ base: '500px', xl: 'full' }}
-      flexShrink={0}
+      className="activity-stream-container"
       bg={cardBg}
-      boxShadow="sm"
-      borderRadius="2xl"
-      p={6}
-      border="1px solid"
       borderColor={borderColor}
-      display="flex"
-      flexDirection="column"
-      overflow="hidden"
     >
         <VStack align="start" spacing={1} mb={6} flexShrink={0}>
           <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase" letterSpacing="wide">
@@ -51,13 +43,12 @@ const ActivityStream = ({
         </VStack>
         
         <Box 
+          className="analysis-scroll-container"
           flex={1} 
           overflowY="auto" 
           pr={selectedDayActivities.length > 0 ? 2 : 0}
           css={{
-            '&::-webkit-scrollbar': { width: '4px' },
-            '&::-webkit-scrollbar-track': { width: '6px' },
-            '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg, borderRadius: '24px' },
+            '&::-webkit-scrollbar-thumb': { background: scrollbarThumbBg },
           }}
         >
           {selectedDayActivities.length > 0 ? (
@@ -73,7 +64,7 @@ const ActivityStream = ({
               ))}
             </Box>
           ) : (
-            <Flex flex={1} align="center" justify="center" direction="column" color="gray.400" bg={emptyStateBg} borderRadius="xl" minH="200px" h="full">
+            <Flex className="activity-stream-empty" color="gray.400" bg={emptyStateBg}>
               <Icon as={FiCalendar} boxSize={10} mb={3} opacity={0.4} />
               <Text fontSize="sm" fontWeight="medium">No activities on this day</Text>
             </Flex>

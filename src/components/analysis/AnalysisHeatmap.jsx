@@ -11,10 +11,10 @@ import CalendarHeatmap from 'react-calendar-heatmap';
 import { Tooltip as ReactTooltip } from 'react-tooltip';
 import { subYears } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import SpotlightCard from '../common/SpotlightCard';
 import 'react-calendar-heatmap/dist/styles.css';
+import './analysis.css';
 
-const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
+const AnalysisHeatmap = ({ heatmapData, setSelectedDate }) => {
   const { t } = useTranslation();
   
   // Colors
@@ -43,16 +43,10 @@ const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
   ]);
 
   return (
-    <SpotlightCard
-      w="full"
+    <Box
+      className="calendar-container heatmap-container"
       bg={cardBg}
-      boxShadow="sm"
-      borderRadius="2xl"
-      p={6}
-      border="1px solid"
       borderColor={borderColor}
-      className="calendar-container"
-      flexShrink={0}
     >
       <HStack justify="space-between" mb={6}>
          <Heading size="md">{t('history.calendar.title')}</Heading>
@@ -66,8 +60,6 @@ const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
         .calendar-container .react-calendar-heatmap .color-scale-3 { fill: ${heatMapScale3}; }
         .calendar-container .react-calendar-heatmap .color-scale-4 { fill: ${heatMapScale4}; }
         .calendar-container .react-calendar-heatmap rect:focus { outline: none; }
-        .calendar-container .react-calendar-heatmap rect { rx: 3px; ry: 3px; }
-        .calendar-container text { font-size: 10px; fill: gray; }
       `}</style>
       
       <CalendarHeatmap
@@ -86,8 +78,8 @@ const HistoryHeatmap = ({ heatmapData, setSelectedDate }) => {
         onClick={value => value && setSelectedDate(value)}
       />
       <ReactTooltip id="heatmap-tooltip" />
-    </SpotlightCard>
+    </Box>
   );
 };
 
-export default HistoryHeatmap;
+export default AnalysisHeatmap;

@@ -10,11 +10,11 @@ const getDifficultyLevel = (difficulty) => {
 };
 
 const getDifficultyTone = (difficulty) => {
-  const d = String(difficulty ?? "").toLowerCase();
-  if (d === "easy") return "green";
-  if (d === "medium") return "orange";
-  if (d === "hard") return "red";
-  return "gray";
+  const d = String(difficulty ?? "").toLowerCase().trim();
+  if (d === "easy") return "difficulty.easy";
+  if (d === "medium") return "difficulty.medium";
+  if (d === "hard") return "difficulty.hard";
+  return "neutral";
 };
 
 export const DifficultyMeter = ({ difficulty, ...props }) => {

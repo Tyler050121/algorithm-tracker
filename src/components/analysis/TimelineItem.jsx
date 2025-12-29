@@ -16,6 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import ReviewProgressBars from "./ReviewProgressBars";
 import { DifficultyMeter, TypeTag } from "../common/DifficultyBadge";
+import './analysis.css';
 
 const TimelineItem = ({ item, isLast, onChartOpen, onUndo }) => {
   const { t, i18n } = useTranslation();
@@ -29,50 +30,38 @@ const TimelineItem = ({ item, isLast, onChartOpen, onUndo }) => {
   const metaColor = useColorModeValue("gray.600", "gray.400");
 
   return (
-    <Flex gap={3} position="relative" pb={isLast ? 0 : 5}>
+    <Flex className={`timeline-row ${isLast ? 'last' : ''}`}>
       {/* Time Column */}
-      <Flex direction="column" align="flex-end" minW="48px" pt={1}>
+      <Flex className="timeline-item-container">
         <Text
-          fontSize="xs"
-          fontWeight="bold"
+          className="timeline-time-text"
           color={timeColor}
-          fontFamily="monospace"
         >
           {format(parseISO(item.date), "HH:mm")}
         </Text>
       </Flex>
 
       {/* Line & Dot */}
-      <Flex direction="column" align="center" position="relative">
+      <Flex className="timeline-dot-container">
         <Circle
-          size="8px"
+          className="timeline-dot"
           bg={dotColor}
-          zIndex={1}
-          mt={1.5}
           ring={4}
           ringColor={useColorModeValue("white", "gray.800")}
         />
         {!isLast && (
           <Box
-            w="1px"
-            flex={1}
+            className="timeline-line"
             bg={lineColor}
-            position="absolute"
-            top="10px"
-            bottom={0}
           />
         )}
       </Flex>
 
       {/* Content */}
-      <Box flex={1} pb={0}>
+      <Box className="timeline-content-box">
         <Flex
-          justify="space-between"
-          align="start"
+          className="timeline-card"
           bg={cardBg}
-          p={3}
-          borderRadius="lg"
-          ml={0.5}
         >
           <VStack align="start" spacing={2} flex={1}>
             <Text

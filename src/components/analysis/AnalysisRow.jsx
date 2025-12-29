@@ -28,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 import ReviewProgressBars from './ReviewProgressBars';
 import { DifficultyMeter, TypeTag } from '../common/DifficultyBadge';
 
-const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate, handleChartOpen }) => {
+const AnalysisRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate, handleChartOpen }) => {
   const { t, i18n } = useTranslation();
   const dateObj = parseISO(item.date);
   const dateStr = format(dateObj, 'yyyy-MM-dd');
@@ -130,6 +130,6 @@ const HistoryRow = React.memo(({ item, newDate, setNewDate, onUndo, onUpdateDate
   );
 });
 
-HistoryRow.displayName = 'HistoryRow';
+AnalysisRow.displayName = 'AnalysisRow';
 
-export default HistoryRow;
+export default AnalysisRow;

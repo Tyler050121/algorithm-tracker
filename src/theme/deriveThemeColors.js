@@ -206,5 +206,10 @@ export const deriveThemeColorsFromScheme = (scheme) => {
     warning: generateColorScale(warningSeed),
     danger: generateColorScale(dangerSeed),
     neutral: generateColorScale(neutralSeed),
+    difficulty: {
+      easy: generateColorScale('#48BB78'),
+      medium: generateColorScale('#ED8936'),
+      hard: generateColorScale('#F56565'),
+    },
   };
 };

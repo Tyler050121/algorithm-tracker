@@ -4,7 +4,7 @@ import { useProblems } from '../context/ProblemContext';
 import { normalizeProblem } from '../utils/helpers';
 import { db } from '../db';
 
-export const useHistoryStats = () => {
+export const useAnalysisStats = () => {
   const { problems } = useProblems(); // 当前计划的题目
   const [allProblemsFromDB, setAllProblemsFromDB] = useState([]);
 

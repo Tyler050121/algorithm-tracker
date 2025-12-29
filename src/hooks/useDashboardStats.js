@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { isBefore, addDays, startOfToday, format, sub, parseISO } from 'date-fns';
 import { useProblems } from '../context/ProblemContext';
+
+import { useTranslation } from 'react-i18next';
 
 export const useDashboardStats = () => {
   const { t } = useTranslation();
@@ -54,16 +55,47 @@ export const useDashboardStats = () => {
     [t, stats.unstartedCount, stats.learningCount, stats.masteredCount]
   );
 
+  const difficultyStats = useMemo(() => {
+    const easyAll = problems.filter(p => p.difficulty?.toLowerCase() === 'easy');
+    const mediumAll = problems.filter(p => p.difficulty?.toLowerCase() === 'medium');
+    const hardAll = problems.filter(p => p.difficulty?.toLowerCase() === 'hard');
+    
+    const calcStats = (arr, color, lightColor) => {
+      const total = arr.length;
+      const learning = arr.filter(p => p.status === 'learning').length;
+      const mastered = arr.filter(p => p.status === 'mastered').length;
+      const done = learning + mastered;
+      return {
+        total,
+        learning,
+        mastered,
+        done,
+        color,
+        lightColor,
+        percent: total > 0 ? Math.round((done / total) * 100) : 0,
+        learningPercent: total > 0 ? (learning / total) * 100 : 0,
+        masteredPercent: total > 0 ? (mastered / total) * 100 : 0,
+      };
+    };
+    
+    return [
+      { name: 'Easy', ...calcStats(easyAll, '#48BB78', '#9AE6B4') },
+      { name: 'Medium', ...calcStats(mediumAll, '#ED8936', '#FBD38D') },
+      { name: 'Hard', ...calcStats(hardAll, '#F56565', '#FEB2B2') },
+    ];
+  }, [problems]);
+
   const upcomingSchedule = useMemo(() => {
     return Array.from({ length: 7 }, (_, idx) => {
       const target = addDays(today, idx);
       const iso = format(target, 'yyyy-MM-dd');
-      const count = problems.filter((p) => p.nextReviewDate === iso).length;
+      const dailyProblems = problems.filter((p) => p.nextReviewDate === iso);
       return {
         iso,
         weekday: format(target, 'EEE'),
         label: format(target, 'MM-dd'),
-        count,
+        count: dailyProblems.length,
+        problems: dailyProblems
       };
     });
   }, [problems, today]);
@@ -156,53 +188,6 @@ export const useDashboardStats = () => {
     return count;
   }, [problems, today]);
 
-  const achievements = useMemo(() => {
-    const list = [
-      {
-        id: 'streak_3',
-        icon: '🔥',
-        title: t('dashboard.achievements.streak_3.title', 'Streak Novice'),
-        desc: t('dashboard.achievements.streak_3.desc', 'Reach a 3-day streak'),
-        unlocked: streak >= 3,
-      },
-      {
-        id: 'streak_7',
-        icon: '⚡',
-        title: t('dashboard.achievements.streak_7.title', 'Streak Master'),
-        desc: t('dashboard.achievements.streak_7.desc', 'Reach a 7-day streak'),
-        unlocked: streak >= 7,
-      },
-      {
-        id: 'streak_21',
-        icon: '🏆',
-        title: t('dashboard.achievements.streak_21.title', 'Habit Builder'),
-        desc: t('dashboard.achievements.streak_21.desc', 'Reach a 21-day streak'),
-        unlocked: streak >= 21,
-      },
-      {
-        id: 'daily_5',
-        icon: '💪',
-        title: t('dashboard.achievements.daily_5.title', 'Daily Grinder'),
-        desc: t('dashboard.achievements.daily_5.desc', 'Complete 5 activities in a day'),
-        unlocked: todayActivityCount >= 5,
-      },
-      {
-        id: 'master_10',
-        icon: '🧠',
-        title: t('dashboard.achievements.master_10.title', 'Problem Solver'),
-        desc: t('dashboard.achievements.master_10.desc', 'Master 10 problems'),
-        unlocked: stats.masteredCount >= 10,
-      },
-      {
-        id: 'master_50',
-        icon: '🎓',
-        title: t('dashboard.achievements.master_50.title', 'Expert'),
-        desc: t('dashboard.achievements.master_50.desc', 'Master 50 problems'),
-        unlocked: stats.masteredCount >= 50,
-      },
-    ];
-    return list;
-  }, [streak, todayActivityCount, stats.masteredCount, t]);
 
   const overdueCount = useMemo(() => {
     return problems.filter(
@@ -213,36 +198,6 @@ export const useDashboardStats = () => {
     ).length;
   }, [problems, today]);
 
-  // 难度分布统计 - 基于总题库
-  const difficultyStats = useMemo(() => {
-    const easyAll = problems.filter(p => p.difficulty?.toLowerCase() === 'easy');
-    const mediumAll = problems.filter(p => p.difficulty?.toLowerCase() === 'medium');
-    const hardAll = problems.filter(p => p.difficulty?.toLowerCase() === 'hard');
-    
-    const calcStats = (arr, color, lightColor) => {
-      const total = arr.length;
-      const learning = arr.filter(p => p.status === 'learning').length;
-      const mastered = arr.filter(p => p.status === 'mastered').length;
-      const done = learning + mastered;
-      return {
-        total,
-        learning,
-        mastered,
-        done,
-        color,
-        lightColor,
-        percent: total > 0 ? Math.round((done / total) * 100) : 0,
-        learningPercent: total > 0 ? (learning / total) * 100 : 0,
-        masteredPercent: total > 0 ? (mastered / total) * 100 : 0,
-      };
-    };
-    
-    return [
-      { name: 'Easy', ...calcStats(easyAll, '#48BB78', '#9AE6B4') },
-      { name: 'Medium', ...calcStats(mediumAll, '#ED8936', '#FBD38D') },
-      { name: 'Hard', ...calcStats(hardAll, '#F56565', '#FEB2B2') },
-    ];
-  }, [problems]);
 
   return {
     todayStr,
@@ -256,7 +211,6 @@ export const useDashboardStats = () => {
     progressPie,
     upcomingSchedule,
     activitySeries,
-    achievements,
     todayActivityCount,
     overdueCount,
     difficultyStats,

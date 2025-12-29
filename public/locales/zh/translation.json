@@ -7,6 +7,8 @@
     "save": "保存",
     "cancel": "取消",
     "days": "天",
+    "months": "月",
+    "years": "年",
     "close": "关闭",
     "back": "返回",
     "edit": "编辑",
@@ -160,7 +162,7 @@
       "mastered": "已掌握",
       "masteredHelp": "完成全部复习周期",
       "streak": "连续打卡",
-      "streakHelp": "持续学习，保持节奏",
+      "streakHelp": "学习趋势",
       "days": "天"
     },
     "greeting": {
@@ -206,7 +208,7 @@
     "charts": {
       "coverage": "练习覆盖率",
       "coverageBadge": "实时",
-      "activity": "21 日学习曲线",
+      "activity": "学习趋势",
       "activityBadge": "新题 vs 复习",
       "difficulty": "难度分布",
       "pieLabels": {
@@ -230,16 +232,21 @@
       "unstarted": "未开始"
     },
     "review": {
-      "title": "今日复习",
+      "todayGroup": "TODAY",
+      "listTitle": "复习列表",
+      "badgeToday": "今日待复习：{{count}}",
+      "subtitle": "温故知新",
       "tomorrow": "温故而知新，坚持就是胜利。",
       "countBadge": "{{count}} 道题",
       "empty": "今天的复习全部安排完成 ✨",
       "next": "下次: {{date}}",
       "done": "已完成",
+      "pending": "待复习",
       "tooltip": "标记为已复习"
     },
     "suggestions": {
       "title": "新题推荐",
+      "badgeTop": "TOP3",
       "badge": "聚焦练习",
       "subtitle": "挑选一道新题，迎接新的挑战！",
       "empty": "暂无未开始题目，保持掌握状态！",
@@ -327,6 +334,7 @@
     "dashboard": "仪表盘",
     "problems": "题目总览",
     "history": "历史记录",
+    "analysis": "统计分析",
     "dataManagement": "数据管理"
   },
   "dataManagement": {

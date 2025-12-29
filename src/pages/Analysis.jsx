@@ -13,17 +13,17 @@ import { useTranslation } from 'react-i18next';
 import { format, subYears } from 'date-fns';
 import { FiActivity, FiPlayCircle } from 'react-icons/fi';
 import { useProblems } from '../context/ProblemContext';
-import { useHistoryStats } from '../hooks/useHistoryStats';
+import { useAnalysisStats } from '../hooks/useAnalysisStats';
 import ReviewHistoryModal from '../components/common/ReviewHistoryModal';
-import HistoryStats from '../components/history/HistoryStats';
-import HistoryHeatmap from '../components/history/HistoryHeatmap';
-import HistoryTable from '../components/history/HistoryTable';
-import ActivityStream from '../components/history/ActivityStream';
+import AnalysisStats from '../components/analysis/AnalysisStats';
+import AnalysisHeatmap from '../components/analysis/AnalysisHeatmap';
+import AnalysisTable from '../components/analysis/AnalysisTable';
+import ActivityStream from '../components/analysis/ActivityStream';
 
-function HistoryBoard() {
+function AnalysisBoard() {
   const { t } = useTranslation();
   const { undoHistory, updateHistoryDate } = useProblems();
-  const historyData = useHistoryStats();
+  const historyData = useAnalysisStats();
   const [selectedDate, setSelectedDate] = useState({ date: format(new Date(), 'yyyy-MM-dd') });
   const [newDate, setNewDate] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -89,7 +89,7 @@ function HistoryBoard() {
   return (
     <Flex direction="column" h="100%" overflow="hidden">
       {/* Top Stats Row */}
-      <HistoryStats 
+      <AnalysisStats 
         totalLearns={totalLearns} 
         totalReviews={totalReviews} 
         activeDays={activeDays} 
@@ -102,13 +102,13 @@ function HistoryBoard() {
         <VStack flex={1} spacing={6} h="full" overflow="hidden">
           
           {/* Heatmap Section */}
-          <HistoryHeatmap 
+          <AnalysisHeatmap 
             heatmapData={heatmapData} 
             setSelectedDate={setSelectedDate} 
           />
 
           {/* History Table Section */}
-          <HistoryTable 
+          <AnalysisTable 
             displayedHistory={displayedHistory}
             handleScroll={handleScroll}
             newDate={newDate}
@@ -120,12 +120,20 @@ function HistoryBoard() {
         </VStack>
 
         {/* Right Sidebar: Selected Day Stream */}
-        <ActivityStream 
-          selectedDate={selectedDate}
-          selectedDayActivities={selectedDayActivities}
-          handleChartOpen={handleChartOpen}
-          undoHistory={undoHistory}
-        />
+        {/* Adjusted width for better 2k adaptation: using flex basis or percentage */}
+        <Flex 
+          direction="column" 
+          w={{ base: "100%", xl: "350px", "2xl": "25%" }} 
+          minW="300px"
+          flexShrink={0}
+        >
+          <ActivityStream 
+            selectedDate={selectedDate}
+            selectedDayActivities={selectedDayActivities}
+            handleChartOpen={handleChartOpen}
+            undoHistory={undoHistory}
+          />
+        </Flex>
 
       </Flex> {/* End Main Content Split */}
 
@@ -136,4 +144,4 @@ function HistoryBoard() {
   );
 }
 
-export default HistoryBoard;
+export default AnalysisBoard;

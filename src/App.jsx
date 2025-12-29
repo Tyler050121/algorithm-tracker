@@ -4,7 +4,7 @@ import { ProblemProvider } from './context/ProblemProvider';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Problems from './pages/Problems';
-import History from './pages/History';
+import Analysis from './pages/Analysis';
 import SolutionDrawer from './components/common/SolutionDrawer';
 
 const AppContent = () => {
@@ -16,7 +16,7 @@ const AppContent = () => {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Dashboard onOpenSolutions={openSolutions} />} />
           <Route path="problems" element={<Problems onOpenSolutions={openSolutions} />} />
-          <Route path="history" element={<History />} />
+          <Route path="analysis" element={<Analysis />} />
         </Route>
       </Routes>
 
